@@ -135,9 +135,7 @@
         
         async function initFarcaster() {
             try {
-                // Call ready IMMEDIATELY to remove splash screen
                 sdk.actions.ready(); 
-                
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -145,7 +143,7 @@
                     if (window.fcUsername) {
                         let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
                         const titleEl = document.getElementById('mainTitle');
-                        if(titleEl) {
+                        if (titleEl) {
                             titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
                         }
                     }
@@ -234,16 +232,15 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ✅ FIX 2: Using the correct, new smart contract address
 const CONTRACT_ADDRESS = "0x9f56f4cD6225D02d528A415206A9ae89352a761d";
 
 let userAddress=null, provider=null;
 
-// ✅ FIX 3: Correct mathematical selector for startLevel(uint8)
-const SELECTORS={
+// ✅ RESTORED THE CORRECT ORIGINAL SELECTOR!
+const SELECTORS = {
     spin:"0x1515bc2b",
     levelComplete:"0x6c6e75b7",
-    startLevel:"0x82b8a5d3", 
+    startLevel:"0x7a7c1c78", // THIS WAS THE BUG. Restored to your original correct code!
     recordAttempt:"0x0047fb42",
     getLeaderboard:"0x716616a2",
     getSpinStatus:"0x280261cb"
@@ -253,11 +250,7 @@ function pad32(val){return val.toString(16).padStart(64,'0');}
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ==========================================
-// EVENT LISTENERS BINDING
-// ==========================================
 window.addEventListener('load', async () => {
-    // Safely binding buttons so they work inside Farcaster frame
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
@@ -280,9 +273,7 @@ window.addEventListener('load', async () => {
                 }
             }
             showWalletStatus(`✓ ${window.fcUsername?'@'+window.fcUsername:userAddress.slice(0,6)+'...'+userAddress.slice(-4)} · Arbitrum`, true);
-            fetchSpinStatus(); 
-            fetchLeaderboard(); 
-            setInterval(fetchLeaderboard, 30000);
+            if (CONTRACT_ADDRESS !== "REPLACE_AFTER_DEPLOY") { fetchSpinStatus(); fetchLeaderboard(); setInterval(fetchLeaderboard, 30000); }
         } catch(e) { 
             showWalletStatus("Wallet connection failed", false); 
         }
@@ -335,8 +326,7 @@ function buildLevelUI(){
         grid.appendChild(btn);
     }
 }
-
-function selectLevel(n){currentLevel=n;buildLevelUI();document.getElementById('progressText').innerText=`Level ${n}/10`;}
+window.selectLevel = selectLevel;
 
 function jump(){
     initAudio();
@@ -376,8 +366,7 @@ async function startOfficialRun(){
             params:[{
                 from:userAddress,
                 to:CONTRACT_ADDRESS,
-                data:SELECTORS.startLevel+pad32(currentLevel),
-                gas: '0x186a0' 
+                data:SELECTORS.startLevel+pad32(currentLevel)
             }]
         });
         showToast("Official Run Started! Survive 3 mins.","#00ff88");
@@ -459,7 +448,7 @@ function triggerWin(){
         
         if(userAddress&&provider){
             let data=SELECTORS.levelComplete+pad32(currentLevel)+pad32(addScore);
-            provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data,gas:'0x186a0'}]}).catch(()=>{});
+            provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data}]}).catch(()=>{});
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 3 mins)":"(Practice Mode — No Spin)";
@@ -624,7 +613,7 @@ async function executeSpin(){
     try{
         await provider.request({
             method:'eth_sendTransaction',
-            params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.spin,gas:'0x30d40'}] 
+            params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.spin}] 
         });
         animateReels(-1);
         setTimeout(()=>{fetchSpinStatus();document.getElementById('spinResult').innerText="Check wallet for ARB!";},4000);
