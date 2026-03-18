@@ -1,0 +1,39 @@
+{
+  "accountAssociation": {
+    "header": "GeoDash",
+    "payload": "GeoDash Mini App",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "GeoDash",
+    "iconUrl": "https://geodash-YOURNAME.vercel.app/icon.png",
+    "homeUrl": "https://geodash-YOURNAME.vercel.app",
+    "imageUrl": "https://geodash-YOURNAME.vercel.app/preview.png",
+    "screenshotUrls": [
+      "https://geodash-YOURNAME.vercel.app/preview.png"
+    ],
+    "tags": ["game", "arbitrum", "earn"],
+    "primaryCategory": "games",
+    "description": "Geometry Dash clone on Arbitrum! Play 10 levels, spin to win ARB tokens."
+  }
+}
+```
+
+---
+
+## ✅ Final Checklist — Sab Hone Ke Baad:
+```
+GitHub mein hona chahiye:
+□ index.html          ← game file
+□ preview.png         ← 800×418 share image  
+□ icon.png            ← 200×200 app icon
+□ .well-known/
+    farcaster.json    ← Farcaster config
+
+HTML mein fill hona chahiye:
+□ CONTRACT_ADDRESS    ← Remix se mila
+□ YOUR_DOMAIN         ← Vercel URL
+□ icon link           ← upar wali line
+
+Tab Step 6 karo — Farcaster register!
