@@ -90,7 +90,6 @@
         .lvl-btn.active { background: #00f0ff; color: #000; box-shadow: 0 0 15px #00f0ff; }
         .lvl-btn.done { background: rgba(0,255,136,0.08); border-color: #00ff88; color: #00ff88; cursor: pointer; }
 
-        /* ✅ FIXED: Practice vs Official buttons to stop MetaMask spam */
         .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 5px; display: flex; gap: 10px; }
         .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; letter-spacing: 1px; font-family: 'Courier New', monospace; transition: all 0.2s; }
         .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 20px #00f0ff; }
@@ -122,12 +121,12 @@
         .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 10px; width: 100%; max-width: 300px; }
         .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
         .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
-        .odds-bar { font-size: 12px; color: #888; margin-top: 15px; }
 
         .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
         .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
         .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px; }
         #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
+        
         .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
@@ -140,13 +139,12 @@
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
                     const fcPfpUrl = context.user.pfpUrl || null;
-                    
                     if (window.fcUsername) {
                         let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
                         document.getElementById('mainTitle').innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
                     }
                 }
-                sdk.actions.ready(); // This will explicitly remove the splash screen
+                sdk.actions.ready();
             } catch(e) {
                 console.log("Not in Farcaster frame context");
             }
@@ -231,13 +229,15 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-const CONTRACT_ADDRESS="0xB66ba62191f78AEd2e8d45A2d6620bD8f81DfC29";
+// ⚠️ UPDATED CONTRACT ADDRESS ⚠️
+const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+
 let userAddress=null,provider=null;
 
 const SELECTORS={
     spin:"0x1515bc2b",
     levelComplete:"0x6c6e75b7",
-    startLevel:"0x7a7c1c78",
+    startLevel:"0x82b8a5d3",
     recordAttempt:"0x0047fb42",
     getLeaderboard:"0x716616a2",
     getSpinStatus:"0x280261cb"
@@ -453,94 +453,4 @@ function draw(){
     for(let i=0;i<GAME_H;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(GAME_W,i);ctx.stroke();}
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     ctx.shadowBlur=15;ctx.shadowColor='#00f0ff';ctx.strokeStyle='#00f0ff';ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(0,GROUND_Y);ctx.lineTo(GAME_W,GROUND_Y);ctx.stroke();
-    ctx.lineWidth=1;ctx.strokeStyle='rgba(0,240,255,0.3)';
-    ctx.beginPath();ctx.moveTo(0,CEILING_Y);ctx.lineTo(GAME_W,CEILING_Y);ctx.stroke();
-    ctx.shadowBlur=0;
-    for(let o of obstacles){
-        let ox=o.x-worldX;if(ox<-100||ox>GAME_W+100)continue;
-        if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y,o.w,GAME_H-GROUND_Y);ctx.fillStyle='rgba(255,48,96,0.3)';ctx.fillRect(ox,GROUND_Y-4,3,8);ctx.fillRect(ox+o.w-3,GROUND_Y-4,3,8);}
-        else if(o.t==='spike'){let bY=o.onPlatY!==undefined?o.onPlatY:GROUND_Y;ctx.shadowBlur=12;ctx.shadowColor='#ff3060';ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,bY-38);ctx.lineTo(ox+38,bY);ctx.lineTo(ox,bY);ctx.closePath();ctx.fill();ctx.shadowBlur=0;}
-        else if(o.t==='dspike'){ctx.shadowBlur=12;ctx.shadowColor='#ff3060';ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-38);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ox+57,GROUND_Y-38);ctx.lineTo(ox+76,GROUND_Y);ctx.lineTo(ox+38,GROUND_Y);ctx.closePath();ctx.fill();ctx.shadowBlur=0;}
-        else if(o.t==='cspike'){ctx.shadowBlur=12;ctx.shadowColor='#ff3060';ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,CEILING_Y+38);ctx.lineTo(ox+38,CEILING_Y);ctx.lineTo(ox,CEILING_Y);ctx.closePath();ctx.fill();ctx.shadowBlur=0;}
-        else if(o.t==='platform'||o.t==='mplatf'){let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y,bc=o.t==='mplatf'?'#ff7700':'#00ff88';ctx.fillStyle='#0d1e2e';ctx.fillRect(ox,oy,o.w,16);ctx.shadowBlur=8;ctx.shadowColor=bc;ctx.strokeStyle=bc;ctx.lineWidth=2;ctx.strokeRect(ox,oy,o.w,16);ctx.shadowBlur=0;}
-        else if(o.t==='block'){ctx.shadowBlur=8;ctx.shadowColor='#ff3060';ctx.fillStyle='#cc2244';ctx.fillRect(ox,o.y,o.w,o.h);ctx.strokeStyle='#ff3060';ctx.lineWidth=2;ctx.strokeRect(ox,o.y,o.w,o.h);ctx.shadowBlur=0;}
-        else if(o.t==='jpad'){ctx.shadowBlur=15;ctx.shadowColor='#ffd700';ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4);}
-        else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.shadowBlur=20;ctx.shadowColor='#ff8800';ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.beginPath();ctx.arc(ox+15,o.y,15,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5);}
-    }
-    ctx.textAlign='left';
-    if(gameState==='playing'){ghostTrail.forEach((t,i)=>{ctx.save();ctx.translate(t.x+18-(worldX-t.wx),t.y+18);ctx.rotate(t.rot*Math.PI/180);ctx.globalAlpha=0.12*(i/ghostTrail.length);ctx.fillStyle='#00f0ff';ctx.fillRect(-18,-18,36,36);ctx.restore();});ctx.globalAlpha=1;}
-    if(gameState!=='dead'){ctx.save();ctx.translate(player.x+18,player.y+18);ctx.rotate(player.rot*Math.PI/180);ctx.shadowBlur=25;ctx.shadowColor='#00f0ff';ctx.fillStyle='#05080f';ctx.fillRect(-18,-18,36,36);ctx.strokeStyle='#00f0ff';ctx.lineWidth=3;ctx.strokeRect(-18,-18,36,36);ctx.shadowBlur=10;ctx.fillStyle='#00f0ff';ctx.fillRect(-8,-8,16,16);ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.5)';ctx.fillRect(-15,-15,4,4);ctx.fillRect(11,-15,4,4);ctx.fillRect(-15,11,4,4);ctx.fillRect(11,11,4,4);ctx.restore();}
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];ctx.save();ctx.translate(p.x,p.y);ctx.rotate((p.rot||0)*Math.PI/180);ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.col;ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);ctx.restore();}
-    ctx.globalAlpha=1;
-    if(isGravityFlipped){ctx.fillStyle='rgba(255,136,0,0.08)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='rgba(255,136,0,0.8)';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('⚠ GRAVITY FLIPPED ⚠',GAME_W/2,28);ctx.textAlign='left';}
-    if(gameState==='idle'){ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.shadowBlur=20;ctx.shadowColor='#00f0ff';ctx.fillStyle='#00f0ff';ctx.font='bold 28px Courier New';ctx.textAlign='center';ctx.fillText('CLICK / SPACE TO PLAY',GAME_W/2,GAME_H/2);ctx.shadowBlur=0;ctx.textAlign='left';}
-    if(gameState==='dead'){ctx.fillStyle='rgba(255,48,96,0.12)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.shadowBlur=18;ctx.shadowColor='#ff3060';ctx.fillStyle='#ff3060';ctx.font='bold 34px Courier New';ctx.textAlign='center';ctx.fillText('WASTED!',GAME_W/2,GAME_H/2-20);ctx.shadowBlur=0;ctx.fillStyle='#ccc';ctx.font='16px Courier New';ctx.fillText('Click / Space to try again',GAME_W/2,GAME_H/2+20);ctx.fillStyle='#555';ctx.font='13px Courier New';ctx.fillText(`Attempt ${attemptCount}`,GAME_W/2,GAME_H/2+50);ctx.textAlign='left';}
-    ctx.restore();
-}
-
-function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
-draw();
-
-const symbols=['🔷','⭐','💎','🎯','🔥','👑','7️⃣','🌟'];
-let timerInt=null;
-
-function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
-    if(bonus===0&&localBonusSpins>0)bonus=localBonusSpins;
-    localBonusSpins=bonus;
-    const btn=document.getElementById('spinBtn');clearInterval(timerInt);
-    if(bonus>0){btn.disabled=false;btn.innerText=`🏆 LEVEL SPIN — ${bonus} available`;btn.style.background='linear-gradient(135deg,#ffd700,#ff8c00)';document.getElementById('spinInfo').innerText=`Level clear spins: ${bonus}`;return;}
-    if(hasFree){btn.disabled=false;btn.innerText='⏰ FREE HOURLY SPIN!';btn.style.background='#ffd700';document.getElementById('spinInfo').innerText='Free spin ready!';return;}
-    btn.disabled=true;btn.style.background='#555';
-    let tl=timeLeft;
-    timerInt=setInterval(()=>{if(tl<=0){fetchSpinStatus();clearInterval(timerInt);return;}tl--;let h=Math.floor(tl/3600),m=Math.floor((tl%3600)/60),s=tl%60;btn.innerText=`⏳ ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;document.getElementById('spinInfo').innerText=`Next free spin in ${h}h ${m}m`;},1000);
-}
-
-async function fetchSpinStatus(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
-    try{const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getSpinStatus+pad32(userAddress.replace('0x',''))},'latest']});if(res&&res!=='0x'){const c=res.replace('0x','');updateSpinUI(parseInt(c.substring(128,192),16)===1,parseInt(c.substring(192,256),16),parseInt(c.substring(64,128),16));}}catch(e){}
-}
-
-async function executeSpin(){
-    const btn=document.getElementById('spinBtn');
-    if(CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY"){if(localBonusSpins<=0){showToast("No spins available!");return;}localBonusSpins--;updateSpinUI(false,3600,localBonusSpins);animateReels(0.042);return;}
-    if(!userAddress){showToast("Connect wallet first!");return;}
-    btn.disabled=true;
-    try{
-        await provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.spin}]});
-        const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
-        r1.className='reel-inner spinning';r2.className='reel-inner spinning';r3.className='reel-inner spinning';
-        document.getElementById('spinResult').innerText='Spinning...';
-        setTimeout(()=>{r1.className='reel-inner';r1.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2000);
-        setTimeout(()=>{r2.className='reel-inner';r2.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2700);
-        setTimeout(()=>{r3.className='reel-inner';r3.innerText=symbols[Math.floor(Math.random()*symbols.length)];document.getElementById('spinResult').innerText='Check wallet for ARB! 🎉';fetchSpinStatus();},3400);
-    }catch(e){btn.disabled=false;if(e.code!==4001)showToast("Spin failed","red");}
-}
-
-const fcUsernameCache={};
-async function getFarcasterUsername(address){
-    if(!address||address==='0x0000000000000000000000000000000000000000')return null;
-    if(fcUsernameCache[address])return fcUsernameCache[address];
-    try{const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{accept:'application/json',api_key:'NEYNAR_API_DOCS'}});if(res.ok){const data=await res.json(),u=data[address.toLowerCase()];if(u&&u.length>0){const name='@'+u[0].username;fcUsernameCache[address]=name;return name;}}}catch(e){}
-    const s=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=s;return s;
-}
-
-async function fetchLeaderboard(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
-    try{
-        const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getLeaderboard},'latest']});
-        if(res&&res!=='0x'){
-            const cln=res.replace('0x','');let entries=[];
-            for(let i=0;i<10;i++){const addr='0x'+cln.substring(i*64+24,i*64+64);if(addr==='0x0000000000000000000000000000000000000000')continue;entries.push({addr,score:parseInt(cln.substring(640+i*64,640+i*64+64),16),lvl:parseInt(cln.substring(1280+i*64,1280+i*64+64),16),rank:i+1});}
-            if(entries.length===0){document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">No scores yet! Be the first! 🏆</div>';return;}
-            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:10px;font-size:12px">Loading...</div>';
-            const names=await Promise.all(entries.map(e=>getFarcasterUsername(e.addr)));
-            const medals=['🥇','🥈','🥉'];let html='';
-            entries.forEach((e,i)=>{const isMe=e.addr.toLowerCase()===userAddress.toLowerCase(),name=names[i],medal=medals[i]||`#${e.rank}`;html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;});
-            document.getElementById('lbContent').innerHTML=html;
-        }
-    }catch(e){console.error("Leaderboard error:",e);}
-}
-</script>
-</body>
-</html>
+    ctx.beginPath();ctx.moveTo(0,GROUND_Y);ctx.lineTo(GAME_W,
