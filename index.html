@@ -130,29 +130,7 @@
         .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
-    <script type="module">
-        import sdk from 'https://esm.sh/@farcaster/frame-sdk';
-        
-        async function initFarcaster() {
-            try {
-                // ✅ FIX 1: Instantly remove splash screen!
-                sdk.actions.ready();
-                
-                const context = await sdk.context;
-                if (context && context.user) {
-                    window.fcUsername = context.user.username || null;
-                    const fcPfpUrl = context.user.pfpUrl || null;
-                    if (window.fcUsername) {
-                        let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
-                        document.getElementById('mainTitle').innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
-                    }
-                }
-            } catch(e) {
-                console.log("Not in Farcaster frame context");
-            }
-        }
-        initFarcaster();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.umd.js"></script>
 </head>
 <body>
 
@@ -171,7 +149,7 @@
     <div id="overlay">
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">+Score</p>
-        <button class="btn-large" id="overlayBtn">🎰 CLAIM SPIN</button>
+        <button class="btn-large" onclick="window.claimSpin()">🎰 CLAIM SPIN</button>
     </div>
 </div>
 
@@ -183,8 +161,8 @@
 <div class="level-selector" id="levelGrid"></div>
 
 <div class="play-btn-row">
-    <button class="play-btn" id="practiceBtn">▶ PRACTICE RUN</button>
-    <button class="play-btn play-btn-gold" id="officialRunBtn">💎 OFFICIAL ON-CHAIN RUN</button>
+    <button class="play-btn" onclick="window.startPractice()">▶ PRACTICE RUN</button>
+    <button class="play-btn play-btn-gold" id="officialRunBtn" onclick="window.startOfficialRun()">💎 OFFICIAL ON-CHAIN RUN</button>
 </div>
 <div class="btn-note">
     *Practice mode is free. Official Run asks for a tx once to verify your start time (Anti-Hack).
@@ -218,26 +196,30 @@
         <div class="reel"><div class="reel-inner" id="r2">💎</div></div>
         <div class="reel"><div class="reel-inner" id="r3">💎</div></div>
     </div>
-    <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
+    <button class="spin-btn" id="spinBtn" onclick="window.executeSpin()">🎰 SPIN NOW!</button>
     <div class="slot-info" id="spinInfo">Bonus spins: 0</div>
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
 <div class="leaderboard">
     <div class="lb-title">🏆 LEADERBOARD — Season 1</div>
-    <div id="lbContent">Loading on-chain data...</div>
+    <div id="lbContent">Connect wallet to load...</div>
 </div>
 
-<div id="walletStatus">Connecting wallet...</div>
+<div id="walletStatus">Wallet not connected</div>
 
 <script>
-const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+// ==========================================
+// CONFIGURATIONS
+// ==========================================
+const CONTRACT_ADDRESS = "0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+
 let userAddress=null, provider=null;
 
-const SELECTORS={
+const SELECTORS = {
     spin:"0x1515bc2b",
     levelComplete:"0x6c6e75b7",
-    startLevel:"0x82b8a5d3",
+    startLevel:"0x82b8a5d3", // mathematically correct
     recordAttempt:"0x0047fb42",
     getLeaderboard:"0x716616a2",
     getSpinStatus:"0x280261cb"
@@ -248,51 +230,196 @@ function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toa
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 // ==========================================
-// EVENT LISTENERS BINDING (FIX 2: Bypasses strict CSP)
+// FARCASTER SDK INIT (Runs Safely)
 // ==========================================
 window.addEventListener('load', async () => {
-    // Bind buttons directly in JS
-    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
-    document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
-    document.getElementById('spinBtn').addEventListener('click', executeSpin);
+    try {
+        if (window.frame && window.frame.sdk) {
+            window.frame.sdk.actions.ready(); // Clears Farcaster Splash Immediately!
+            const context = await window.frame.sdk.context;
+            if (context && context.user) {
+                window.fcUsername = context.user.username || null;
+                const fcPfpUrl = context.user.pfpUrl || null;
+                if (window.fcUsername) {
+                    let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
+                    document.getElementById('mainTitle').innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
+                }
+            }
+        }
+    } catch(e) {
+        console.log("Not in frame");
+    }
 
     buildLevelUI();
 
+    // Read-only logic if MetaMask is detected (NO POPUPS ON LOAD)
+    if (window.ethereum) {
+        provider = window.ethereum;
+        // Don't auto-request accounts. Wait for button click.
+        // We can optionally fetch leaderboard later once connected.
+    }
+});
+
+// ==========================================
+// GLOBAL BUTTON FUNCTIONS (Fixes Dead Buttons)
+// ==========================================
+
+window.startPractice = function() {
+    startOrRestartGame(false);
+};
+
+window.startOfficialRun = async function() {
     if (!window.ethereum) { 
-        showWalletStatus("MetaMask not found. You can still play Practice Mode!", false); 
-    } else {
-        try {
-            provider = window.ethereum; 
-            const accounts = await provider.request({method: 'eth_requestAccounts'});
-            userAddress = accounts[0];
+        showToast("MetaMask required to play Official Run!", "red"); 
+        return; 
+    }
+    const btn = document.getElementById('officialRunBtn');
+    btn.disabled = true;
+    btn.innerText = "⏳ CONNECTING...";
+
+    try {
+        provider = window.ethereum; 
+        
+        // Only NOW we pop up MetaMask
+        const accounts = await provider.request({method: 'eth_requestAccounts'});
+        userAddress = accounts[0];
+        showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
+
+        btn.innerText = "🔄 CHECKING NETWORK...";
+        // Switch to Arbitrum Network if needed
+        const chainId = await provider.request({ method: 'eth_chainId' });
+        if (chainId !== '0xa4b1' && chainId !== '42161') {
             try { 
                 await provider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); 
             } catch (e) {
                 if (e.code === 4902) {
                     await provider.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
+                } else {
+                    throw e; // User rejected switch
                 }
             }
-            showWalletStatus(`✓ ${window.fcUsername?'@'+window.fcUsername:userAddress.slice(0,6)+'...'+userAddress.slice(-4)} · Arbitrum`, true);
-            if (CONTRACT_ADDRESS !== "REPLACE_AFTER_DEPLOY") { fetchSpinStatus(); fetchLeaderboard(); setInterval(fetchLeaderboard, 30000); }
-        } catch(e) { 
-            showWalletStatus("Wallet connection failed", false); 
+        }
+
+        // Fetch user data quietly now that we are connected
+        fetchSpinStatus(); 
+        fetchLeaderboard();
+
+        btn.innerText = "⏳ SIGNING TX...";
+        
+        // Trigger Smart Contract Start
+        await provider.request({
+            method: 'eth_sendTransaction',
+            params: [{ 
+                from: userAddress, 
+                to: CONTRACT_ADDRESS, 
+                data: SELECTORS.startLevel + pad32(currentLevel) 
+                // Removed hardcoded gas so MetaMask can accurately estimate and warn if broken.
+            }]
+        });
+        
+        showToast("Official Run Started! Survive 3 mins.", "#00ff88");
+        isOfficialRun = true;
+        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+        startOrRestartGame(true);
+
+    } catch(e) {
+        console.error(e);
+        btn.disabled = false;
+        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+        
+        if(e.message && e.message.toLowerCase().includes("funds")) {
+            showToast("TX FAILED: You need ETH (Arbitrum) for Gas!", "red");
+        } else if (e.code === 4001) {
+            showToast("Transaction Cancelled", "red");
+        } else {
+            showToast("Failed to start run. Please try again.", "red");
         }
     }
-});
+};
 
-let ac=null;
-function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
-function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
-function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
-function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
+window.claimSpin = function() {
+    document.getElementById('overlay').style.display='none'; 
+    document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});
+};
 
-const LVL_CONFIG=[{id:1,speed:4.5,len:40000},{id:2,speed:5.0,len:50000},{id:3,speed:5.2,len:55000},{id:4,speed:5.5,len:60000},{id:5,speed:5.8,len:65000},{id:6,speed:6.2,len:70000},{id:7,speed:6.5,len:75000},{id:8,speed:6.8,len:80000},{id:9,speed:7.2,len:85000},{id:10,speed:7.5,len:100000}];
-const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
-function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
+window.executeSpin = async function() {
+    const btn = document.getElementById('spinBtn');
+    
+    if (!userAddress) { 
+        showToast("Play an Official Run to connect wallet first!", "red"); 
+        return; 
+    }
 
-function buildLevelObstacles(levelNum){
-    let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
+    btn.disabled = true;
+    try {
+        await provider.request({
+            method: 'eth_sendTransaction',
+            params: [{ from: userAddress, to: CONTRACT_ADDRESS, data: SELECTORS.spin }]
+        });
+        animateReels(-1);
+        setTimeout(() => {
+            fetchSpinStatus();
+            document.getElementById('spinResult').innerText = "Check wallet for ARB!";
+        }, 4000);
+    } catch(e) {
+        btn.disabled = false;
+        if (e.code !== 4001) showToast("Spin failed. Check ETH Gas balance.", "red");
+    }
+};
+
+window.selectLevel = function(n) { 
+    currentLevel = n; 
+    buildLevelUI(); 
+    document.getElementById('progressText').innerText = `Level ${n}/10`; 
+};
+
+// ==========================================
+// AUDIO SYSTEM
+// ==========================================
+let ac = null;
+function initAudio() { if(!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if(ac.state === 'suspended') ac.resume(); }
+
+function playJump() {
+    if(!ac) return; const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination);
+    o.frequency.setValueAtTime(440, ac.currentTime); o.frequency.exponentialRampToValueAtTime(880, ac.currentTime+0.1);
+    g.gain.setValueAtTime(0.15, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.15);
+    o.start(); o.stop(ac.currentTime+0.15);
+}
+function playDie() {
+    if(!ac) return; const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination);
+    o.type='sawtooth'; o.frequency.setValueAtTime(220, ac.currentTime); o.frequency.exponentialRampToValueAtTime(55, ac.currentTime+0.3);
+    g.gain.setValueAtTime(0.2, ac.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.3);
+    o.start(); o.stop(ac.currentTime+0.3);
+}
+function playWin() {
+    if(!ac) return; [523, 659, 784, 1047].forEach((f, i) => {
+        const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination); o.frequency.value = f;
+        g.gain.setValueAtTime(0.15, ac.currentTime + i*0.12); g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i*0.12 + 0.2);
+        o.start(ac.currentTime + i*0.12); o.stop(ac.currentTime + i*0.12 + 0.25);
+    });
+}
+
+// ==========================================
+// GAME DATA & PROCEDURAL HANDCRAFTED BUILDER
+// ==========================================
+const LVL_CONFIG = [
+    {id:1,  speed:4.5, len:40000},   
+    {id:2,  speed:5.0, len:50000},   
+    {id:3,  speed:5.2, len:55000},   
+    {id:4,  speed:5.5, len:60000},   
+    {id:5,  speed:5.8, len:65000},   
+    {id:6,  speed:6.2, len:70000},   
+    {id:7,  speed:6.5, len:75000},   
+    {id:8,  speed:6.8, len:80000},   
+    {id:9,  speed:7.2, len:85000},   
+    {id:10, speed:7.5, len:100000},  
+];
+
+const PLAT_LOW  = 240, PLAT_MID  = 180, PLAT_MEDIUM = 200; 
+function pseudoRand(x, seed) { let v = Math.sin(x * seed * 0.00137 + seed * 31.7) * 43758.5453; return v - Math.floor(v); }
+
+function buildLevelObstacles(levelNum) {
+    let obs=[], curX=600, len=LVL_CONFIG[levelNum-1].len;
     if(levelNum===1){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.4){obs.push({t:'spike',x:curX});curX+=380;}else if(r<0.7){obs.push({t:'dspike',x:curX});curX+=420;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-10,y:PLAT_LOW,w:180},{t:'spike',x:curX+50},{t:'spike',x:curX+90},{t:'spike',x:curX+185});curX+=500;}}}
     else if(levelNum===2){while(curX<len-1000){obs.push({t:'spike',x:curX});curX+=340;obs.push({t:'spike',x:curX});curX+=300;obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});curX+=560;}}
     else if(levelNum===3){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.33){obs.push({t:'spike',x:curX},{t:'cspike',x:curX+160},{t:'spike',x:curX+200});curX+=480;}else if(r<0.66){obs.push({t:'platform',x:curX,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+40},{t:'spike',x:curX+80},{t:'cspike',x:curX+50},{t:'cspike',x:curX+90},{t:'spike',x:curX+210});curX+=540;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+60,y:PLAT_LOW,w:140},{t:'platform',x:curX+250,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+420});curX+=600;}}}
@@ -302,6 +429,9 @@ function buildLevelObstacles(levelNum){
     return obs;
 }
 
+// ==========================================
+// GAME ENGINE
+// ==========================================
 const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
@@ -323,11 +453,10 @@ function buildLevelUI(){
         if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
         else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
         else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
-        btn.addEventListener('click', () => selectLevel(i)); // Dynamic event binding
+        btn.onclick = () => window.selectLevel(i);
         grid.appendChild(btn);
     }
 }
-function selectLevel(n){currentLevel=n;buildLevelUI();document.getElementById('progressText').innerText=`Level ${n}/10`;}
 
 function jump(){
     initAudio();
@@ -335,51 +464,10 @@ function jump(){
     if(gameState!=='playing')return;
     if(player.ground){player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;player.ground=false;playJump();}
 }
+
 document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump();}});
 canvas.addEventListener('mousedown',jump);
 canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
-
-async function startOfficialRun(){
-    // Check if wallet exists at all
-    if(!window.ethereum) {
-        showToast("MetaMask/Wallet required for Official Run!", "red");
-        return;
-    }
-    
-    // Attempt auto-connect if userAddress is null
-    if(!userAddress){
-        try {
-            provider = window.ethereum;
-            const accounts = await provider.request({method: 'eth_requestAccounts'});
-            userAddress = accounts[0];
-            showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-        } catch(e) {
-            showToast("Wallet connection failed", "red");
-            return;
-        }
-    }
-
-    const btn=document.getElementById('officialRunBtn');
-    btn.disabled=true;btn.innerText="⏳ SIGNING...";
-    
-    try{
-        await provider.request({
-            method:'eth_sendTransaction',
-            params:[{
-                from:userAddress,
-                to:CONTRACT_ADDRESS,
-                data:SELECTORS.startLevel+pad32(currentLevel),
-                gas: '0x186a0' // FIX 3: 100,000 gas hardcoded to bypass estimation errors!
-            }]
-        });
-        showToast("Official Run Started! Survive 3 mins.","#00ff88");
-        isOfficialRun=true;btn.innerText="💎 OFFICIAL RUN ACTIVE";
-        startOrRestartGame(true);
-    }catch(e){
-        btn.disabled=false;btn.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction cancelled or rejected","red");
-    }
-}
 
 function startOrRestartGame(fromOfficial=false){
     initAudio();cancelAnimationFrame(reqAnimId);
@@ -402,8 +490,6 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('progressBar').style.width='0%';
     loop();
 }
-
-function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 function die(){
     if(gameState==='dead')return;
@@ -451,7 +537,7 @@ function triggerWin(){
         
         if(userAddress&&provider){
             let data=SELECTORS.levelComplete+pad32(currentLevel)+pad32(addScore);
-            provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data,gas:'0x186a0'}]}).catch(()=>{});
+            provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data}]}).catch(()=>{});
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 3 mins)":"(Practice Mode — No Spin)";
@@ -604,25 +690,24 @@ function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
 }
 
 async function fetchSpinStatus(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
+    if(!userAddress) return;
     try{const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getSpinStatus+pad32(userAddress.replace('0x',''))},'latest']});if(res&&res!=='0x'){const clean=res.replace('0x','');updateSpinUI(parseInt(clean.substring(128,192),16)===1,parseInt(clean.substring(192,256),16),parseInt(clean.substring(64,128),16));}}catch(e){}
 }
 
-async function executeSpin(){
+window.executeSpin = async function(){
     const btn=document.getElementById('spinBtn');
-    if(CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY"){if(localBonusSpins<=0){showToast("No spins available!");return;}localBonusSpins--;updateSpinUI(false,3600,localBonusSpins);animateReels(0.042);return;}
+    if(!userAddress){showToast("Play Official Run to connect wallet!","red");return;}
     
-    if(!userAddress){showToast("Connect wallet first!");return;}
     btn.disabled=true;
     try{
         await provider.request({
             method:'eth_sendTransaction',
-            params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.spin,gas:'0x30d40'}] // FIX 3: Spin limit forced
+            params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.spin}] 
         });
         animateReels(-1);
         setTimeout(()=>{fetchSpinStatus();document.getElementById('spinResult').innerText="Check wallet for ARB!";},4000);
-    }catch(e){btn.disabled=false;if(e.code!==4001)showToast("Spin failed","red");}
-}
+    }catch(e){btn.disabled=false;if(e.code!==4001)showToast("Spin failed (Check ETH Gas balance)","red");}
+};
 
 function animateReels(simulatedWin){
     const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
@@ -645,7 +730,7 @@ async function getFarcasterUsername(address){
 }
 
 async function fetchLeaderboard(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
+    if(!userAddress) return;
     try{
         const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getLeaderboard},'latest']});
         if(res&&res!=='0x'){
