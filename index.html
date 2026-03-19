@@ -84,11 +84,9 @@
         
         async function initFc() {
             try {
-                // 1. Send the ready signal IMMEDIATELY to drop the splash screen
                 await sdk.actions.ready();
                 console.log("Farcaster Ready Signal Sent!");
                 
-                // 2. Safely fetch context if inside Warpcast
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -99,8 +97,6 @@
                 console.log("Not running inside Farcaster client or context error:", e);
             }
         }
-        
-        // Execute right away (module scripts are natively deferred)
         initFc();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
@@ -246,11 +242,14 @@ async function setupEthers(ethProv) {
     fetchLeaderboard(); 
 }
 
+// ✅ GAS AUTOMATION FIX APPLIED HERE
 async function startOfficialRun(){
     const ethProv = getWalletProvider();
     if(!ethProv) { showToast("Web3 Wallet required!", "red"); return; }
     
     const btn = document.getElementById('officialRunBtn');
+    if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
+
     btn.disabled = true;
     btn.innerText = "⏳ CONNECTING...";
     
@@ -261,7 +260,10 @@ async function startOfficialRun(){
         }
 
         btn.innerText = "⏳ SIGNING...";
-        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 250000 });
+        
+        // Removed hardcoded gasLimit to let mobile MetaMask estimate automatically
+        const tx = await gameContract.startLevel(currentLevel); 
+        
         showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
         
@@ -275,7 +277,9 @@ async function startOfficialRun(){
     } catch(e) {
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction Cancelled", "red");
+        console.error(e);
+        // Error could be insufficient ETH, or user rejected.
+        showToast("Transaction Failed / Cancelled", "red");
     }
 }
 
@@ -290,7 +294,8 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText="Spinning on Blockchain...";
 
     try{
-        const tx = await gameContract.spin({ gasLimit: 250000 });
+        // Spinnings often use more gas, keeping automatic here too.
+        const tx = await gameContract.spin();
         document.getElementById('spinResult').innerText="Waiting for Validation...";
         
         await tx.wait(); 
@@ -315,7 +320,7 @@ async function executeSpin(){
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA
+// GAME ENGINE & DATA (UNCHANGED)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -334,7 +339,7 @@ function buildLevelObstacles(levelNum){
     else if(levelNum===3){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.33){obs.push({t:'spike',x:curX},{t:'cspike',x:curX+160},{t:'spike',x:curX+200});curX+=480;}else if(r<0.66){obs.push({t:'platform',x:curX,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+40},{t:'spike',x:curX+80},{t:'cspike',x:curX+50},{t:'cspike',x:curX+90},{t:'spike',x:curX+210});curX+=540;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+60,y:PLAT_LOW,w:140},{t:'platform',x:curX+250,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+420});curX+=600;}}}
     else if(levelNum===4){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.35){obs.push({t:'spike',x:curX},{t:'gap',x:curX+60,w:140},{t:'platform',x:curX+30,y:235,w:PLAT_MEDIUM},{t:'spike',x:curX+100,onPlatY:235},{t:'spike',x:curX+240});curX+=580;}else if(r<0.65){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'mplatf',x:curX+100,y:230,w:120,amp:65,spd:0.035},{t:'spike',x:curX+180},{t:'spike',x:curX+220},{t:'spike',x:curX+300});curX+=560;}else{obs.push({t:'gap',x:curX,w:110},{t:'platform',x:curX-20,y:235,w:160},{t:'gap',x:curX+300,w:110},{t:'mplatf',x:curX+280,y:235,w:150,amp:55,spd:0.03});curX+=700;}}}
     else if(levelNum===5){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.3){obs.push({t:'gorb',x:curX,y:260},{t:'spike',x:curX+100},{t:'spike',x:curX+200},{t:'gorb',x:curX+350,y:160},{t:'spike',x:curX+450});curX+=700;}else if(r<0.6){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+60},{t:'platform',x:curX+20,y:235,w:220},{t:'spike',x:curX+80,onPlatY:235},{t:'spike',x:curX+130,onPlatY:235},{t:'spike',x:curX+250});curX+=580;}else{obs.push({t:'gap',x:curX,w:130},{t:'mplatf',x:curX-10,y:235,w:120,amp:70,spd:0.04},{t:'gap',x:curX+280,w:130},{t:'mplatf',x:curX+270,y:235,w:120,amp:70,spd:0.04},{t:'dspike',x:curX+500});curX+=720;}}}
-    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'mplatf',x:curX+30,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'mplatf',x:curX+230,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'mplatf',x:curX+ms-30,y:235,w:110,amp:75,spd:0.045},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
+    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'mplatf',x:curX+30,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'mplatf',x:curX+230,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t(--gap,x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'mplatf',x:curX+ms-30,y:235,w:110,amp:75,spd:0.045},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
     return obs;
 }
 
