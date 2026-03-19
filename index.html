@@ -69,7 +69,7 @@
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         async function initFarcaster() {
             try {
-                sdk.actions.ready(); // Removes loading screen instantly
+                sdk.actions.ready(); 
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -77,9 +77,7 @@
                     if (window.fcUsername) {
                         let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
                         const titleEl = document.getElementById('mainTitle');
-                        if (titleEl) {
-                            titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
-                        }
+                        if(titleEl) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
                     }
                 }
             } catch(e) {}
@@ -160,10 +158,10 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ⚠️ TARA NAYA DEPLOYED CONTRACT NU ADDRESS
-const CONTRACT_ADDRESS="0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
+// ⚠️ AAPKA NAYA CONTRACT ADDRESS YAHI HAI! 
+const CONTRACT_ADDRESS = "0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
 
-// ✅ Ethers.js ABI (Manual Hex Codes ne Hamesh mate aavjo kahyo)
+// ✅ Yahan koi Hex Code nahi hai! Ethers.js apne aap mathematical functions bana lega.
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
@@ -174,20 +172,19 @@ const ABI = [
 ];
 
 let userAddress=null;
-let gameContract=null; // Ethers contract instance
+let gameContract=null; // Ethers instance
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 // ==========================================
-// ETHERS.JS SETUP & BINDING
+// ETHERS.JS SETUP
 // ==========================================
 window.addEventListener('load', async () => {
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
-
     buildLevelUI();
 
     if (!window.ethereum) { 
@@ -200,25 +197,19 @@ window.addEventListener('load', async () => {
             } else {
                 showWalletStatus("Click 'Official Run' to connect wallet", false);
             }
-        } catch(e) { }
+        } catch(e) {}
     }
 });
 
 async function setupEthers() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
-    
-    // Auto Network Switch
-    const network = await provider.getNetwork();
-    if (network.chainId !== 42161) {
-        try {
-            await window.ethereum.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
-        } catch (e) {
-            if (e.code === 4902) {
-                await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
-            }
+    try {
+        await window.ethereum.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
+    } catch (e) {
+        if (e.code === 4902) {
+            await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
         }
     }
-    
     const signer = provider.getSigner();
     userAddress = await signer.getAddress();
     gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
@@ -230,30 +221,30 @@ async function setupEthers() {
 }
 
 // ==========================================
-// GLOBAL BUTTON FUNCTIONS (Using Ethers)
+// BUTTON FUNCTIONS (BYPASSING GAS ERRORS)
 // ==========================================
 async function startOfficialRun(){
     if(!window.ethereum) { showToast("MetaMask required!", "red"); return; }
     
     const btn = document.getElementById('officialRunBtn');
     btn.disabled = true;
+    btn.innerText = "⏳ CONNECTING...";
     
     try {
         if(!gameContract) {
-            btn.innerText = "⏳ CONNECTING...";
             await window.ethereum.request({method: 'eth_requestAccounts'});
             await setupEthers();
         }
 
         btn.innerText = "⏳ SIGNING...";
         
-        // ETHERS DIRECT CALL (No hex payload needed!)
-        const tx = await gameContract.startLevel(currentLevel);
+        // 🚀 Gas Limit set to 250000 skips the error estimation process!
+        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 250000 });
         
-        showToast("Tx Sent! Waiting for confirmation...", "#ffd700");
+        showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
         
-        await tx.wait(); // WAITS FOR BLOCKCHAIN TO CONFIRM
+        await tx.wait(); // Wait for block confirmation
         
         showToast("Official Run Started! Survive 1 min.", "#00ff88");
         isOfficialRun = true;
@@ -261,16 +252,92 @@ async function startOfficialRun(){
         startOrRestartGame(true);
         
     } catch(e) {
-        console.error(e);
+        console.error("Tx Error:", e);
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        if(e.message && e.message.toLowerCase().includes("funds")) {
-            showToast("Tx Failed: You need ETH (Gas)!", "red");
-        } else {
-            showToast("Transaction Rejected or Failed", "red");
-        }
+        showToast("Transaction Cancelled or Failed", "red");
     }
 }
+
+async function executeSpin(){
+    const btn=document.getElementById('spinBtn');
+    if(!gameContract){showToast("Connect wallet first!","red");return;}
+    
+    btn.disabled=true;
+    try{
+        const tx = await gameContract.spin({ gasLimit: 250000 });
+        animateReels(-1);
+        await tx.wait();
+        fetchSpinStatus();
+        document.getElementById('spinResult').innerText="Check wallet for ARB! 🎉";
+    }catch(e){
+        btn.disabled=false;
+        showToast("Spin failed","red");
+    }
+}
+
+function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
+
+// ==========================================
+// GAME DATA & ENGINE
+// ==========================================
+let ac=null;
+function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
+function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
+function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
+function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
+
+const LVL_CONFIG=[{id:1,speed:4.5,len:40000},{id:2,speed:5.0,len:50000},{id:3,speed:5.2,len:55000},{id:4,speed:5.5,len:60000},{id:5,speed:5.8,len:65000},{id:6,speed:6.2,len:70000},{id:7,speed:6.5,len:75000},{id:8,speed:6.8,len:80000},{id:9,speed:7.2,len:85000},{id:10,speed:7.5,len:100000}];
+const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
+function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
+
+function buildLevelObstacles(levelNum){
+    let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
+    if(levelNum===1){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.4){obs.push({t:'spike',x:curX});curX+=380;}else if(r<0.7){obs.push({t:'dspike',x:curX});curX+=420;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-10,y:PLAT_LOW,w:180},{t:'spike',x:curX+50},{t:'spike',x:curX+90},{t:'spike',x:curX+185});curX+=500;}}}
+    else if(levelNum===2){while(curX<len-1000){obs.push({t:'spike',x:curX});curX+=340;obs.push({t:'spike',x:curX});curX+=300;obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});curX+=560;}}
+    else if(levelNum===3){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.33){obs.push({t:'spike',x:curX},{t:'cspike',x:curX+160},{t:'spike',x:curX+200});curX+=480;}else if(r<0.66){obs.push({t:'platform',x:curX,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+40},{t:'spike',x:curX+80},{t:'cspike',x:curX+50},{t:'cspike',x:curX+90},{t:'spike',x:curX+210});curX+=540;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+60,y:PLAT_LOW,w:140},{t:'platform',x:curX+250,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+420});curX+=600;}}}
+    else if(levelNum===4){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.35){obs.push({t:'spike',x:curX},{t:'gap',x:curX+60,w:140},{t:'platform',x:curX+30,y:235,w:PLAT_MEDIUM},{t:'spike',x:curX+100,onPlatY:235},{t:'spike',x:curX+240});curX+=580;}else if(r<0.65){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'mplatf',x:curX+100,y:230,w:120,amp:65,spd:0.035},{t:'spike',x:curX+180},{t:'spike',x:curX+220},{t:'spike',x:curX+300});curX+=560;}else{obs.push({t:'gap',x:curX,w:110},{t:'platform',x:curX-20,y:235,w:160},{t:'gap',x:curX+300,w:110},{t:'mplatf',x:curX+280,y:235,w:150,amp:55,spd:0.03});curX+=700;}}}
+    else if(levelNum===5){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.3){obs.push({t:'gorb',x:curX,y:260},{t:'spike',x:curX+100},{t:'spike',x:curX+200},{t:'gorb',x:curX+350,y:160},{t:'spike',x:curX+450});curX+=700;}else if(r<0.6){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+60},{t:'platform',x:curX+20,y:235,w:220},{t:'spike',x:curX+80,onPlatY:235},{t:'spike',x:curX+130,onPlatY:235},{t:'spike',x:curX+250});curX+=580;}else{obs.push({t:'gap',x:curX,w:130},{t:'mplatf',x:curX-10,y:235,w:120,amp:70,spd:0.04},{t:'gap',x:curX+280,w:130},{t:'mplatf',x:curX+270,y:235,w:120,amp:70,spd:0.04},{t:'dspike',x:curX+500});curX+=720;}}}
+    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'mplatf',x:curX+30,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'mplatf',x:curX+230,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'mplatf',x:curX+ms-30,y:235,w:110,amp:75,spd:0.045},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
+    return obs;
+}
+
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
+let reqAnimId;
+const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
+const GRAVITY=0.60,JUMP_VEL=-13.5,MAX_VEL=16;
+
+let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
+let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
+let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
+let isGravityFlipped=false,flipTimer=0;
+let ghostTrail=[],particles=[],obstacles=[];
+let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let isOfficialRun=false; 
+
+function buildLevelUI(){
+    const grid=document.getElementById('levelGrid');
+    grid.innerHTML='';
+    for(let i=1;i<=10;i++){
+        const btn=document.createElement('button');
+        if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
+        else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
+        else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
+        btn.addEventListener('click', () => { currentLevel=i; buildLevelUI(); document.getElementById('progressText').innerText=`Level ${i}/10`; }); 
+        grid.appendChild(btn);
+    }
+}
+
+function jump(){
+    initAudio();
+    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(isOfficialRun);return;}
+    if(gameState!=='playing')return;
+    if(player.ground){player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;player.ground=false;playJump();}
+}
+
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump();}});
+canvas.addEventListener('mousedown',jump);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
 
 function startOrRestartGame(fromOfficial=false){
     initAudio();cancelAnimationFrame(reqAnimId);
@@ -294,7 +361,17 @@ function startOrRestartGame(fromOfficial=false){
     loop();
 }
 
-function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
+function die(){
+    if(gameState==='dead')return;
+    gameState='dead';attemptCount++;
+    document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
+    playDie();shake=15;
+    let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
+    for(let i=0;i<40;i++) {
+        let pSize = 4 + Math.random() * 12; 
+        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*20,vy:(Math.random()-0.5)*20,life:1.5,col:cols[Math.floor(Math.random()*cols.length)],size:pSize,rot:Math.random()*360});
+    }
+}
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
@@ -329,8 +406,7 @@ function triggerWin(){
         ob.disabled=false;ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(gameContract){
-            // Send clear data to chain but don't force wait
-            gameContract.levelComplete(currentLevel, addScore).catch(e => console.log("Silent error:", e));
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 250000}).catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 1 min)":"(Practice Mode — No Spin)";
@@ -338,144 +414,6 @@ function triggerWin(){
         document.getElementById('overlayBtn').style.display='none';
     }
     document.getElementById('overlay').style.display='flex';
-}
-
-// ==========================================
-// SLOT MACHINE (Using Ethers)
-// ==========================================
-const symbols=['🔷','⭐','💎','🎯','🔥','👑','7️⃣','🌟'];
-let timerInt=null;
-
-function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
-    if(bonus===0&&localBonusSpins>0)bonus=localBonusSpins;
-    localBonusSpins=bonus;
-    const btn=document.getElementById('spinBtn');clearInterval(timerInt);
-    
-    if(bonus>0){btn.disabled=false;btn.innerText=`🏆 LEVEL SPIN — ${bonus} available`;btn.style.background='linear-gradient(135deg,#ffd700,#ff8c00)';document.getElementById('spinInfo').innerText=`Level clear spins: ${bonus}`;return;}
-    if(hasFree){btn.disabled=false;btn.innerText='⏰ FREE HOURLY SPIN!';btn.style.background='#ffd700';document.getElementById('spinInfo').innerText='Free spin ready!';return;}
-    
-    btn.disabled=true;btn.style.background='#555';
-    let tl=timeLeft;
-    timerInt=setInterval(()=>{if(tl<=0){fetchSpinStatus();clearInterval(timerInt);return;}tl--;let h=Math.floor(tl/3600),m=Math.floor((tl%3600)/60),s=tl%60;btn.innerText=`⏳ ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;document.getElementById('spinInfo').innerText=`Next free spin in ${h}h ${m}m`;},1000);
-}
-
-async function fetchSpinStatus(){
-    if(!gameContract) return;
-    try{
-        const res = await gameContract.getSpinStatus(userAddress);
-        updateSpinUI(res[2], res[3].toNumber(), res[1].toNumber());
-    }catch(e){}
-}
-
-async function executeSpin(){
-    const btn=document.getElementById('spinBtn');
-    if(!gameContract){showToast("Play Official Run to connect wallet!","red");return;}
-    
-    btn.disabled=true;
-    try{
-        const tx = await gameContract.spin();
-        animateReels(-1);
-        await tx.wait(); // Wait for success
-        fetchSpinStatus();
-        document.getElementById('spinResult').innerText="Check wallet for ARB! 🎉";
-    }catch(e){
-        btn.disabled=false;
-        if(e.code!==4001)showToast("Spin failed (Check ETH Gas)","red");
-    }
-}
-
-function animateReels(simulatedWin){
-    const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
-    r1.className='reel-inner spinning';r2.className='reel-inner spinning';r3.className='reel-inner spinning';
-    document.getElementById('spinResult').innerText="Spinning...";
-    setTimeout(()=>{r1.className='reel-inner';r1.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2000);
-    setTimeout(()=>{r2.className='reel-inner';r2.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2700);
-    setTimeout(()=>{r3.className='reel-inner';r3.innerText=symbols[Math.floor(Math.random()*symbols.length)];if(simulatedWin>0)document.getElementById('spinResult').innerText=`YOU WON ${simulatedWin} ARB! 🎉`;},3400);
-}
-
-// ==========================================
-// LEADERBOARD (Using Ethers)
-// ==========================================
-const fcUsernameCache={};
-async function getFarcasterUsername(address){
-    if(!address||address==='0x0000000000000000000000000000000000000000')return null;
-    if(fcUsernameCache[address])return fcUsernameCache[address];
-    try{const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});if(res.ok){const data=await res.json(),lowerAddr=address.toLowerCase();if(data[lowerAddr]&&data[lowerAddr].length>0){const name='@'+data[lowerAddr][0].username;fcUsernameCache[address]=name;return name;}}}catch(e){}
-    const shortAddr=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=shortAddr;return shortAddr;
-}
-
-async function fetchLeaderboard(){
-    if(!gameContract) return;
-    try{
-        const res = await gameContract.getLeaderboard();
-        const addrs = res[0]; const scores = res[1]; const levels = res[2];
-        
-        let entries=[];
-        for(let i=0;i<10;i++){
-            if(addrs[i]==="0x0000000000000000000000000000000000000000") continue;
-            entries.push({ addr:addrs[i], score:scores[i].toNumber(), lvl:levels[i].toNumber(), rank:i+1 });
-        }
-        if(entries.length===0){document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">No scores yet! Be the first!</div>';return;}
-        document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:10px;font-size:12px">Loading names...</div>';
-        
-        const names = await Promise.all(entries.map(e=>getFarcasterUsername(e.addr)));
-        const medals = ['🥇','🥈','🥉']; let html='';
-        entries.forEach((e,i)=>{
-            const isMe = userAddress && e.addr.toLowerCase()===userAddress.toLowerCase();
-            const name = names[i]; const medal=medals[i]||`#${e.rank}`;
-            html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;
-        });
-        document.getElementById('lbContent').innerHTML=html;
-    }catch(e){console.error("Leaderboard error:",e);}
-}
-
-// ==========================================
-// GAME ENGINE & RENDERER (UNTOUCHED)
-// ==========================================
-let ac=null;
-function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
-function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
-function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
-function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
-
-const LVL_CONFIG=[{id:1,speed:4.5,len:40000},{id:2,speed:5.0,len:50000},{id:3,speed:5.2,len:55000},{id:4,speed:5.5,len:60000},{id:5,speed:5.8,len:65000},{id:6,speed:6.2,len:70000},{id:7,speed:6.5,len:75000},{id:8,speed:6.8,len:80000},{id:9,speed:7.2,len:85000},{id:10,speed:7.5,len:100000}];
-const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
-function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
-
-function buildLevelObstacles(levelNum){
-    let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
-    if(levelNum===1){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.4){obs.push({t:'spike',x:curX});curX+=380;}else if(r<0.7){obs.push({t:'dspike',x:curX});curX+=420;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-10,y:PLAT_LOW,w:180},{t:'spike',x:curX+50},{t:'spike',x:curX+90},{t:'spike',x:curX+185});curX+=500;}}}
-    else if(levelNum===2){while(curX<len-1000){obs.push({t:'spike',x:curX});curX+=340;obs.push({t:'spike',x:curX});curX+=300;obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});curX+=560;}}
-    else if(levelNum===3){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.33){obs.push({t:'spike',x:curX},{t:'cspike',x:curX+160},{t:'spike',x:curX+200});curX+=480;}else if(r<0.66){obs.push({t:'platform',x:curX,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+40},{t:'spike',x:curX+80},{t:'cspike',x:curX+50},{t:'cspike',x:curX+90},{t:'spike',x:curX+210});curX+=540;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+60,y:PLAT_LOW,w:140},{t:'platform',x:curX+250,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+420});curX+=600;}}}
-    else if(levelNum===4){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.35){obs.push({t:'spike',x:curX},{t:'gap',x:curX+60,w:140},{t:'platform',x:curX+30,y:235,w:PLAT_MEDIUM},{t:'spike',x:curX+100,onPlatY:235},{t:'spike',x:curX+240});curX+=580;}else if(r<0.65){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'mplatf',x:curX+100,y:230,w:120,amp:65,spd:0.035},{t:'spike',x:curX+180},{t:'spike',x:curX+220},{t:'spike',x:curX+300});curX+=560;}else{obs.push({t:'gap',x:curX,w:110},{t:'platform',x:curX-20,y:235,w:160},{t:'gap',x:curX+300,w:110},{t:'mplatf',x:curX+280,y:235,w:150,amp:55,spd:0.03});curX+=700;}}}
-    else if(levelNum===5){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.3){obs.push({t:'gorb',x:curX,y:260},{t:'spike',x:curX+100},{t:'spike',x:curX+200},{t:'gorb',x:curX+350,y:160},{t:'spike',x:curX+450});curX+=700;}else if(r<0.6){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+60},{t:'platform',x:curX+20,y:235,w:220},{t:'spike',x:curX+80,onPlatY:235},{t:'spike',x:curX+130,onPlatY:235},{t:'spike',x:curX+250});curX+=580;}else{obs.push({t:'gap',x:curX,w:130},{t:'mplatf',x:curX-10,y:235,w:120,amp:70,spd:0.04},{t:'gap',x:curX+280,w:130},{t:'mplatf',x:curX+270,y:235,w:120,amp:70,spd:0.04},{t:'dspike',x:curX+500});curX+=720;}}}
-    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'mplatf',x:curX+30,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'mplatf',x:curX+230,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'mplatf',x:curX+ms-30,y:235,w:110,amp:75,spd:0.045},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
-    return obs;
-}
-
-function buildLevelUI(){
-    const grid=document.getElementById('levelGrid');
-    grid.innerHTML='';
-    for(let i=1;i<=10;i++){
-        const btn=document.createElement('button');
-        if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
-        else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
-        else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
-        btn.addEventListener('click', () => { currentLevel=i; buildLevelUI(); document.getElementById('progressText').innerText=`Level ${i}/10`; }); 
-        grid.appendChild(btn);
-    }
-}
-
-function die(){
-    if(gameState==='dead')return;
-    gameState='dead';attemptCount++;
-    document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
-    playDie();shake=15;
-    let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
-    for(let i=0;i<40;i++) {
-        let pSize = 4 + Math.random() * 12; 
-        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*20,vy:(Math.random()-0.5)*20,life:1.5,col:cols[Math.floor(Math.random()*cols.length)],size:pSize,rot:Math.random()*360});
-    }
 }
 
 function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
@@ -600,6 +538,71 @@ function draw(){
 
 function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
+
+// ==========================================
+// SLOT MACHINE LOGIC
+// ==========================================
+let timerInt=null;
+function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
+    if(bonus===0&&localBonusSpins>0)bonus=localBonusSpins;
+    localBonusSpins=bonus;
+    const btn=document.getElementById('spinBtn');clearInterval(timerInt);
+    
+    if(bonus>0){btn.disabled=false;btn.innerText=`🏆 LEVEL SPIN — ${bonus} available`;btn.style.background='linear-gradient(135deg,#ffd700,#ff8c00)';document.getElementById('spinInfo').innerText=`Level clear spins: ${bonus}`;return;}
+    if(hasFree){btn.disabled=false;btn.innerText='⏰ FREE HOURLY SPIN!';btn.style.background='#ffd700';document.getElementById('spinInfo').innerText='Free spin ready!';return;}
+    
+    btn.disabled=true;btn.style.background='#555';
+    let tl=timeLeft;
+    timerInt=setInterval(()=>{if(tl<=0){fetchSpinStatus();clearInterval(timerInt);return;}tl--;let h=Math.floor(tl/3600),m=Math.floor((tl%3600)/60),s=tl%60;btn.innerText=`⏳ ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;document.getElementById('spinInfo').innerText=`Next free spin in ${h}h ${m}m`;},1000);
+}
+
+async function fetchSpinStatus(){
+    if(!gameContract) return;
+    try{
+        const res = await gameContract.getSpinStatus(userAddress);
+        updateSpinUI(res[2], res[3].toNumber(), res[1].toNumber());
+    }catch(e){}
+}
+
+function animateReels(simulatedWin){
+    const symbols=['🔷','⭐','💎','🎯','🔥','👑','7️⃣','🌟'];
+    const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
+    r1.className='reel-inner spinning';r2.className='reel-inner spinning';r3.className='reel-inner spinning';
+    document.getElementById('spinResult').innerText="Spinning...";
+    setTimeout(()=>{r1.className='reel-inner';r1.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2000);
+    setTimeout(()=>{r2.className='reel-inner';r2.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2700);
+    setTimeout(()=>{r3.className='reel-inner';r3.innerText=symbols[Math.floor(Math.random()*symbols.length)];if(simulatedWin>0)document.getElementById('spinResult').innerText=`YOU WON ${simulatedWin} ARB! 🎉`;},3400);
+}
+
+// ==========================================
+// LEADERBOARD LOGIC
+// ==========================================
+const fcUsernameCache={};
+async function getFarcasterUsername(address){
+    if(!address||address==='0x0000000000000000000000000000000000000000')return null;
+    if(fcUsernameCache[address])return fcUsernameCache[address];
+    try{const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});if(res.ok){const data=await res.json(),lowerAddr=address.toLowerCase();if(data[lowerAddr]&&data[lowerAddr].length>0){const name='@'+data[lowerAddr][0].username;fcUsernameCache[address]=name;return name;}}}catch(e){}
+    const shortAddr=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=shortAddr;return shortAddr;
+}
+
+async function fetchLeaderboard(){
+    if(!gameContract) return;
+    try{
+        const res = await gameContract.getLeaderboard();
+        const addrs = res[0]; const scores = res[1]; const levels = res[2];
+        let entries=[];
+        for(let i=0;i<10;i++){
+            if(addrs[i]==="0x0000000000000000000000000000000000000000")continue;
+            entries.push({addr:addrs[i], score:scores[i].toNumber(), lvl:levels[i].toNumber(), rank:i+1});
+        }
+        if(entries.length===0){document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">No scores yet! Be the first!</div>';return;}
+        document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:10px;font-size:12px">Loading names...</div>';
+        const names=await Promise.all(entries.map(e=>getFarcasterUsername(e.addr)));
+        const medals=['🥇','🥈','🥉'];let html='';
+        entries.forEach((e,i)=>{const isMe=userAddress&&e.addr.toLowerCase()===userAddress.toLowerCase(),name=names[i],medal=medals[i]||`#${e.rank}`;html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;});
+        document.getElementById('lbContent').innerHTML=html;
+    }catch(e){}
+}
 </script>
 </body>
 </html>
