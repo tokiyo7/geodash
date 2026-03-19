@@ -4,53 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
-
     <meta property="og:title" content="GeoDash — Play & Earn ARB">
     <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens. Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
-
     <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
-
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#05080f">
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
-        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; }
+        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
+        
         .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
+
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; box-shadow: 0 0 30px rgba(0,240,255,0.5); background: #05080f; overflow: hidden; border-radius: 4px; }
         canvas { display: block; width: 100%; height: 100%; }
+        
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
-        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; }
-        #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
+        #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; white-space: pre-line; }
+        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; }
+
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
         .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; }
+
         .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
         .lvl-btn { flex: 1; min-width: 45px; padding: 10px 0; text-align: center; font-weight: bold; border-radius: 4px; border: 1px solid #1a2332; background: #0a0f18; color: #2a3a4a; cursor: not-allowed; }
         .lvl-btn.unlocked { background: transparent; border-color: #00f0ff; color: #00f0ff; cursor: pointer; }
         .lvl-btn.active { background: #00f0ff; color: #000; box-shadow: 0 0 15px #00f0ff; }
         .lvl-btn.done { background: rgba(0,255,136,0.08); border-color: #00ff88; color: #00ff88; cursor: pointer; }
+
         .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 5px; display: flex; gap: 10px; }
-        .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; }
+        .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; font-family: 'Courier New', monospace; }
+        .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 20px #00f0ff; }
         .play-btn-gold { border-color: var(--gold); color: var(--gold); }
+        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
+        .play-btn-gold:disabled { border-color: #555; color: #888; background: transparent; cursor: not-allowed; }
         .btn-note { font-size: 11px; color: #888; text-align: center; width: 100%; margin-bottom: 20px; }
+
         .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.25); border-radius: 8px; padding: 16px; background: rgba(8,6,0,0.95); margin-bottom: 12px; }
         .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px #ffd700; }
         .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 6px; text-align: center; text-transform: uppercase; }
-        .prize-divider { text-align:center; color:#222; font-size:11px; margin:8px 0; }
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .prize-table tr.t-common td { color: #aaa; }
+        .prize-table tr.t-rare td { color: var(--cyan); }
+        .prize-table tr.t-epic td { color: #cc44ff; }
+        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
         .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
+
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
         .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; }
         .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
@@ -61,8 +69,13 @@
         .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
         .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
         .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
+
+        .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
+        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px; }
         #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
-        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; }
+        
+        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
     <script type="module">
@@ -73,18 +86,13 @@
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
-                    const fcPfpUrl = context.user.pfpUrl || null;
-                    if (window.fcUsername) {
-                        let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
-                        const titleEl = document.getElementById('mainTitle');
-                        if(titleEl) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
-                    }
+                    const titleEl = document.getElementById('mainTitle');
+                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
                 }
             } catch(e) {}
         }
         initFarcaster();
     </script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
 <body>
@@ -127,15 +135,18 @@
     <div class="prize-chart-title">🎰 SPIN REWARDS</div>
     <div class="prize-section-label">⏰ Free Hourly Spin</div>
     <table class="prize-table">
-        <tr><th>Rarity</th><th>Result</th><th>Reward</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
+        <tr><th>Chance</th><th>Prize Range</th></tr>
+        <tr><td>88% (Common)</td><td>0.01 — 0.20 ARB</td></tr>
+        <tr><td>11% (Epic)</td><td>0.20 — 0.50 ARB</td></tr>
+        <tr style="color:var(--gold); font-weight:bold;"><td>1% (Jackpot!)</td><td>0.50 — 1.00 ARB</td></tr>
     </table>
-    <div class="prize-divider">————————————</div>
+    <div style="text-align:center; color:#222; font-size:11px; margin:8px 0;">————————————</div>
     <div class="prize-section-label">🏆 Level Clear Spin (Bonus)</div>
     <table class="prize-table">
-        <tr><th>Rarity</th><th>Result</th><th>Prize</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
+        <tr><th>Reward Type</th><th>Prize Range</th></tr>
+        <tr style="color:#00ff88; font-weight:bold;"><td>Guaranteed Win</td><td>1.0 — 2.0 ARB</td></tr>
     </table>
+    <div class="prize-note">★ Contract dynamically adjusts if balance is low.</div>
 </div>
 
 <div class="slot-machine">
@@ -158,10 +169,9 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ⚠️ AAPKA NAYA CONTRACT ADDRESS YAHI HAI! 
-const CONTRACT_ADDRESS = "0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
+// ⚠️ AAPKA BILKUL NAYA AUR PERFECT CONTRACT ADDRESS ⚠️
+const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 
-// ✅ Yahan koi Hex Code nahi hai! Ethers.js apne aap mathematical functions bana lega.
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
@@ -172,14 +182,11 @@ const ABI = [
 ];
 
 let userAddress=null;
-let gameContract=null; // Ethers instance
+let gameContract=null;
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ==========================================
-// ETHERS.JS SETUP
-// ==========================================
 window.addEventListener('load', async () => {
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
@@ -217,12 +224,8 @@ async function setupEthers() {
     showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
     fetchSpinStatus(); 
     fetchLeaderboard(); 
-    setInterval(fetchLeaderboard, 30000);
 }
 
-// ==========================================
-// BUTTON FUNCTIONS (BYPASSING GAS ERRORS)
-// ==========================================
 async function startOfficialRun(){
     if(!window.ethereum) { showToast("MetaMask required!", "red"); return; }
     
@@ -237,14 +240,12 @@ async function startOfficialRun(){
         }
 
         btn.innerText = "⏳ SIGNING...";
-        
-        // 🚀 Gas Limit set to 250000 skips the error estimation process!
+        // ETHERS DIRECT CALL WITH SAFE GAS LIMIT LOCKET AT 250000
         const tx = await gameContract.startLevel(currentLevel, { gasLimit: 250000 });
-        
         showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
         
-        await tx.wait(); // Wait for block confirmation
+        await tx.wait(); 
         
         showToast("Official Run Started! Survive 1 min.", "#00ff88");
         isOfficialRun = true;
@@ -252,10 +253,9 @@ async function startOfficialRun(){
         startOrRestartGame(true);
         
     } catch(e) {
-        console.error("Tx Error:", e);
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction Cancelled or Failed", "red");
+        showToast("Transaction Cancelled", "red");
     }
 }
 
@@ -264,22 +264,38 @@ async function executeSpin(){
     if(!gameContract){showToast("Connect wallet first!","red");return;}
     
     btn.disabled=true;
+    
+    const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
+    r1.className='reel-inner spinning';r2.className='reel-inner spinning';r3.className='reel-inner spinning';
+    document.getElementById('spinResult').innerText="Spinning on Blockchain...";
+
     try{
         const tx = await gameContract.spin({ gasLimit: 250000 });
-        animateReels(-1);
-        await tx.wait();
+        document.getElementById('spinResult').innerText="Waiting for Validation...";
+        
+        await tx.wait(); 
+        
+        r1.className='reel-inner'; r1.innerText='💎';
+        r2.className='reel-inner'; r2.innerText='💎';
+        r3.className='reel-inner'; r3.innerText='💎';
+        
         fetchSpinStatus();
-        document.getElementById('spinResult').innerText="Check wallet for ARB! 🎉";
+        document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
+        
     }catch(e){
         btn.disabled=false;
         showToast("Spin failed","red");
+        r1.className='reel-inner'; r1.innerText='❌';
+        r2.className='reel-inner'; r2.innerText='❌';
+        r3.className='reel-inner'; r3.innerText='❌';
+        document.getElementById('spinResult').innerText="Transaction Failed.";
     }
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME DATA & ENGINE
+// GAME ENGINE & DATA
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -328,6 +344,15 @@ function buildLevelUI(){
     }
 }
 
+function resetGameState() {
+    initAudio(); 
+    cancelAnimationFrame(reqAnimId);
+    ghostTrail=[]; particles=[]; obstacles=[]; 
+    player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
+    worldX=0; frameCount=0; bgOffset=0; shake=0; 
+    isGravityFlipped=false; flipTimer=0; 
+}
+
 function jump(){
     initAudio();
     if(gameState==='dead'||gameState==='idle'){startOrRestartGame(isOfficialRun);return;}
@@ -340,12 +365,11 @@ canvas.addEventListener('mousedown',jump);
 canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
 
 function startOrRestartGame(fromOfficial=false){
-    initAudio();cancelAnimationFrame(reqAnimId);
-    let cfg=LVL_CONFIG[currentLevel-1];scrollSpeed=cfg.speed;levelLength=cfg.len;
+    resetGameState(); 
+    let cfg=LVL_CONFIG[currentLevel-1];
+    scrollSpeed=cfg.speed;
+    levelLength=cfg.len;
     obstacles=buildLevelObstacles(currentLevel);
-    worldX=0;frameCount=0;bgOffset=0;shake=0;
-    player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
-    isGravityFlipped=false;flipTimer=0;ghostTrail=[];particles=[];
     
     if(!fromOfficial) {
         isOfficialRun = false;
@@ -540,7 +564,7 @@ function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
 
 // ==========================================
-// SLOT MACHINE LOGIC
+// TIMERS & LEADERBOARD
 // ==========================================
 let timerInt=null;
 function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
@@ -551,7 +575,7 @@ function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
     if(bonus>0){btn.disabled=false;btn.innerText=`🏆 LEVEL SPIN — ${bonus} available`;btn.style.background='linear-gradient(135deg,#ffd700,#ff8c00)';document.getElementById('spinInfo').innerText=`Level clear spins: ${bonus}`;return;}
     if(hasFree){btn.disabled=false;btn.innerText='⏰ FREE HOURLY SPIN!';btn.style.background='#ffd700';document.getElementById('spinInfo').innerText='Free spin ready!';return;}
     
-    btn.disabled=true;btn.style.background='#555';
+    btn.disabled=true;btn.style.background='#555';btn.style.color='#222';
     let tl=timeLeft;
     timerInt=setInterval(()=>{if(tl<=0){fetchSpinStatus();clearInterval(timerInt);return;}tl--;let h=Math.floor(tl/3600),m=Math.floor((tl%3600)/60),s=tl%60;btn.innerText=`⏳ ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;document.getElementById('spinInfo').innerText=`Next free spin in ${h}h ${m}m`;},1000);
 }
@@ -564,24 +588,21 @@ async function fetchSpinStatus(){
     }catch(e){}
 }
 
-function animateReels(simulatedWin){
-    const symbols=['🔷','⭐','💎','🎯','🔥','👑','7️⃣','🌟'];
-    const r1=document.getElementById('r1'),r2=document.getElementById('r2'),r3=document.getElementById('r3');
-    r1.className='reel-inner spinning';r2.className='reel-inner spinning';r3.className='reel-inner spinning';
-    document.getElementById('spinResult').innerText="Spinning...";
-    setTimeout(()=>{r1.className='reel-inner';r1.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2000);
-    setTimeout(()=>{r2.className='reel-inner';r2.innerText=symbols[Math.floor(Math.random()*symbols.length)];},2700);
-    setTimeout(()=>{r3.className='reel-inner';r3.innerText=symbols[Math.floor(Math.random()*symbols.length)];if(simulatedWin>0)document.getElementById('spinResult').innerText=`YOU WON ${simulatedWin} ARB! 🎉`;},3400);
-}
-
-// ==========================================
-// LEADERBOARD LOGIC
-// ==========================================
 const fcUsernameCache={};
 async function getFarcasterUsername(address){
     if(!address||address==='0x0000000000000000000000000000000000000000')return null;
     if(fcUsernameCache[address])return fcUsernameCache[address];
-    try{const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});if(res.ok){const data=await res.json(),lowerAddr=address.toLowerCase();if(data[lowerAddr]&&data[lowerAddr].length>0){const name='@'+data[lowerAddr][0].username;fcUsernameCache[address]=name;return name;}}}catch(e){}
+    try{
+        const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
+        if(res.ok){
+            const data=await res.json(),lowerAddr=address.toLowerCase();
+            if(data[lowerAddr]&&data[lowerAddr].length>0){
+                const name='@'+data[lowerAddr][0].username;
+                fcUsernameCache[address]=name;
+                return name;
+            }
+        }
+    }catch(e){}
     const shortAddr=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=shortAddr;return shortAddr;
 }
 
@@ -599,9 +620,15 @@ async function fetchLeaderboard(){
         document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:10px;font-size:12px">Loading names...</div>';
         const names=await Promise.all(entries.map(e=>getFarcasterUsername(e.addr)));
         const medals=['🥇','🥈','🥉'];let html='';
-        entries.forEach((e,i)=>{const isMe=userAddress&&e.addr.toLowerCase()===userAddress.toLowerCase(),name=names[i],medal=medals[i]||`#${e.rank}`;html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;});
+        entries.forEach((e,i)=>{
+            const isMe=userAddress&&e.addr.toLowerCase()===userAddress.toLowerCase();
+            const name=names[i],medal=medals[i]||`#${e.rank}`;
+            html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;
+        });
         document.getElementById('lbContent').innerHTML=html;
-    }catch(e){}
+    }catch(e){
+        document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;font-size:11px">On-chain error. Retry?</div>';
+    }
 }
 </script>
 </body>
