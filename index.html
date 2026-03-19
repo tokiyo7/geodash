@@ -192,7 +192,7 @@ let provider = null;
 const SELECTORS = {
     spin: "0x1515bc2b",
     levelComplete: "0x6c6e75b7",
-    recordAttempt: "0x0047fb42",
+    
     getLeaderboard: "0x716616a2",
     getSpinStatus: "0x280261cb"
 };
@@ -478,7 +478,7 @@ function die(){
     let cols=['#00f0ff','#ff3060','#ffd700','#ffffff','#a200ff'];
     for(let i=0;i<40;i++) particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*30,vy:(Math.random()-0.5)*30,life:1.2,col:cols[Math.floor(Math.random()*cols.length)],size:3+Math.random()*4});
     if(CONTRACT_ADDRESS!=="REPLACE_AFTER_DEPLOY"&&userAddress&&provider)
-        provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data:SELECTORS.recordAttempt}]}).catch(()=>{});
+        
 }
 
 function triggerWin(){
