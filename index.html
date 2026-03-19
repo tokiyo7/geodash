@@ -224,16 +224,16 @@ window.addEventListener('load', async () => {
 });
 
 async function setupEthers(ethProv) {
-    const provider = new ethers.providers.Web3Provider(ethProv);
+    // "any" lagane se ethers crash nahi hoga agar network Farcaster ne set kiya hai
+    const provider = new ethers.providers.Web3Provider(ethProv, "any");
+    
     try {
+        // Farcaster in commands ko support nahi karta, isliye isey try-catch me chup kara diya hai
         await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
     } catch (e) {
-        if (e.code === 4902) {
-            try {
-                await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
-            } catch(addErr) {}
-        }
+        console.log("Ignored network switch warning (Mobile Wallet usually handles it)");
     }
+    
     const signer = provider.getSigner();
     userAddress = await signer.getAddress();
     gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
@@ -243,8 +243,6 @@ async function setupEthers(ethProv) {
     fetchLeaderboard(); 
 }
 
-// ✅ 1. FIXED GAS LIMIT ADDED (300,000 avoids Farcaster mobile estimation failure)
-// ✅ 2. REAL ERROR MESSAGE DISPLAY (No more hardcoded "Need ETH")
 async function startOfficialRun(){
     const ethProv = getWalletProvider();
     if(!ethProv) { showToast("Web3 Wallet required!", "red"); return; }
@@ -257,7 +255,7 @@ async function startOfficialRun(){
     
     try {
         if(!gameContract) {
-            await ethProv.request({method: 'eth_requestAccounts'});
+            try { await ethProv.request({method: 'eth_requestAccounts'}); } catch(reqErr) {}
             await setupEthers(ethProv);
         }
 
@@ -279,14 +277,13 @@ async function startOfficialRun(){
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
         
-        // Extract real error message from Farcaster/MetaMask
         let errStr = "Transaction Failed";
         if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
             errStr = "Transaction Cancelled by User";
         } else if (e.reason) {
             errStr = e.reason;
         } else if (e.message) {
-            errStr = e.message.substring(0, 40) + "..."; // show short error
+            errStr = e.message.substring(0, 40) + "..."; 
         }
         
         showToast(errStr, "red");
@@ -370,6 +367,7 @@ let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
