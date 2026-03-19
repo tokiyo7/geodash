@@ -140,15 +140,15 @@
     <div class="prize-section-label">⏰ Free Hourly Spin</div>
     <table class="prize-table">
         <tr><th>Chance</th><th>Prize Range</th></tr>
-        <tr><td>88% (Common)</td><td>0.01 — 0.20 ARB</td></tr>
-        <tr><td>11% (Epic)</td><td>0.20 — 0.50 ARB</td></tr>
-        <tr style="color:var(--gold); font-weight:bold;"><td>1% (Jackpot!)</td><td>0.50 — 1.00 ARB</td></tr>
+        <tr><td>(Common)</td><td>0.01 — 0.20 ARB</td></tr>
+        <tr><td>(Epic)</td><td>0.20 — 0.50 ARB</td></tr>
+        <tr style="color:var(--gold); font-weight:bold;"><td>(Jackpot!)</td><td>0.50 — 1.00 ARB</td></tr>
     </table>
     <div style="text-align:center; color:#222; font-size:11px; margin:8px 0;">————————————</div>
     <div class="prize-section-label">🏆 Level Clear Spin (Bonus)</div>
     <table class="prize-table">
         <tr><th>Reward Type</th><th>Prize Range</th></tr>
-        <tr style="color:#00ff88; font-weight:bold;"><td>Guaranteed Win</td><td>1.0 — 2.0 ARB</td></tr>
+        <tr style="color:#00ff88; font-weight:bold;"><td>Guaranteed Win</td><td>1.0 — 15.0 ARB</td></tr>
     </table>
     <div class="prize-note">★ Contract dynamically adjusts if balance is low.</div>
 </div>
@@ -414,6 +414,7 @@ let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
