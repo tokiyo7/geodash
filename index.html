@@ -84,11 +84,6 @@
         
         async function initFc() {
             try {
-                // 500ms delay so Farcaster doesn't miss the ready signal!
-                setTimeout(() => {
-                    sdk.actions.ready();
-                }, 500);
-
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -96,15 +91,20 @@
                     if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
                 }
             } catch(e) {
-                console.log("Farcaster load error:", e);
+                console.log("Farcaster context error:", e);
             }
+
+            // GUARANTEED TO FIRE AFTER GAME IS PAINTED
+            setTimeout(() => {
+                try {
+                    sdk.actions.ready();
+                    console.log("Farcaster Ready Fired!");
+                } catch(err) {}
+            }, 600);
         }
         
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initFc);
-        } else {
-            initFc();
-        }
+        // window.addEventListener load guarantees everything is ready before telling Farcaster
+        window.addEventListener('load', initFc);
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
@@ -200,12 +200,11 @@ let gameContract=null;
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ✅ GET THE CORRECT WALLET PROVIDER (Farcaster Mobile OR MetaMask)
 function getWalletProvider() {
     if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
-        return window.fcSdk.wallet.ethProvider; // Mobile Warpcast Wallet
+        return window.fcSdk.wallet.ethProvider; 
     }
-    return window.ethereum; // Desktop MetaMask
+    return window.ethereum; 
 }
 
 window.addEventListener('load', async () => {
@@ -215,7 +214,6 @@ window.addEventListener('load', async () => {
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
 
-    // Give SDK 0.5s to fully load provider on mobile
     setTimeout(async () => {
         const ethProv = getWalletProvider();
         if (!ethProv) { 
@@ -230,7 +228,7 @@ window.addEventListener('load', async () => {
                 }
             } catch(e) {}
         }
-    }, 500);
+    }, 700);
 });
 
 async function setupEthers(ethProv) {
