@@ -169,16 +169,18 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ⚠️ AAPKA BILKUL NAYA AUR PERFECT CONTRACT ADDRESS ⚠️
+// AAPKA ORIGINAL WORKING CONTRACT ADDRESS
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 
+// ✅ Added 'players' mapping to ABI to fetch exact personal score
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
     "function spin() external",
     "function recordAttempt() external",
     "function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)",
-    "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)"
+    "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)",
+    "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
 ];
 
 let userAddress=null;
@@ -240,7 +242,6 @@ async function startOfficialRun(){
         }
 
         btn.innerText = "⏳ SIGNING...";
-        // ETHERS DIRECT CALL WITH SAFE GAS LIMIT LOCKET AT 250000
         const tx = await gameContract.startLevel(currentLevel, { gasLimit: 250000 });
         showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
@@ -430,12 +431,13 @@ function triggerWin(){
         ob.disabled=false;ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(gameContract){
-            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 250000}).catch(e=>console.log(e));
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 250000}).then(()=> fetchLeaderboard() ).catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 1 min)":"(Practice Mode — No Spin)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
+        fetchLeaderboard(); // Update stats locally
     }
     document.getElementById('overlay').style.display='flex';
 }
@@ -564,7 +566,7 @@ function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
 
 // ==========================================
-// TIMERS & LEADERBOARD
+// TIMERS & LEADERBOARD (Fetch exact stats!)
 // ==========================================
 let timerInt=null;
 function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
@@ -606,27 +608,31 @@ async function getFarcasterUsername(address){
     const shortAddr=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=shortAddr;return shortAddr;
 }
 
+// ✅ DIRECT STATS FETCH INSTEAD OF HEAVY ON-CHAIN ARRAY
 async function fetchLeaderboard(){
-    if(!gameContract) return;
+    if(!gameContract || !userAddress) return;
     try{
-        const res = await gameContract.getLeaderboard();
-        const addrs = res[0]; const scores = res[1]; const levels = res[2];
-        let entries=[];
-        for(let i=0;i<10;i++){
-            if(addrs[i]==="0x0000000000000000000000000000000000000000")continue;
-            entries.push({addr:addrs[i], score:scores[i].toNumber(), lvl:levels[i].toNumber(), rank:i+1});
+        // 3rd element is totalScore, 4th is highestLevel
+        const p = await gameContract.players(userAddress);
+        const score = p[2].toNumber(); 
+        const lvl = p[3].toNumber();   
+
+        if(score === 0){
+            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">Play an Official Run to record your score!</div>';
+            return;
         }
-        if(entries.length===0){document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">No scores yet! Be the first!</div>';return;}
-        document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:10px;font-size:12px">Loading names...</div>';
-        const names=await Promise.all(entries.map(e=>getFarcasterUsername(e.addr)));
-        const medals=['🥇','🥈','🥉'];let html='';
-        entries.forEach((e,i)=>{
-            const isMe=userAddress&&e.addr.toLowerCase()===userAddress.toLowerCase();
-            const name=names[i],medal=medals[i]||`#${e.rank}`;
-            html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;
-        });
+        
+        const name = await getFarcasterUsername(userAddress) || "You";
+        
+        let html=`<div class="lb-row" style="background:rgba(0,240,255,0.05); padding:10px; border-radius:6px; border: 1px solid rgba(0,240,255,0.3);">
+            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
+            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Max Lv${lvl}</span></span>
+        </div>`;
+        
         document.getElementById('lbContent').innerHTML=html;
+        document.querySelector('.lb-title').innerText = "🏆 YOUR ON-CHAIN STATS";
     }catch(e){
+        console.error(e);
         document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;font-size:11px">On-chain error. Retry?</div>';
     }
 }
