@@ -162,17 +162,16 @@
 </div>
 
 <div class="leaderboard">
-    <div class="lb-title">🏆 LEADERBOARD — Season 1</div>
+    <div class="lb-title">🏆 YOUR ON-CHAIN STATS</div>
     <div id="lbContent">Loading on-chain data...</div>
 </div>
 
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// AAPKA ORIGINAL WORKING CONTRACT ADDRESS
+// THE FINAL CONTRACT ADDRESS
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 
-// ✅ Added 'players' mapping to ABI to fetch exact personal score
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
@@ -437,7 +436,7 @@ function triggerWin(){
         let reason=isOfficialRun?"(Completed too fast, min 1 min)":"(Practice Mode — No Spin)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
-        fetchLeaderboard(); // Update stats locally
+        fetchLeaderboard(); 
     }
     document.getElementById('overlay').style.display='flex';
 }
@@ -565,9 +564,6 @@ function draw(){
 function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
 
-// ==========================================
-// TIMERS & LEADERBOARD (Fetch exact stats!)
-// ==========================================
 let timerInt=null;
 function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
     if(bonus===0&&localBonusSpins>0)bonus=localBonusSpins;
@@ -608,17 +604,16 @@ async function getFarcasterUsername(address){
     const shortAddr=address.slice(0,6)+'...'+address.slice(-4);fcUsernameCache[address]=shortAddr;return shortAddr;
 }
 
-// ✅ DIRECT STATS FETCH INSTEAD OF HEAVY ON-CHAIN ARRAY
 async function fetchLeaderboard(){
     if(!gameContract || !userAddress) return;
     try{
-        // 3rd element is totalScore, 4th is highestLevel
         const p = await gameContract.players(userAddress);
         const score = p[2].toNumber(); 
         const lvl = p[3].toNumber();   
 
         if(score === 0){
-            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#333;padding:20px;font-size:12px">Play an Official Run to record your score!</div>';
+            // ✅ UPDATED TEXT HERE SO PLAYERS KNOW THEY HAVE TO WIN!
+            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats on-chain!</div>';
             return;
         }
         
