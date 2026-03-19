@@ -1,39 +1,17 @@
 {
   "accountAssociation": {
-    "header": "GeoDash",
-    "payload": "GeoDash Mini App",
-    "signature": ""
+    "header": "eyJmaWQiOjg2NjM0NywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDNGZkJEY0VCMUYwMDQ3YzczNUUxMmU2Q2EzZWZlMzBjMmVBRkE0REQifQ",
+    "payload": "eyJkb21haW4iOiJnZW9kYXNoLWFtYmVyLnZlcmNlbC5hcHAifQ",
+    "signature": "g219CZfW2L4vIpWkqrTqh5g7ERM3+m2Zg4l8iPj6/6kSK6an0PIEdH0Wt6RBustMlmGJJhdTJ5d1kcsShnQnXRw="
   },
   "frame": {
     "version": "1",
-    "name": "GeoDash",
-    "iconUrl": "https://geodash-YOURNAME.vercel.app/icon.png",
-    "homeUrl": "https://geodash-YOURNAME.vercel.app",
-    "imageUrl": "https://geodash-YOURNAME.vercel.app/preview.png",
-    "screenshotUrls": [
-      "https://geodash-YOURNAME.vercel.app/preview.png"
-    ],
-    "tags": ["game", "arbitrum", "earn"],
-    "primaryCategory": "games",
-    "description": "Geometry Dash clone on Arbitrum! Play 10 levels, spin to win ARB tokens."
+    "name": "GeoDash by Tokiyo",
+    "iconUrl": "https://geodash-amber.vercel.app/icon.png",
+    "homeUrl": "https://geodash-amber.vercel.app",
+    "imageUrl": "https://geodash-amber.vercel.app/preview.png",
+    "buttonTitle": "Play GeoDash",
+    "splashImageUrl": "https://geodash-amber.vercel.app/icon.png",
+    "splashBackgroundColor": "#05080f"
   }
 }
-```
-
----
-
-## ✅ Final Checklist — Sab Hone Ke Baad:
-```
-GitHub mein hona chahiye:
-□ index.html          ← game file
-□ preview.png         ← 800×418 share image  
-□ icon.png            ← 200×200 app icon
-□ .well-known/
-    farcaster.json    ← Farcaster config
-
-HTML mein fill hona chahiye:
-□ CONTRACT_ADDRESS    ← Remix se mila
-□ YOUR_DOMAIN         ← Vercel URL
-□ icon link           ← upar wali line
-
-Tab Step 6 karo — Farcaster register!
