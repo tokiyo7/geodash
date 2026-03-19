@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
     <meta property="og:title" content="GeoDash — Play & Earn ARB">
-    <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens.">
+    <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens. Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
     <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
@@ -13,11 +13,11 @@
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
-        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; }
+        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
         
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; }
+        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
@@ -25,7 +25,7 @@
         canvas { display: block; width: 100%; height: 100%; }
         
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
-        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; }
+        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
         #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; white-space: pre-line; }
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; }
 
@@ -53,6 +53,10 @@
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .prize-table tr.t-common td { color: #aaa; }
+        .prize-table tr.t-rare td { color: var(--cyan); }
+        .prize-table tr.t-epic td { color: #cc44ff; }
+        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
         .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
@@ -63,7 +67,7 @@
         .spinning { filter: blur(3px); animation: fastSpin 0.1s infinite; }
         @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
         .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
+        .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
         .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
 
         .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
@@ -74,6 +78,21 @@
         .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
+    <script type="module">
+        import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        window.fcSdk = sdk; 
+        
+        try {
+            sdk.actions.ready();
+            sdk.context.then(context => {
+                if (context && context.user) {
+                    window.fcUsername = context.user.username || null;
+                    const titleEl = document.getElementById('mainTitle');
+                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
+                }
+            }).catch(()=>{});
+        } catch(e) {}
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
 <body>
@@ -137,279 +156,213 @@
         <div class="reel"><div class="reel-inner" id="r2">💎</div></div>
         <div class="reel"><div class="reel-inner" id="r3">💎</div></div>
     </div>
-    <button class="spin-btn" id="spinBtn" disabled>⏳ CLICK "OFFICIAL RUN" FIRST</button>
-    <div class="slot-info" id="spinInfo">Connect wallet to spin</div>
+    <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
+    <div class="slot-info" id="spinInfo">Loading status...</div>
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
 <div class="leaderboard">
     <div class="lb-title">🏆 YOUR ON-CHAIN STATS</div>
-    <div id="lbContent">Connect wallet to view stats</div>
+    <div id="lbContent">Loading...</div>
 </div>
 
-<div id="walletStatus">Ready - Click "Official Run" to connect</div>
+<div id="walletStatus">Ready to Play!</div>
 
-<script type="module">
-// Import Farcaster SDK
-import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
-window.fcSdk = sdk;
-
+<script>
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
+
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
     "function spin() external",
+    "function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)",
     "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)",
     "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
 ];
 
-let userAddress = null;
-let gameContract = null;
-let spinStatus = { bonus: 0, hasFree: false, timeLeft: 0 };
+let userAddress=null;
+let gameContract=null;
+let isConnected = false;
+let isFarcasterWallet = false;
+let ethProv = null;
+let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 
-function showToast(msg, color = '#00f0ff') {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.style.borderLeftColor = color;
-    t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 3500);
-}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
+function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-function showWalletStatus(msg, isGood) {
-    const w = document.getElementById('walletStatus');
-    w.innerText = msg;
-    w.style.color = isGood ? '#00ff88' : '#888';
-}
-
-// Check if inside Farcaster
-function isFarcaster() {
-    return window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider;
-}
-
-// Initialize
-window.addEventListener('load', () => {
-    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
-    document.getElementById('officialRunBtn').addEventListener('click', handleOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', () => {
-        document.getElementById('overlay').style.display = 'none';
-        document.querySelector('.slot-machine').scrollIntoView({behavior: 'smooth'});
-        if (gameContract) refreshSpinStatus();
-    });
-    document.getElementById('spinBtn').addEventListener('click', executeSpin);
-    buildLevelUI();
-    
-    if (isFarcaster()) {
-        showWalletStatus("Farcaster detected - Click Official Run", true);
-    } else if (window.ethereum) {
-        showWalletStatus("MetaMask detected - Click Official Run", false);
+// ✅ 1. SMART PROVIDER SCANNER (Waits for SDK)
+async function getProvider() {
+    if (ethProv) return true;
+    for(let i=0; i<10; i++) {
+        if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
+            ethProv = window.fcSdk.wallet.ethProvider;
+            isFarcasterWallet = true;
+            return true;
+        }
+        if (window.ethereum) {
+            ethProv = window.ethereum;
+            isFarcasterWallet = false;
+            return true;
+        }
+        await new Promise(r => setTimeout(r, 100)); // wait 100ms
     }
-});
+    return false;
+}
 
-async function handleOfficialRun() {
-    const btn = document.getElementById('officialRunBtn');
-    
-    if (window.isOfficialRun) {
-        showToast("Already active!", "#ffd700");
-        return;
+// ✅ 2. BULLETPROOF WALLET CONNECTION
+async function connectWallet(showErrors = true) {
+    if (!await getProvider()) {
+        if(showErrors) showToast("No Web3 Wallet found!", "red");
+        return false;
     }
-
-    btn.disabled = true;
-    btn.innerText = "⏳ Connecting...";
 
     try {
-        let provider, signer;
-        
-        if (isFarcaster()) {
-            // FARCASTER MODE - Simple and direct
-            console.log("Connecting via Farcaster...");
-            const fcProvider = window.fcSdk.wallet.ethProvider;
-            provider = new ethers.providers.Web3Provider(fcProvider, "any");
-            signer = provider.getSigner();
-            userAddress = await signer.getAddress();
-            
-        } else if (window.ethereum) {
-            // METAMASK MODE - Request permission
-            console.log("Connecting via MetaMask...");
-            provider = new ethers.providers.Web3Provider(window.ethereum, "any");
-            
-            // Request accounts
-            await window.ethereum.request({ method: 'eth_requestAccounts' });
-            
-            // Switch to Arbitrum
+        // Request accounts silently first
+        try { await ethProv.request({method: 'eth_requestAccounts'}); } catch(e) { console.log("Request ignored"); }
+
+        // ✅ SILENT BYPASS: NEVER switch chain if on Farcaster Mobile
+        if (!isFarcasterWallet) {
             try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0xa4b1' }]
-                });
-            } catch (switchErr) {
-                if (switchErr.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0xa4b1',
-                            chainName: 'Arbitrum One',
-                            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                            rpcUrls: ['https://arb1.arbitrum.io/rpc'],
-                            blockExplorerUrls: ['https://arbiscan.io']
-                        }]
-                    });
+                await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
+            } catch (e) {
+                if (e.code === 4902) {
+                    try { await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]}); } catch(e){}
                 }
             }
-            
-            signer = provider.getSigner();
-            userAddress = await signer.getAddress();
-        } else {
-            throw new Error("No wallet found");
         }
 
-        // Setup contract
+        const provider = new ethers.providers.Web3Provider(ethProv, "any"); // "any" skips strict chain checks
+        const signer = provider.getSigner();
+        userAddress = await signer.getAddress();
         gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        isConnected = true;
+
+        showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
+        refreshSpinStatus(); 
+        fetchLeaderboard(); 
+        return true;
+    } catch(err) {
+        if(showErrors) showToast("Connection Cancelled", "red");
+        return false;
+    }
+}
+
+window.addEventListener('load', () => {
+    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
+    document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
+    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
+    document.getElementById('spinBtn').addEventListener('click', executeSpin);
+    buildLevelUI();
+
+    // Auto-connect quietly
+    setTimeout(async () => {
+        if (await getProvider()) {
+            try {
+                const accounts = await ethProv.request({method: 'eth_accounts'});
+                if (accounts && accounts.length > 0) connectWallet(false);
+            } catch(e) {}
+        }
+    }, 500);
+});
+
+async function startOfficialRun(){
+    const btn = document.getElementById('officialRunBtn');
+    if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
+
+    btn.disabled = true;
+    btn.innerText = "⏳ CONNECTING...";
+    
+    if(!isConnected) {
+        if(!await connectWallet(true)) {
+            btn.disabled = false;
+            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+            return;
+        }
+    }
+
+    btn.innerText = "⏳ SIGNING...";
+    
+    try {
+        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 250000 }); 
+        showToast("Tx Sent! Waiting...", "#ffd700");
+        btn.innerText = "⏳ MINING...";
         
-        showWalletStatus(`Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`, true);
+        await tx.wait(); 
         
-        // Load spin status
-        await refreshSpinStatus();
-        
-        // Start official run
-        btn.innerText = "⏳ Starting...";
-        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 });
-        showToast("Transaction sent...", "#ffd700");
-        
-        await tx.wait();
-        
-        window.isOfficialRun = true;
+        showToast("Official Run Started! Survive 1 min.", "#00ff88");
+        isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
-        btn.style.background = "#00ff88";
-        btn.style.color = "#000";
-        btn.style.borderColor = "#00ff88";
-        
-        showToast("Started! Survive 60 seconds!", "#00ff88");
         startOrRestartGame(true);
         
-    } catch (err) {
-        console.error(err);
+    } catch(e) {
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        btn.style.background = "";
-        btn.style.color = "";
-        btn.style.borderColor = "";
         
-        let msg = err.reason || err.message || "Connection failed";
-        if (msg.includes("user rejected")) msg = "Cancelled";
-        
-        showToast(msg, "red");
-    }
-}
-
-async function refreshSpinStatus() {
-    if (!gameContract || !userAddress) return;
-    
-    try {
-        const [lastSpin, bonus, hasFree, timeLeft] = await gameContract.getSpinStatus(userAddress);
-        spinStatus = {
-            bonus: bonus.toNumber(),
-            hasFree: hasFree,
-            timeLeft: timeLeft.toNumber()
-        };
-        updateSpinButton();
-        updateLeaderboard();
-    } catch (e) {
-        console.error(e);
-    }
-}
-
-function updateSpinButton() {
-    const btn = document.getElementById('spinBtn');
-    const info = document.getElementById('spinInfo');
-    
-    if (spinStatus.bonus > 0) {
-        btn.disabled = false;
-        btn.innerText = `🎰 SPIN NOW (${spinStatus.bonus} BONUS)`;
-        btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
-        info.innerText = 'Bonus spins ready!';
-        info.style.color = '#ffd700';
-    } else if (spinStatus.hasFree) {
-        btn.disabled = false;
-        btn.innerText = '🎰 FREE SPIN';
-        btn.style.background = '#ffd700';
-        info.innerText = 'Free hourly spin ready!';
-        info.style.color = '#00ff88';
-    } else {
-        btn.disabled = true;
-        const mins = Math.ceil(spinStatus.timeLeft / 60);
-        btn.innerText = `⏳ WAIT ${mins} MIN`;
-        btn.style.background = '#333';
-        info.innerText = `Next spin in ${mins} minutes`;
-        info.style.color = '#888';
-    }
-}
-
-async function executeSpin() {
-    const btn = document.getElementById('spinBtn');
-    
-    if (!gameContract) {
-        showToast("Connect first!", "red");
-        return;
-    }
-    
-    // Refresh status first
-    await refreshSpinStatus();
-    
-    if (!spinStatus.hasFree && spinStatus.bonus === 0) {
-        showToast("No spins available!", "red");
-        return;
-    }
-    
-    btn.disabled = true;
-    document.getElementById('r1').className = 'reel-inner spinning';
-    document.getElementById('r2').className = 'reel-inner spinning';
-    document.getElementById('r3').className = 'reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning...";
-
-    try {
-        const tx = await gameContract.spin({ gasLimit: 300000 });
-        await tx.wait();
-        
-        document.getElementById('r1').className = 'reel-inner'; document.getElementById('r1').innerText = '💎';
-        document.getElementById('r2').className = 'reel-inner'; document.getElementById('r2').innerText = '💎';
-        document.getElementById('r3').className = 'reel-inner'; document.getElementById('r3').innerText = '💎';
-        
-        showToast("🎉 Prize sent! Check wallet!", "#00ff88");
-        document.getElementById('spinResult').innerText = "✅ WIN! Check wallet for ARB";
-        
-        await refreshSpinStatus();
-    } catch (err) {
-        document.getElementById('r1').innerText = '❌';
-        document.getElementById('r2').innerText = '❌';
-        document.getElementById('r3').innerText = '❌';
-        
-        let msg = err.reason || "Spin failed";
-        if (msg.includes("No spin available")) msg = "No spins available!";
-        
-        showToast(msg, "red");
-        document.getElementById('spinResult').innerText = msg;
-        await refreshSpinStatus();
-    }
-}
-
-async function updateLeaderboard() {
-    if (!gameContract || !userAddress) return;
-    try {
-        const p = await gameContract.players(userAddress);
-        const score = p[2].toNumber();
-        if (score > 0) {
-            document.getElementById('lbContent').innerHTML = `
-                <div class="lb-row" style="background:rgba(0,240,255,0.1); padding:12px; border-radius:6px; border:1px solid rgba(0,240,255,0.3)">
-                    <span style="color:var(--cyan); font-weight:bold">${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>
-                    <span style="color:#fff; font-weight:bold">${score.toLocaleString()} pts</span>
-                </div>
-            `;
+        let errStr = "Transaction Failed";
+        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
+            errStr = "Transaction Cancelled";
+        } else if (e.reason) {
+            errStr = e.reason;
+        } else if (e.message) {
+            errStr = e.message.substring(0, 40) + "..."; 
         }
-    } catch (e) {}
+        showToast(errStr, "red");
+    }
 }
+
+// ✅ 3. SPIN BUTTON FIX (Automatically connects if not connected)
+async function executeSpin(){
+    const btn=document.getElementById('spinBtn');
+    
+    if(!isConnected) {
+        if(!await connectWallet(true)) return;
+    }
+
+    // Safety check from our own loaded status
+    if (!spinStatus.hasFree && spinStatus.bonus <= 0) {
+        showToast("No spin available! Wait for cooldown.", "red");
+        return;
+    }
+    
+    btn.disabled=true;
+    document.getElementById('r1').className='reel-inner spinning';
+    document.getElementById('r2').className='reel-inner spinning';
+    document.getElementById('r3').className='reel-inner spinning';
+    document.getElementById('spinResult').innerText="Spinning on Blockchain...";
+
+    try{
+        const tx = await gameContract.spin({ gasLimit: 250000 });
+        document.getElementById('spinResult').innerText="Waiting for Validation...";
+        
+        await tx.wait(); 
+        
+        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
+        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
+        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
+        
+        refreshSpinStatus();
+        document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
+        
+    }catch(e){
+        btn.disabled=false;
+        let errStr = "Transaction Failed";
+        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
+            errStr = "Spin Cancelled";
+        } else if (e.reason) {
+            errStr = e.reason;
+        }
+        showToast(errStr,"red");
+        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
+        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
+        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+        document.getElementById('spinResult').innerText=errStr;
+    }
+}
+
+function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE
+// GAME ENGINE & DATA (Unchanged Physics)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -468,7 +421,7 @@ function resetGameState() {
 
 function jump(){
     initAudio();
-    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(window.isOfficialRun);return;}
+    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(isOfficialRun);return;}
     if(gameState!=='playing')return;
     if(player.ground){player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;player.ground=false;playJump();}
 }
@@ -485,9 +438,9 @@ function startOrRestartGame(fromOfficial=false){
     obstacles=buildLevelObstacles(currentLevel);
     
     if(!fromOfficial) {
-        window.isOfficialRun = false;
+        isOfficialRun = false;
         levelStartTimestamp=Date.now();
-        showToast("Practice Mode","#ff3060");
+        showToast("Practice Mode Started","#ff3060");
     } else {
         levelStartTimestamp=Date.now();
     }
@@ -512,7 +465,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let spinEarned=window.isOfficialRun&&(timePlayed>=60000); 
+    let spinEarned=isOfficialRun&&(timePlayed>=60000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -533,24 +486,22 @@ function triggerWin(){
     document.getElementById('overlayTitle').style.color='#00ff88';
     
     if(spinEarned){
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN!`;
+        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN EARNED!`;
         document.getElementById('overlayBtn').style.display='block';
+        document.getElementById('overlayBtn').innerText='🏆 CLAIM LEVEL SPIN';
         
-        window.isOfficialRun=false;
+        isOfficialRun=false;
         const ob=document.getElementById('officialRunBtn');
         ob.disabled=false;
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        ob.style.background = "";
-        ob.style.color = "";
-        ob.style.borderColor = "";
         
         if(gameContract){
-            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000})
-                .then(() => { updateLeaderboard(); refreshSpinStatus(); })
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 250000})
+                .then(() => { fetchLeaderboard(); refreshSpinStatus(); })
                 .catch(e=>console.log(e));
         }
     }else{
-        let reason=window.isOfficialRun?"(Need 60s)":"(Practice)";
+        let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
     }
@@ -564,6 +515,7 @@ function update(){
     if(gameState!=='playing')return;
 
     frameCount++;worldX+=scrollSpeed;bgOffset+=scrollSpeed*0.5;
+    
     if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
     let prog=Math.min(100,(worldX/levelLength)*100);
@@ -678,6 +630,89 @@ function draw(){
 
 function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
+
+let timerInt=null;
+async function refreshSpinStatus(){
+    if(!gameContract) return;
+    try{
+        const res = await gameContract.getSpinStatus(userAddress);
+        spinStatus.bonus = res[1].toNumber();
+        spinStatus.hasFree = res[2];
+        spinStatus.timeLeft = res[3].toNumber();
+        
+        const btn = document.getElementById('spinBtn');
+        const info = document.getElementById('spinInfo');
+        clearInterval(timerInt);
+        
+        if(spinStatus.bonus > 0){
+            btn.disabled = false;
+            btn.innerText = `🏆 LEVEL SPIN — ${spinStatus.bonus} available`;
+            btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
+            info.innerText = `Level clear spins: ${spinStatus.bonus}`;
+            return;
+        }
+        if(spinStatus.hasFree){
+            btn.disabled = false;
+            btn.innerText = '⏰ FREE HOURLY SPIN!';
+            btn.style.background = '#ffd700';
+            info.innerText = 'Free spin ready!';
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.style.background = '#555';
+        btn.style.color = '#222';
+        let tl = spinStatus.timeLeft;
+        timerInt = setInterval(() => {
+            if(tl <= 0){
+                refreshSpinStatus();
+                clearInterval(timerInt);
+                return;
+            }
+            tl--;
+            let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
+            btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            info.innerText = `Next free spin in ${h}h ${m}m`;
+        }, 1000);
+    }catch(e){}
+}
+
+const fcUsernameCache={};
+async function getFarcasterUsername(address){
+    if(!address||address==='0x0000000000000000000000000000000000000000')return null;
+    if(fcUsernameCache[address])return fcUsernameCache[address];
+    try{
+        const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
+        if(res.ok){
+            const data=await res.json(),lowerAddr=address.toLowerCase();
+            if(data[lowerAddr]&&data[lowerAddr].length>0){
+                const name='@'+data[lowerAddr][0].username;
+                fcUsernameCache[address]=name;
+                return name;
+            }
+        }
+    }catch(e){}
+    return address.slice(0,6)+'...'+address.slice(-4);
+}
+
+async function fetchLeaderboard(){
+    if(!gameContract || !userAddress) return;
+    try{
+        const p = await gameContract.players(userAddress);
+        const score = p[2].toNumber(); 
+        const lvl = p[3].toNumber();   
+
+        if(score === 0){
+            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats on-chain!</div>';
+            return;
+        }
+        const name = await getFarcasterUsername(userAddress) || "You";
+        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); padding:10px; border-radius:6px; border: 1px solid rgba(0,240,255,0.3);">
+            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
+            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Max Lv${lvl}</span></span>
+        </div>`;
+    }catch(e){}
+}
 </script>
 </body>
 </html>
