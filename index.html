@@ -266,7 +266,7 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// ✅ NO MORE WAITING - INSTANT START
+// ✅ ASLI BLOCKCHAIN WAIT - NO FAKE SUCCESS
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -285,9 +285,17 @@ async function startOfficialRun(){
     try {
         const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
         
-        // NO WAITING FOR RPC ANYMORE! AS SOON AS USER CLICKS CONFIRM, IT STARTS!
-        showToast("✅ Tx Sent! Starting Game...", "#00ff88");
+        showToast("Tx Sent! Confirming...", "#ffd700");
+        btn.innerText = "⏳ CONFIRMING...";
         
+        // Asli confirmation wait
+        const receipt = await publicProvider.waitForTransaction(txHash); 
+        
+        if(receipt && receipt.status === 0) {
+             throw new Error("Transaction Reverted on Blockchain");
+        }
+        
+        showToast("Official Run Started! Survive 1 min.", "#00ff88");
         isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
@@ -308,7 +316,7 @@ async function startOfficialRun(){
     }
 }
 
-// ✅ NO MORE WAITING FREEZES - TIMEOUT BYPASS
+// ✅ ASLI SPIN WAIT - NO FAKE SUCCESS
 async function executeSpin(){
     const btn=document.getElementById('spinBtn');
     
@@ -330,26 +338,23 @@ async function executeSpin(){
     try{
         const txHash = await sendRawTransaction("spin", []);
         
-        // Wait maximum 6 seconds, then just assume it worked to unblock UI
-        try {
-            await Promise.race([
-                publicProvider.waitForTransaction(txHash),
-                new Promise(r => setTimeout(r, 6000))
-            ]);
-        } catch(waitErr) {
-            console.log("RPC Wait timeout bypassed");
+        document.getElementById('spinResult').innerText="Waiting for Blockchain...";
+        
+        // Asli confirmation wait
+        const receipt = await publicProvider.waitForTransaction(txHash); 
+        
+        if (receipt && receipt.status === 0) {
+            throw new Error("Transaction Reverted on Blockchain");
         }
         
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
         
-        refreshSpinStatus();
-        document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
         showToast("Spin Successful!", "#00ff88");
+        document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
         
     }catch(e){
-        btn.disabled=false;
         let errStr = "Transaction Failed";
         if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
             errStr = "Spin Cancelled";
@@ -361,6 +366,9 @@ async function executeSpin(){
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
         document.getElementById('spinResult').innerText=errStr;
+    } finally {
+        // Humesha status refresh karo chahe fail ho ya pass, taaki button lock ho jaye
+        refreshSpinStatus();
     }
 }
 
@@ -503,10 +511,9 @@ function triggerWin(){
         
         if(isConnected){
             sendRawTransaction("levelComplete", [currentLevel, addScore])
-            .then(txHash => {
-                // Silently wait and refresh
-                setTimeout(() => { fetchLeaderboard(); refreshSpinStatus(); }, 5000);
-            }).catch(e=>console.log(e));
+            .then(txHash => publicProvider.waitForTransaction(txHash))
+            .then(() => { fetchLeaderboard(); refreshSpinStatus(); })
+            .catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
