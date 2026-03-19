@@ -99,12 +99,9 @@
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
-        
         async function initFarcaster() {
             try {
-                // Call ready IMMEDIATELY to remove splash screen and fix the Farcaster bug
                 sdk.actions.ready(); 
-                
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -112,7 +109,7 @@
                     if (window.fcUsername) {
                         let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
                         const titleEl = document.getElementById('mainTitle');
-                        if(titleEl) {
+                        if (titleEl) {
                             titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
                         }
                     }
@@ -204,14 +201,14 @@
 const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
 let userAddress=null, provider=null;
 
-// ✅ EXACTLY REPLACED WITH GROK'S CORRECT SELECTORS
+// ✅ THE TRUE ORIGINAL DAY-1 SELECTORS (Removed Grok's garbage)
 const SELECTORS = {
-    spin: "0x685e7b2d",
-    levelComplete: "0xe0746fc0",
-    startLevel: "0xf9d17709",
-    recordAttempt: "0x32789ee1",
-    getLeaderboard: "0xbfc5b947",
-    getSpinStatus: "0xd1b6b352"
+    spin: "0x1515bc2b",
+    levelComplete: "0x6c6e75b7",
+    startLevel: "0x7a7c1c78", // EXACTLY WHAT YOU HAD ON DAY 1!
+    recordAttempt: "0x0047fb42",
+    getLeaderboard: "0x716616a2",
+    getSpinStatus: "0x280261cb"
 };
 
 function pad32(val){return val.toString(16).padStart(64,'0');}
@@ -222,7 +219,7 @@ function showWalletStatus(msg,isGood){const w=document.getElementById('walletSta
 // EVENT LISTENERS BINDING
 // ==========================================
 window.addEventListener('load', async () => {
-    // Bind buttons directly in JS to bypass Farcaster CSP blocking
+    // Bind buttons directly
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
@@ -350,7 +347,8 @@ async function startOfficialRun(){
     }catch(e){
         btn.disabled=false;
         btn.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction rejected","red");
+        showToast("Transaction failed or rejected!","red");
+        console.error(e);
     }
 }
 
