@@ -19,52 +19,42 @@
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
-        :root {
-            --bg-dark: #05080f;
-            --bg-grid: rgba(0,240,255,0.04);
-            --cyan: #00f0ff;
-            --red: #ff3060;
-            --plat-fill: #0d1e2e;
-            --plat-border: #00ff88;
-            --ground: #080d14;
-            --gold: #ffd700;
-        }
+        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
-        
         .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
-        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff, 0 0 30px rgba(0,240,255,0.3); display: flex; align-items: center; gap: 8px; }
-        .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; line-height: 1.6; }
-
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; box-shadow: 0 0 30px rgba(0,240,255,0.5), 0 0 80px rgba(0,240,255,0.1); background: #05080f; overflow: hidden; border-radius: 4px; }
+        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff; }
+        .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
+        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; box-shadow: 0 0 30px rgba(0,240,255,0.5); background: #05080f; overflow: hidden; border-radius: 4px; }
         canvas { display: block; width: 100%; height: 100%; }
-        
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; backdrop-filter: blur(3px); }
-        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
-        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.04); } }
-        #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; letter-spacing: 1px; white-space: pre-line; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; box-shadow: 0 0 25px rgba(255,215,0,0.6); font-family: 'Courier New', monospace; animation: spinPulse 0.8s ease infinite alternate; }
-        @keyframes spinPulse { from { box-shadow: 0 0 15px rgba(255,215,0,0.4); } to { box-shadow: 0 0 40px rgba(255,215,0,0.9); } }
-
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
+        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; }
+        #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; }
+        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; }
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
-        .progress-bar { height: 14px; background: #00f0ff; width: 0%; transition: width 0.1s; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
+        .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; }
-
         .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .lvl-btn { flex: 1; min-width: 45px; padding: 10px 0; text-align: center; font-weight: bold; border-radius: 4px; border: 1px solid #1a2332; background: #0a0f18; color: #2a3a4a; cursor: not-allowed; font-family: 'Courier New', monospace; }
+        .lvl-btn { flex: 1; min-width: 45px; padding: 10px 0; text-align: center; font-weight: bold; border-radius: 4px; border: 1px solid #1a2332; background: #0a0f18; color: #2a3a4a; cursor: not-allowed; }
         .lvl-btn.unlocked { background: transparent; border-color: #00f0ff; color: #00f0ff; cursor: pointer; }
-        .lvl-btn.unlocked:hover { background: rgba(0,240,255,0.15); box-shadow: 0 0 8px rgba(0,240,255,0.3); }
         .lvl-btn.active { background: #00f0ff; color: #000; box-shadow: 0 0 15px #00f0ff; }
         .lvl-btn.done { background: rgba(0,255,136,0.08); border-color: #00ff88; color: #00ff88; cursor: pointer; }
-
         .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 5px; display: flex; gap: 10px; }
-        .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; letter-spacing: 1px; font-family: 'Courier New', monospace; transition: all 0.2s; }
-        .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 20px #00f0ff; }
+        .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; }
         .play-btn-gold { border-color: var(--gold); color: var(--gold); }
-        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
-        .play-btn-gold:disabled { border-color: #555; color: #888; background: transparent; cursor: not-allowed; box-shadow: none; }
         .btn-note { font-size: 11px; color: #888; text-align: center; width: 100%; margin-bottom: 20px; }
-
+        .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
+        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; }
+        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #fff; border-radius: 8px; font-size: 45px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .reel-inner { position: absolute; transition: top 0.1s; }
+        .spinning { filter: blur(3px); animation: fastSpin 0.1s infinite; }
+        @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
+        .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
+        .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
+        .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
+        #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
+        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; }
         .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.25); border-radius: 8px; padding: 16px; background: rgba(8,6,0,0.95); margin-bottom: 12px; }
         .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px #ffd700; }
         .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 6px; text-align: center; text-transform: uppercase; }
@@ -72,34 +62,11 @@
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .prize-table tr.t-common td { color: #aaa; }
-        .prize-table tr.t-epic td { color: #4488ff; }
-        .prize-table tr.t-rare td { color: #cc44ff; }
-        .prize-table tr.t-legend td { color: #ffd700; font-weight: bold; }
         .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
-
-        .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); box-shadow: 0 0 20px rgba(255,215,0,0.2); margin-bottom: 20px; }
-        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px var(--gold); }
-        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #fff; border-radius: 8px; font-size: 45px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .reel-inner { position: absolute; transition: top 0.1s; }
-        .spinning { filter: blur(3px); animation: fastSpin 0.1s infinite; }
-        @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
-        .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-bottom: 10px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
-        .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
-
-        .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
-        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
-        .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px; }
-        #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
-        
-        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
-        
         async function initFarcaster() {
             try {
                 sdk.actions.ready(); 
@@ -110,14 +77,10 @@
                     if (window.fcUsername) {
                         let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
                         const titleEl = document.getElementById('mainTitle');
-                        if (titleEl) {
-                            titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
-                        }
+                        if(titleEl) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
                     }
                 }
-            } catch(e) {
-                console.log("Not in Farcaster frame context");
-            }
+            } catch(e) {}
         }
         initFarcaster();
     </script>
@@ -163,14 +126,15 @@
     <div class="prize-section-label">⏰ Free Hourly Spin</div>
     <table class="prize-table">
         <tr><th>Rarity</th><th>Result</th><th>Reward</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
+        <tr><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
     </table>
     <div class="prize-divider">————————————</div>
     <div class="prize-section-label">🏆 Level Clear Spin (Bonus)</div>
     <table class="prize-table">
         <tr><th>Rarity</th><th>Result</th><th>Prize</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
+        <tr><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
     </table>
+    <div class="prize-note">★ Check wallet after spinning! 🎉</div>
 </div>
 
 <div class="slot-machine">
@@ -193,15 +157,15 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ⚠️ AAPKA NAYA DEPLOYED CONTRACT ADDRESS
-const CONTRACT_ADDRESS="0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
+// ✅ AAPKA NAYA CONTRACT ADDRESS
+const CONTRACT_ADDRESS = "0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
 let userAddress=null, provider=null;
 
-// ✅ EXACT MATHEMATICAL SELECTORS FOR THE NEW GeoDashFinal.sol CONTRACT
+// ✅ 1000% CORRECT SELECTORS FOR NEW UINT256 CONTRACT
 const SELECTORS = {
     spin:           "0x1515bc2b",
     levelComplete:  "0x51b4b204", 
-    startLevel:     "0x840ec885", 
+    startLevel:     "0x840ec885", // The real hex for startLevel(uint256)
     recordAttempt:  "0x0047fb42",
     getLeaderboard: "0x716616a2",
     getSpinStatus:  "0x280261cb"
@@ -211,20 +175,15 @@ function pad32(val){return val.toString(16).padStart(64,'0');}
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ==========================================
-// EVENT LISTENERS BINDING
-// ==========================================
 window.addEventListener('load', async () => {
-    // Bind buttons directly
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
-
     buildLevelUI();
 
     if (!window.ethereum) { 
-        showWalletStatus("MetaMask not found. You can still play Practice Mode!", false); 
+        showWalletStatus("MetaMask not found. Play Practice Mode!", false); 
     } else {
         try {
             provider = window.ethereum; 
@@ -233,14 +192,11 @@ window.addEventListener('load', async () => {
                 userAddress = accounts[0];
                 showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
                 fetchSpinStatus(); 
-                fetchLeaderboard(); 
-                setInterval(fetchLeaderboard, 30000);
+                fetchLeaderboard();
             } else {
                 showWalletStatus("Click 'Official Run' to connect wallet", false);
             }
-        } catch(e) { 
-            showWalletStatus("Wallet check failed", false); 
-        }
+        } catch(e) {}
     }
 });
 
@@ -305,10 +261,7 @@ canvas.addEventListener('mousedown',jump);
 canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
 
 async function startOfficialRun(){
-    if(!window.ethereum) {
-        showToast("MetaMask/Wallet required for Official Run!", "red");
-        return;
-    }
+    if(!window.ethereum) { showToast("MetaMask required!", "red"); return; }
     
     if(!userAddress){
         try {
@@ -316,10 +269,7 @@ async function startOfficialRun(){
             const accounts = await provider.request({method: 'eth_requestAccounts'});
             userAddress = accounts[0];
             showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-        } catch(e) {
-            showToast("Wallet connection failed", "red");
-            return;
-        }
+        } catch(e) { return; }
     }
 
     const btn=document.getElementById('officialRunBtn');
@@ -335,7 +285,7 @@ async function startOfficialRun(){
             }]
         });
         
-        showToast("Official Run Started! Survive 3 mins.","#00ff88");
+        showToast("Official Run Started!","#00ff88");
         isOfficialRun=true;
         btn.innerText="💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
@@ -343,8 +293,7 @@ async function startOfficialRun(){
     }catch(e){
         btn.disabled=false;
         btn.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction failed or rejected!","red");
-        console.error(e);
+        showToast("Transaction cancelled","red");
     }
 }
 
@@ -359,7 +308,7 @@ function startOrRestartGame(fromOfficial=false){
     if(!fromOfficial) {
         isOfficialRun = false;
         levelStartTimestamp=Date.now();
-        showToast("Practice Mode Started (No ARB)","#ff3060");
+        showToast("Practice Mode Started","#ff3060");
     } else {
         levelStartTimestamp=Date.now();
     }
@@ -386,7 +335,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let spinEarned=isOfficialRun&&(timePlayed>=180000);
+    let spinEarned=isOfficialRun&&(timePlayed>=60000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -421,7 +370,7 @@ function triggerWin(){
             provider.request({method:'eth_sendTransaction',params:[{from:userAddress,to:CONTRACT_ADDRESS,data}]}).catch(()=>{});
         }
     }else{
-        let reason=isOfficialRun?"(Completed too fast, min 3 mins)":"(Practice Mode — No Spin)";
+        let reason=isOfficialRun?"(Practice Mode — No Spin)":"(Practice Mode — No Spin)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
     }
@@ -571,7 +520,7 @@ function updateSpinUI(hasFree=false,timeLeft=0,bonus=0){
 }
 
 async function fetchSpinStatus(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
+    if(!userAddress) return;
     try{const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getSpinStatus+pad32(userAddress.replace('0x',''))},'latest']});if(res&&res!=='0x'){const clean=res.replace('0x','');updateSpinUI(parseInt(clean.substring(128,192),16)===1,parseInt(clean.substring(192,256),16),parseInt(clean.substring(64,128),16));}}catch(e){}
 }
 
@@ -587,7 +536,7 @@ async function executeSpin(){
         });
         animateReels(-1);
         setTimeout(()=>{fetchSpinStatus();document.getElementById('spinResult').innerText="Check wallet for ARB!";},4000);
-    }catch(e){btn.disabled=false;if(e.code!==4001)showToast("Spin failed","red");}
+    }catch(e){btn.disabled=false;showToast("Spin failed","red");}
 }
 
 function animateReels(simulatedWin){
@@ -611,7 +560,7 @@ async function getFarcasterUsername(address){
 }
 
 async function fetchLeaderboard(){
-    if(!userAddress||CONTRACT_ADDRESS==="REPLACE_AFTER_DEPLOY")return;
+    if(!userAddress) return;
     try{
         const res=await provider.request({method:'eth_call',params:[{to:CONTRACT_ADDRESS,data:SELECTORS.getLeaderboard},'latest']});
         if(res&&res!=='0x'){
@@ -624,7 +573,7 @@ async function fetchLeaderboard(){
             entries.forEach((e,i)=>{const isMe=e.addr.toLowerCase()===userAddress.toLowerCase(),name=names[i],medal=medals[i]||`#${e.rank}`;html+=`<div class="lb-row" style="${isMe?'background:rgba(0,240,255,0.05);':''}"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${isMe?'var(--cyan)':'#aaa'};font-weight:${isMe?'bold':'normal'}">${name}${isMe?' ← YOU':''}</span></span><span><span style="color:white;font-weight:bold">${e.score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${e.lvl}</span></span></div>`;});
             document.getElementById('lbContent').innerHTML=html;
         }
-    }catch(e){console.error("Leaderboard error:",e);}
+    }catch(e){}
 }
 </script>
 </body>
