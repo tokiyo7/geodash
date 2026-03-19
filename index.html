@@ -32,18 +32,51 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
         
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
-        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff, 0 0 30px rgba(0,240,255,0.3); display: flex; align-items: center; gap: 8px; }
+        .header {
+            width: 100%; max-width: 800px;
+            display: flex; justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(5,8,15,0.95);
+            border: 1px solid rgba(0,240,255,0.3);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 15px rgba(0,240,255,0.1);
+        }
+        .title {
+            color: #00f0ff; font-size: 22px;
+            font-weight: bold; letter-spacing: 3px;
+            text-shadow: 0 0 12px #00f0ff, 0 0 30px rgba(0,240,255,0.3);
+            display: flex; align-items: center; gap: 8px;
+        }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; line-height: 1.6; }
 
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; box-shadow: 0 0 30px rgba(0,240,255,0.5), 0 0 80px rgba(0,240,255,0.1); background: #05080f; overflow: hidden; border-radius: 4px; }
+        .game-container {
+            position: relative; width: 100%; max-width: 800px;
+            aspect-ratio: 2/1; border: 2px solid #00f0ff;
+            box-shadow: 0 0 30px rgba(0,240,255,0.5), 0 0 80px rgba(0,240,255,0.1);
+            background: #05080f; overflow: hidden; border-radius: 4px;
+        }
         canvas { display: block; width: 100%; height: 100%; }
         
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; backdrop-filter: blur(3px); }
+        #overlay {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.88);
+            display: none; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 10; text-align: center; backdrop-filter: blur(3px);
+        }
         #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
         @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.04); } }
         #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; letter-spacing: 1px; white-space: pre-line; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; box-shadow: 0 0 25px rgba(255,215,0,0.6); font-family: 'Courier New', monospace; animation: spinPulse 0.8s ease infinite alternate; }
+        .btn-large {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #000; border: none; padding: 15px 40px;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+            border-radius: 8px; letter-spacing: 2px;
+            box-shadow: 0 0 25px rgba(255,215,0,0.6);
+            font-family: 'Courier New', monospace;
+            animation: spinPulse 0.8s ease infinite alternate;
+        }
         @keyframes spinPulse { from { box-shadow: 0 0 15px rgba(255,215,0,0.4); } to { box-shadow: 0 0 40px rgba(255,215,0,0.9); } }
 
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
@@ -97,7 +130,30 @@
         .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
-    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.umd.js"></script>
+    <script type="module">
+        import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        
+        async function initFarcaster() {
+            try {
+                sdk.actions.ready(); 
+                const context = await sdk.context;
+                if (context && context.user) {
+                    window.fcUsername = context.user.username || null;
+                    const fcPfpUrl = context.user.pfpUrl || null;
+                    if (window.fcUsername) {
+                        let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
+                        const titleEl = document.getElementById('mainTitle');
+                        if (titleEl) {
+                            titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.log("Not in Farcaster frame context");
+            }
+        }
+        initFarcaster();
+    </script>
 </head>
 <body>
 
@@ -176,14 +232,15 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// The Contract Address you Provided
-const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+const CONTRACT_ADDRESS = "0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+
 let userAddress=null, provider=null;
 
+// ✅ RESTORED THE CORRECT ORIGINAL SELECTOR!
 const SELECTORS = {
     spin:"0x1515bc2b",
     levelComplete:"0x6c6e75b7",
-    startLevel:"0x82b8a5d3", // Correct Selector for startLevel(uint8)
+    startLevel:"0x7a7c1c78", // THIS WAS THE BUG. Restored to your original correct code!
     recordAttempt:"0x0047fb42",
     getLeaderboard:"0x716616a2",
     getSpinStatus:"0x280261cb"
@@ -193,29 +250,7 @@ function pad32(val){return val.toString(16).padStart(64,'0');}
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ==========================================
-// INITIALIZATION
-// ==========================================
 window.addEventListener('load', async () => {
-    // 1. CLEAR FARCASTER SPLASH SCREEN IMMEDIATELY
-    try {
-        if (window.frame && window.frame.sdk) {
-            window.frame.sdk.actions.ready(); // Fixes the "Ready not called" infinite loop!
-            const context = await window.frame.sdk.context;
-            if (context && context.user) {
-                window.fcUsername = context.user.username || null;
-                const fcPfpUrl = context.user.pfpUrl || null;
-                if (window.fcUsername) {
-                    let pfp = fcPfpUrl ? `<img src="${fcPfpUrl}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;">` : '';
-                    document.getElementById('mainTitle').innerHTML = `GEODASH <span style="font-size:12px;color:#888;font-weight:normal;display:inline-flex;align-items:center;gap:6px;">${pfp}@${window.fcUsername}</span>`;
-                }
-            }
-        }
-    } catch(e) {
-        console.log("Normal browser mode");
-    }
-
-    // 2. BIND BUTTONS (Bypasses Farcaster CSP block)
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
@@ -223,31 +258,28 @@ window.addEventListener('load', async () => {
 
     buildLevelUI();
 
-    // 3. SILENT WALLET CHECK (No popups on load)
     if (!window.ethereum) { 
         showWalletStatus("MetaMask not found. You can still play Practice Mode!", false); 
     } else {
         try {
             provider = window.ethereum; 
-            const accounts = await provider.request({method: 'eth_accounts'}); // Silent check, no request popup
-            if (accounts && accounts.length > 0) {
-                userAddress = accounts[0];
-                showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-                fetchSpinStatus(); 
-                fetchLeaderboard(); 
-                setInterval(fetchLeaderboard, 30000);
-            } else {
-                showWalletStatus("Click 'Official Run' to connect wallet", false);
+            const accounts = await provider.request({method: 'eth_requestAccounts'});
+            userAddress = accounts[0];
+            try { 
+                await provider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); 
+            } catch (e) {
+                if (e.code === 4902) {
+                    await provider.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
+                }
             }
+            showWalletStatus(`✓ ${window.fcUsername?'@'+window.fcUsername:userAddress.slice(0,6)+'...'+userAddress.slice(-4)} · Arbitrum`, true);
+            if (CONTRACT_ADDRESS !== "REPLACE_AFTER_DEPLOY") { fetchSpinStatus(); fetchLeaderboard(); setInterval(fetchLeaderboard, 30000); }
         } catch(e) { 
-            showWalletStatus("Wallet check failed", false); 
+            showWalletStatus("Wallet connection failed", false); 
         }
     }
 });
 
-// ==========================================
-// GAME LOGIC
-// ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
 function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
@@ -290,12 +322,11 @@ function buildLevelUI(){
         if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
         else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
         else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
-        btn.addEventListener('click', () => {
-            currentLevel=i;buildLevelUI();document.getElementById('progressText').innerText=`Level ${i}/10`;
-        }); 
+        btn.addEventListener('click', () => selectLevel(i)); 
         grid.appendChild(btn);
     }
 }
+window.selectLevel = selectLevel;
 
 function jump(){
     initAudio();
@@ -308,25 +339,28 @@ document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();
 canvas.addEventListener('mousedown',jump);
 canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
 
-// ==========================================
-// ✅ FIX 2: THE "BYPASS" TRANSACTION LOGIC
-// ==========================================
 async function startOfficialRun(){
     if(!window.ethereum) {
         showToast("MetaMask/Wallet required for Official Run!", "red");
         return;
     }
     
+    if(!userAddress){
+        try {
+            provider = window.ethereum;
+            const accounts = await provider.request({method: 'eth_requestAccounts'});
+            userAddress = accounts[0];
+            showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
+        } catch(e) {
+            showToast("Wallet connection failed", "red");
+            return;
+        }
+    }
+
     const btn=document.getElementById('officialRunBtn');
-    btn.disabled=true;btn.innerText="⏳ CONNECTING...";
+    btn.disabled=true;btn.innerText="⏳ SIGNING...";
     
     try{
-        provider = window.ethereum;
-        const accounts = await provider.request({method: 'eth_requestAccounts'});
-        userAddress = accounts[0];
-        
-        btn.innerText="⏳ SIGNING...";
-        // WE ATTEMPT TO SIGN, BUT IF IT FAILS, WE START THE GAME ANYWAY!
         await provider.request({
             method:'eth_sendTransaction',
             params:[{
@@ -335,20 +369,12 @@ async function startOfficialRun(){
                 data:SELECTORS.startLevel+pad32(currentLevel)
             }]
         });
-        
-        // If it succeeds
-        showToast("Official Run Started!","#00ff88");
-        isOfficialRun=true;
-        btn.innerText="💎 OFFICIAL RUN ACTIVE";
+        showToast("Official Run Started! Survive 3 mins.","#00ff88");
+        isOfficialRun=true;btn.innerText="💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
-        
     }catch(e){
-        // IF METAMASK BLOCKS IT, WE DON'T CARE! WE START THE GAME ANYWAY FOR THE USER
-        console.log("Transaction rejected or failed. Starting bypass mode.");
-        showToast("Tx Bypassed: Game starting!","#00ff88");
-        isOfficialRun=true;
-        btn.innerText="💎 OFFICIAL RUN ACTIVE";
-        startOrRestartGame(true);
+        btn.disabled=false;btn.innerText="💎 OFFICIAL ON-CHAIN RUN";
+        showToast("Transaction failed/rejected","red");
     }
 }
 
@@ -363,7 +389,7 @@ function startOrRestartGame(fromOfficial=false){
     if(!fromOfficial) {
         isOfficialRun = false;
         levelStartTimestamp=Date.now();
-        showToast("Practice Mode Started (No ARB)","#ff3060");
+        showToast("Practice Mode (No ARB)","#ff3060");
     } else {
         levelStartTimestamp=Date.now();
     }
