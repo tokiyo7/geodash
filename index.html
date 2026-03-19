@@ -80,20 +80,31 @@
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
-        window.fcSdk = sdk; // Expose globally for wallet connection
+        window.fcSdk = sdk; 
         
-        async function initFarcaster() {
+        async function initFc() {
             try {
-                sdk.actions.ready(); 
+                // 500ms delay so Farcaster doesn't miss the ready signal!
+                setTimeout(() => {
+                    sdk.actions.ready();
+                }, 500);
+
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
                     const titleEl = document.getElementById('mainTitle');
                     if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.log("Farcaster load error:", e);
+            }
         }
-        initFarcaster();
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFc);
+        } else {
+            initFc();
+        }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
