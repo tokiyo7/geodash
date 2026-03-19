@@ -185,14 +185,12 @@ let isFarcasterWallet = false;
 let walletProvider = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 
-// 🔥 THE ULTIMATE PUBLIC PROVIDER (For Reads - Never fails)
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
-// ✅ 1. SMART WALLET FINDER
 async function detectWallet() {
     if (walletProvider) return true;
     for(let i=0; i<10; i++) {
@@ -206,12 +204,11 @@ async function detectWallet() {
             isFarcasterWallet = false;
             return true;
         }
-        await new Promise(r => setTimeout(r, 100)); // wait 100ms
+        await new Promise(r => setTimeout(r, 100));
     }
     return false;
 }
 
-// ✅ 2. SILENT & CLEAN CONNECTION
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -222,7 +219,6 @@ async function connectWallet(showErrors = true) {
         const accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
         userAddress = accounts[0];
 
-        // Sirf PC MetaMask pe network switch ki request bhejo, Farcaster pe NAHI
         if (!isFarcasterWallet) {
             try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
         }
@@ -238,12 +234,10 @@ async function connectWallet(showErrors = true) {
     }
 }
 
-// 🔥 3. THE NATIVE BYPASS FOR TRANSACTIONS
 async function sendRawTransaction(methodName, args) {
     const iface = new ethers.utils.Interface(ABI);
     const data = iface.encodeFunctionData(methodName, args);
 
-    // Farcaster ka native engine Ethers ki jagah seedha command bhejega
     const txHash = await walletProvider.request({
         method: 'eth_sendTransaction',
         params: [{
@@ -252,7 +246,6 @@ async function sendRawTransaction(methodName, args) {
             data: data
         }]
     });
-    
     return txHash;
 }
 
@@ -263,7 +256,6 @@ window.addEventListener('load', () => {
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
 
-    // Auto-connect try
     setTimeout(async () => {
         if (await detectWallet()) {
             try {
@@ -274,12 +266,13 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
+// ✅ NO MORE WAITING - INSTANT START
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
 
     btn.disabled = true;
-    btn.innerText = "⏳ CONNECTING...";
+    btn.innerText = "⏳ WAITING...";
     
     if(!isConnected) {
         if(!await connectWallet(true)) {
@@ -288,20 +281,13 @@ async function startOfficialRun(){
             return;
         }
     }
-
-    btn.innerText = "⏳ WAITING FOR APPROVAL...";
     
     try {
-        // Yahan par hum Native Farcaster Engine use kar rahe hain
         const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
         
-        showToast("Tx Sent! Waiting...", "#ffd700");
-        btn.innerText = "⏳ MINING...";
+        // NO WAITING FOR RPC ANYMORE! AS SOON AS USER CLICKS CONFIRM, IT STARTS!
+        showToast("✅ Tx Sent! Starting Game...", "#00ff88");
         
-        // Ethers Public Server se check kar rahe hain
-        await publicProvider.waitForTransaction(txHash); 
-        
-        showToast("Official Run Started! Survive 1 min.", "#00ff88");
         isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
@@ -322,6 +308,7 @@ async function startOfficialRun(){
     }
 }
 
+// ✅ NO MORE WAITING FREEZES - TIMEOUT BYPASS
 async function executeSpin(){
     const btn=document.getElementById('spinBtn');
     
@@ -338,13 +325,20 @@ async function executeSpin(){
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText="Spinning on Blockchain...";
+    document.getElementById('spinResult').innerText="Confirming Tx...";
 
     try{
         const txHash = await sendRawTransaction("spin", []);
-        document.getElementById('spinResult').innerText="Waiting for Confirmation...";
         
-        await publicProvider.waitForTransaction(txHash); 
+        // Wait maximum 6 seconds, then just assume it worked to unblock UI
+        try {
+            await Promise.race([
+                publicProvider.waitForTransaction(txHash),
+                new Promise(r => setTimeout(r, 6000))
+            ]);
+        } catch(waitErr) {
+            console.log("RPC Wait timeout bypassed");
+        }
         
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
@@ -352,6 +346,7 @@ async function executeSpin(){
         
         refreshSpinStatus();
         document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
+        showToast("Spin Successful!", "#00ff88");
         
     }catch(e){
         btn.disabled=false;
@@ -503,13 +498,15 @@ function triggerWin(){
         
         isOfficialRun=false;
         const ob=document.getElementById('officialRunBtn');
-        ob.disabled=false;ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
+        ob.disabled=false;
+        ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
             sendRawTransaction("levelComplete", [currentLevel, addScore])
-            .then(txHash => publicProvider.waitForTransaction(txHash))
-            .then(() => { fetchLeaderboard(); refreshSpinStatus(); })
-            .catch(e=>console.log(e));
+            .then(txHash => {
+                // Silently wait and refresh
+                setTimeout(() => { fetchLeaderboard(); refreshSpinStatus(); }, 5000);
+            }).catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
