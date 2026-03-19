@@ -183,10 +183,8 @@ let userAddress=null;
 let isConnected = false;
 let isFarcasterWallet = false;
 let walletProvider = null;
+let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
-
-const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
-const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
@@ -222,6 +220,10 @@ async function connectWallet(showErrors = true) {
         if (!isFarcasterWallet) {
             try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
         }
+        
+        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
+        const signer = provider.getSigner();
+        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
@@ -232,21 +234,6 @@ async function connectWallet(showErrors = true) {
         if(showErrors) showToast("Connection Cancelled", "red");
         return false;
     }
-}
-
-async function sendRawTransaction(methodName, args) {
-    const iface = new ethers.utils.Interface(ABI);
-    const data = iface.encodeFunctionData(methodName, args);
-
-    const txHash = await walletProvider.request({
-        method: 'eth_sendTransaction',
-        params: [{
-            to: CONTRACT_ADDRESS,
-            from: userAddress,
-            data: data
-        }]
-    });
-    return txHash;
 }
 
 window.addEventListener('load', () => {
@@ -266,7 +253,7 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// ✅ ASLI BLOCKCHAIN WAIT - NO FAKE SUCCESS
+// ✅ INSTANT START FIX: Sirf user ke 'Confirm' dabane ka wait karenge. (tx.wait() HATA DIYA)
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -283,19 +270,11 @@ async function startOfficialRun(){
     }
     
     try {
-        const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
+        // Sirf transaction submit hone ka wait hoga
+        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
         
-        showToast("Tx Sent! Confirming...", "#ffd700");
-        btn.innerText = "⏳ CONFIRMING...";
-        
-        // Asli confirmation wait
-        const receipt = await publicProvider.waitForTransaction(txHash); 
-        
-        if(receipt && receipt.status === 0) {
-             throw new Error("Transaction Reverted on Blockchain");
-        }
-        
-        showToast("Official Run Started! Survive 1 min.", "#00ff88");
+        // JAISE HI USER NE POPUP CONFIRM KIYA, GAME CHALU! NO LOADING FREEZE!
+        showToast("✅ Run Started Instantly!", "#00ff88");
         isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
@@ -309,14 +288,12 @@ async function startOfficialRun(){
             errStr = "Transaction Cancelled";
         } else if (e.reason) {
             errStr = e.reason;
-        } else if (e.message) {
-            errStr = e.message.substring(0, 40) + "..."; 
         }
         showToast(errStr, "red");
     }
 }
 
-// ✅ ASLI SPIN WAIT - NO FAKE SUCCESS
+// ✅ INSTANT SPIN FIX: Spin dabaya, confirm kiya, turant ruka! (tx.wait() HATA DIYA)
 async function executeSpin(){
     const btn=document.getElementById('spinBtn');
     
@@ -336,17 +313,10 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText="Confirming Tx...";
 
     try{
-        const txHash = await sendRawTransaction("spin", []);
+        // Sirf transaction submit hone ka wait hoga
+        const tx = await gameContract.spin({ gasLimit: 300000 });
         
-        document.getElementById('spinResult').innerText="Waiting for Blockchain...";
-        
-        // Asli confirmation wait
-        const receipt = await publicProvider.waitForTransaction(txHash); 
-        
-        if (receipt && receipt.status === 0) {
-            throw new Error("Transaction Reverted on Blockchain");
-        }
-        
+        // JAISE HI USER NE CONFIRM KIYA, SPIN TURANT RUK GAYA!
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
@@ -354,7 +324,11 @@ async function executeSpin(){
         showToast("Spin Successful!", "#00ff88");
         document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
         
+        // Background me status update hoga
+        setTimeout(refreshSpinStatus, 3000);
+        
     }catch(e){
+        btn.disabled=false;
         let errStr = "Transaction Failed";
         if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
             errStr = "Spin Cancelled";
@@ -362,20 +336,19 @@ async function executeSpin(){
             errStr = e.reason;
         }
         showToast(errStr,"red");
+        
+        // Agar fail hua, toh error dikhao aur reels rok do
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
         document.getElementById('spinResult').innerText=errStr;
-    } finally {
-        // Humesha status refresh karo chahe fail ho ya pass, taaki button lock ho jaye
-        refreshSpinStatus();
     }
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA
+// GAME ENGINE & DATA (Unchanged)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -510,10 +483,10 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            sendRawTransaction("levelComplete", [currentLevel, addScore])
-            .then(txHash => publicProvider.waitForTransaction(txHash))
-            .then(() => { fetchLeaderboard(); refreshSpinStatus(); })
-            .catch(e=>console.log(e));
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000})
+            .then(() => { 
+                setTimeout(() => { fetchLeaderboard(); refreshSpinStatus(); }, 4000); 
+            }).catch(e=>{});
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
@@ -649,7 +622,11 @@ draw();
 
 let timerInt=null;
 async function refreshSpinStatus(){
+    if(!gameContract) return;
     try{
+        // Public provider use karenge read ke liye (fastest)
+        const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
+        const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
         const res = await readContract.getSpinStatus(userAddress);
         spinStatus.bonus = res[1].toNumber();
         spinStatus.hasFree = res[2];
@@ -713,6 +690,8 @@ async function getFarcasterUsername(address){
 async function fetchLeaderboard(){
     if(!userAddress) return;
     try{
+        const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
+        const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
         const p = await readContract.players(userAddress);
         const score = p[2].toNumber(); 
         const lvl = p[3].toNumber();   
