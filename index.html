@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
     <meta property="og:title" content="GeoDash — Play & Earn ARB">
-    <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens. Season 1 live now!">
+    <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens.">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
     <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
@@ -13,11 +13,11 @@
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
-        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
+        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
         
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
+        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; }
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; text-shadow: 0 0 12px #00f0ff; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
@@ -25,7 +25,7 @@
         canvas { display: block; width: 100%; height: 100%; }
         
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
-        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
+        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; }
         #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; white-space: pre-line; }
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; }
 
@@ -75,15 +75,6 @@
     </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-    <script type="module">
-        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
-        window.miniAppSdk = sdk;
-        
-        sdk.actions.ready().then(() => {
-            console.log("Farcaster SDK Ready");
-            window.fcContext = sdk.context;
-        }).catch(console.error);
-    </script>
 </head>
 <body>
 
@@ -156,9 +147,13 @@
     <div id="lbContent">Connect wallet to view stats</div>
 </div>
 
-<div id="walletStatus">Ready to play - Click "Official Run" to connect</div>
+<div id="walletStatus">Ready - Click "Official Run" to connect</div>
 
-<script>
+<script type="module">
+// Import Farcaster SDK
+import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
+window.fcSdk = sdk;
+
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 const ABI = [
     "function startLevel(uint256 level) external",
@@ -168,11 +163,8 @@ const ABI = [
     "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
 ];
 
-// Global vars
 let userAddress = null;
 let gameContract = null;
-let signer = null;
-let isConnected = false;
 let spinStatus = { bonus: 0, hasFree: false, timeLeft: 0 };
 
 function showToast(msg, color = '#00f0ff') {
@@ -189,39 +181,35 @@ function showWalletStatus(msg, isGood) {
     w.style.color = isGood ? '#00ff88' : '#888';
 }
 
-// Get provider - SAFE method
-function getProvider() {
-    // Check for Farcaster Mini App wallet first
-    if (window.miniAppSdk && window.miniAppSdk.wallet && window.miniAppSdk.wallet.ethProvider) {
-        console.log("Using Farcaster provider");
-        return window.miniAppSdk.wallet.ethProvider;
-    }
-    // Fallback to regular MetaMask
-    if (window.ethereum) {
-        console.log("Using MetaMask provider");
-        return window.ethereum;
-    }
-    return null;
+// Check if inside Farcaster
+function isFarcaster() {
+    return window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider;
 }
 
-// Initialize game UI only - NO BLOCKCHAIN CALLS
+// Initialize
 window.addEventListener('load', () => {
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', handleOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
+    document.getElementById('overlayBtn').addEventListener('click', () => {
+        document.getElementById('overlay').style.display = 'none';
+        document.querySelector('.slot-machine').scrollIntoView({behavior: 'smooth'});
+        if (gameContract) refreshSpinStatus();
+    });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
     
-    // NO automatic wallet checks here!
-    console.log("Page loaded - waiting for user to click Official Run");
+    if (isFarcaster()) {
+        showWalletStatus("Farcaster detected - Click Official Run", true);
+    } else if (window.ethereum) {
+        showWalletStatus("MetaMask detected - Click Official Run", false);
+    }
 });
 
-// Main connection handler
 async function handleOfficialRun() {
     const btn = document.getElementById('officialRunBtn');
     
-    if (isOfficialRun) {
-        showToast("Official Run already active!", "#ffd700");
+    if (window.isOfficialRun) {
+        showToast("Already active!", "#ffd700");
         return;
     }
 
@@ -229,59 +217,33 @@ async function handleOfficialRun() {
     btn.innerText = "⏳ Connecting...";
 
     try {
-        // Step 1: Get provider (Farcaster or MetaMask)
-        const ethProv = getProvider();
+        let provider, signer;
         
-        if (!ethProv) {
-            showToast("No wallet found! Install MetaMask or use Farcaster App", "red");
-            btn.disabled = false;
-            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-            return;
-        }
-
-        // Step 2: Create ethers provider
-        const provider = new ethers.providers.Web3Provider(ethProv, "any");
-        
-        // Step 3: Check if we need to request accounts (MetaMask only)
-        // For Farcaster, we skip this step as it's already authorized
-        let accounts;
-        try {
-            // This will work for both, but might throw in Farcaster if not ready
-            accounts = await provider.listAccounts();
-            if (accounts.length === 0) {
-                // Only for MetaMask - request access
-                if (!window.miniAppSdk) {
-                    accounts = await ethProv.request({ method: 'eth_requestAccounts' });
-                } else {
-                    throw new Error("Please authorize the app in Farcaster");
-                }
-            }
-        } catch (accErr) {
-            console.log("Account access error:", accErr);
-            // If Farcaster, try to continue anyway
-            if (window.miniAppSdk) {
-                try {
-                    signer = provider.getSigner();
-                    userAddress = await signer.getAddress();
-                } catch (e) {
-                    throw new Error("Please connect your wallet in Farcaster");
-                }
-            } else {
-                throw accErr;
-            }
-        }
-
-        // Step 4: Switch chain (MetaMask only)
-        if (!window.miniAppSdk && ethProv.request) {
+        if (isFarcaster()) {
+            // FARCASTER MODE - Simple and direct
+            console.log("Connecting via Farcaster...");
+            const fcProvider = window.fcSdk.wallet.ethProvider;
+            provider = new ethers.providers.Web3Provider(fcProvider, "any");
+            signer = provider.getSigner();
+            userAddress = await signer.getAddress();
+            
+        } else if (window.ethereum) {
+            // METAMASK MODE - Request permission
+            console.log("Connecting via MetaMask...");
+            provider = new ethers.providers.Web3Provider(window.ethereum, "any");
+            
+            // Request accounts
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            
+            // Switch to Arbitrum
             try {
-                await ethProv.request({
+                await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0xa4b1' }] // Arbitrum
+                    params: [{ chainId: '0xa4b1' }]
                 });
             } catch (switchErr) {
-                // If chain not added, add it
                 if (switchErr.code === 4902) {
-                    await ethProv.request({
+                    await window.ethereum.request({
                         method: 'wallet_addEthereumChain',
                         params: [{
                             chainId: '0xa4b1',
@@ -293,74 +255,66 @@ async function handleOfficialRun() {
                     });
                 }
             }
-        }
-
-        // Step 5: Setup contract
-        if (!userAddress) {
+            
             signer = provider.getSigner();
             userAddress = await signer.getAddress();
+        } else {
+            throw new Error("No wallet found");
         }
-        
+
+        // Setup contract
         gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-        isConnected = true;
         
-        showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`, true);
+        showWalletStatus(`Connected: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`, true);
         
-        // Step 6: Load spin status
+        // Load spin status
         await refreshSpinStatus();
         
-        // Step 7: Start the official run
+        // Start official run
         btn.innerText = "⏳ Starting...";
-        
         const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 });
-        showToast("Transaction sent! Confirming...", "#ffd700");
+        showToast("Transaction sent...", "#ffd700");
         
         await tx.wait();
         
-        isOfficialRun = true;
+        window.isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         btn.style.background = "#00ff88";
         btn.style.color = "#000";
         btn.style.borderColor = "#00ff88";
         
-        showToast("✅ Official Run Started!", "#00ff88");
+        showToast("Started! Survive 60 seconds!", "#00ff88");
         startOrRestartGame(true);
         
     } catch (err) {
-        console.error("Connection/Transaction error:", err);
+        console.error(err);
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
         btn.style.background = "";
         btn.style.color = "";
         btn.style.borderColor = "";
         
-        let msg = err.reason || err.message || "Unknown error";
-        if (msg.includes("user rejected")) msg = "Transaction cancelled";
-        if (msg.includes("does not support")) msg = "Wallet method not supported. Try again.";
+        let msg = err.reason || err.message || "Connection failed";
+        if (msg.includes("user rejected")) msg = "Cancelled";
         
         showToast(msg, "red");
     }
 }
 
-// Refresh spin status from blockchain
 async function refreshSpinStatus() {
     if (!gameContract || !userAddress) return;
     
     try {
         const [lastSpin, bonus, hasFree, timeLeft] = await gameContract.getSpinStatus(userAddress);
         spinStatus = {
-            lastSpin: lastSpin.toNumber(),
             bonus: bonus.toNumber(),
             hasFree: hasFree,
             timeLeft: timeLeft.toNumber()
         };
         updateSpinButton();
-        
-        // Also update leaderboard
-        await updateLeaderboard();
+        updateLeaderboard();
     } catch (e) {
-        console.error("Failed to load spin status:", e);
-        showToast("Could not load spin status", "orange");
+        console.error(e);
     }
 }
 
@@ -368,18 +322,11 @@ function updateSpinButton() {
     const btn = document.getElementById('spinBtn');
     const info = document.getElementById('spinInfo');
     
-    if (!isConnected) {
-        btn.disabled = true;
-        btn.innerText = "⏳ CLICK \"OFFICIAL RUN\" FIRST";
-        info.innerText = "Connect wallet to spin";
-        return;
-    }
-    
     if (spinStatus.bonus > 0) {
         btn.disabled = false;
         btn.innerText = `🎰 SPIN NOW (${spinStatus.bonus} BONUS)`;
         btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
-        info.innerText = 'Bonus spins available!';
+        info.innerText = 'Bonus spins ready!';
         info.style.color = '#ffd700';
     } else if (spinStatus.hasFree) {
         btn.disabled = false;
@@ -397,20 +344,19 @@ function updateSpinButton() {
     }
 }
 
-// Execute spin with safety check
 async function executeSpin() {
     const btn = document.getElementById('spinBtn');
     
     if (!gameContract) {
-        showToast("Connect wallet first!", "red");
+        showToast("Connect first!", "red");
         return;
     }
     
-    // Double check availability before sending
+    // Refresh status first
     await refreshSpinStatus();
     
     if (!spinStatus.hasFree && spinStatus.bonus === 0) {
-        showToast("No spin available yet!", "red");
+        showToast("No spins available!", "red");
         return;
     }
     
@@ -422,36 +368,26 @@ async function executeSpin() {
 
     try {
         const tx = await gameContract.spin({ gasLimit: 300000 });
-        document.getElementById('spinResult').innerText = "Confirming on blockchain...";
-        
         await tx.wait();
         
-        // Success animation
         document.getElementById('r1').className = 'reel-inner'; document.getElementById('r1').innerText = '💎';
         document.getElementById('r2').className = 'reel-inner'; document.getElementById('r2').innerText = '💎';
         document.getElementById('r3').className = 'reel-inner'; document.getElementById('r3').innerText = '💎';
         
-        showToast("🎉 Prize sent! Check your wallet!", "#00ff88");
+        showToast("🎉 Prize sent! Check wallet!", "#00ff88");
         document.getElementById('spinResult').innerText = "✅ WIN! Check wallet for ARB";
         
-        // Refresh status after spin
         await refreshSpinStatus();
-        
     } catch (err) {
-        console.error("Spin error:", err);
-        
         document.getElementById('r1').innerText = '❌';
         document.getElementById('r2').innerText = '❌';
         document.getElementById('r3').innerText = '❌';
         
-        let msg = err.reason || err.message || "Spin failed";
-        if (msg.includes("No spin available")) msg = "No spin available! Wait for cooldown.";
-        else if (msg.includes("user rejected")) msg = "Transaction cancelled";
+        let msg = err.reason || "Spin failed";
+        if (msg.includes("No spin available")) msg = "No spins available!";
         
         showToast(msg, "red");
         document.getElementById('spinResult').innerText = msg;
-        
-        // Refresh to get correct state
         await refreshSpinStatus();
     }
 }
@@ -461,32 +397,19 @@ async function updateLeaderboard() {
     try {
         const p = await gameContract.players(userAddress);
         const score = p[2].toNumber();
-        const lvl = p[3].toNumber();
-        
-        if (score === 0) {
-            document.getElementById('lbContent').innerHTML = '<div style="text-align:center;color:#888">Complete a level to see your stats</div>';
-        } else {
+        if (score > 0) {
             document.getElementById('lbContent').innerHTML = `
                 <div class="lb-row" style="background:rgba(0,240,255,0.1); padding:12px; border-radius:6px; border:1px solid rgba(0,240,255,0.3)">
                     <span style="color:var(--cyan); font-weight:bold">${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>
                     <span style="color:#fff; font-weight:bold">${score.toLocaleString()} pts</span>
                 </div>
-                <div style="text-align:center; margin-top:8px; color:#888; font-size:12px">Max Level: ${lvl}</div>
             `;
         }
-    } catch (e) {
-        console.error("Leaderboard error:", e);
-    }
-}
-
-function claimSpin() {
-    document.getElementById('overlay').style.display = 'none';
-    document.querySelector('.slot-machine').scrollIntoView({behavior: 'smooth'});
-    if (isConnected) refreshSpinStatus();
+    } catch (e) {}
 }
 
 // ==========================================
-// GAME ENGINE (Unchanged)
+// GAME ENGINE
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -520,7 +443,6 @@ let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),levelStartTimestamp=0;
-let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
@@ -546,7 +468,7 @@ function resetGameState() {
 
 function jump(){
     initAudio();
-    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(isOfficialRun);return;}
+    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(window.isOfficialRun);return;}
     if(gameState!=='playing')return;
     if(player.ground){player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;player.ground=false;playJump();}
 }
@@ -563,9 +485,9 @@ function startOrRestartGame(fromOfficial=false){
     obstacles=buildLevelObstacles(currentLevel);
     
     if(!fromOfficial) {
-        isOfficialRun = false;
+        window.isOfficialRun = false;
         levelStartTimestamp=Date.now();
-        showToast("Practice Mode Started","#ff3060");
+        showToast("Practice Mode","#ff3060");
     } else {
         levelStartTimestamp=Date.now();
     }
@@ -590,7 +512,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let spinEarned=isOfficialRun&&(timePlayed>=60000); 
+    let spinEarned=window.isOfficialRun&&(timePlayed>=60000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -611,11 +533,10 @@ function triggerWin(){
     document.getElementById('overlayTitle').style.color='#00ff88';
     
     if(spinEarned){
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN EARNED!`;
+        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN!`;
         document.getElementById('overlayBtn').style.display='block';
-        document.getElementById('overlayBtn').innerText='🏆 CLAIM LEVEL SPIN';
         
-        isOfficialRun=false;
+        window.isOfficialRun=false;
         const ob=document.getElementById('officialRunBtn');
         ob.disabled=false;
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
@@ -625,14 +546,11 @@ function triggerWin(){
         
         if(gameContract){
             gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000})
-                .then(() => {
-                    updateLeaderboard();
-                    refreshSpinStatus();
-                })
-                .catch(e=>console.log("Level complete error:", e));
+                .then(() => { updateLeaderboard(); refreshSpinStatus(); })
+                .catch(e=>console.log(e));
         }
     }else{
-        let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
+        let reason=window.isOfficialRun?"(Need 60s)":"(Practice)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
     }
@@ -646,7 +564,6 @@ function update(){
     if(gameState!=='playing')return;
 
     frameCount++;worldX+=scrollSpeed;bgOffset+=scrollSpeed*0.5;
-    
     if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
     let prog=Math.min(100,(worldX/levelLength)*100);
