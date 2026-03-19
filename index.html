@@ -53,10 +53,6 @@
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .prize-table tr.t-common td { color: #aaa; }
-        .prize-table tr.t-rare td { color: var(--cyan); }
-        .prize-table tr.t-epic td { color: #cc44ff; }
-        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
         .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
@@ -67,7 +63,7 @@
         .spinning { filter: blur(3px); animation: fastSpin 0.1s infinite; }
         @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
         .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
+        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
         .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
 
         .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
@@ -160,17 +156,17 @@
         <div class="reel"><div class="reel-inner" id="r2">💎</div></div>
         <div class="reel"><div class="reel-inner" id="r3">💎</div></div>
     </div>
-    <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
-    <div class="slot-info" id="spinInfo">Bonus spins: 0</div>
+    <button class="spin-btn" id="spinBtn" disabled>⏳ CONNECT WALLET FIRST</button>
+    <div class="slot-info" id="spinInfo">Click "Official Run" to connect</div>
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
 <div class="leaderboard">
     <div class="lb-title">🏆 YOUR ON-CHAIN STATS</div>
-    <div id="lbContent">Loading on-chain data...</div>
+    <div id="lbContent">Connect wallet to view stats</div>
 </div>
 
-<div id="walletStatus">Click 'Official Run' to connect wallet</div>
+<div id="walletStatus">Ready to play</div>
 
 <script>
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
@@ -190,7 +186,14 @@ let provider = null;
 let signer = null;
 let isFarcasterEnv = false;
 
-// Toast function
+// Spin status cache
+let spinStatus = {
+    bonusSpins: 0,
+    lastSpinTime: 0,
+    hasFreeSpin: false,
+    timeLeft: 0
+};
+
 function showToast(msg, color = '#00f0ff') {
     const t = document.getElementById('toast');
     t.innerText = msg;
@@ -205,36 +208,47 @@ function showWalletStatus(msg, isGood) {
     w.style.color = isGood ? '#00ff88' : '#888';
 }
 
-// Check if Farcaster
+// Check if running in Farcaster
 function checkFarcaster() {
+    // Check if inside Farcaster app (has frame context)
     return window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider;
 }
 
-// Get provider
-function getProvider() {
-    if (checkFarcaster()) {
-        isFarcasterEnv = true;
-        return window.fcSdk.wallet.ethProvider;
-    }
-    isFarcasterEnv = false;
-    return window.ethereum;
-}
+// Initialize - NO WALLET CHECKS HERE (Fixes Provider Error)
+window.addEventListener('load', () => {
+    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
+    document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
+    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
+    document.getElementById('spinBtn').addEventListener('click', executeSpin);
+    buildLevelUI();
+    
+    // Just UI update, no blockchain calls yet
+    showWalletStatus("Click 'Official Run' to connect wallet", false);
+});
 
 // Connect wallet function
 async function connectWallet() {
     try {
-        const ethProv = getProvider();
+        const isFarcaster = checkFarcaster();
+        let ethProv;
         
-        if (!ethProv) {
+        if (isFarcaster) {
+            ethProv = window.fcSdk.wallet.ethProvider;
+            isFarcasterEnv = true;
+            console.log("Using Farcaster wallet");
+        } else if (window.ethereum) {
+            ethProv = window.ethereum;
+            isFarcasterEnv = false;
+            console.log("Using MetaMask");
+        } else {
             showToast("No wallet found!", "red");
             return false;
         }
 
-        // Create provider
+        // Create ethers provider
         provider = new ethers.providers.Web3Provider(ethProv, "any");
         
-        // For MetaMask: request accounts and switch chain
-        // For Farcaster: skip these steps - wallet is already ready
+        // For MetaMask only: request accounts and switch chain
         if (!isFarcasterEnv) {
             try {
                 await ethProv.request({ method: 'eth_requestAccounts' });
@@ -264,8 +278,10 @@ async function connectWallet() {
         
         showWalletStatus(`Connected: ${userAddress.slice(0,6)}...`, true);
         
-        // Load spin status
-        fetchSpinStatus();
+        // Load spin status immediately after connect
+        await updateSpinStatus();
+        
+        // Load leaderboard
         fetchLeaderboard();
         
         return true;
@@ -276,23 +292,50 @@ async function connectWallet() {
     }
 }
 
-// Initialize
-window.addEventListener('load', () => {
-    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
-    document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
-    document.getElementById('spinBtn').addEventListener('click', executeSpin);
-    buildLevelUI();
+// Update spin status from contract
+async function updateSpinStatus() {
+    if (!gameContract || !userAddress) return;
     
-    // Detect environment
-    if (checkFarcaster()) {
-        showWalletStatus("Farcaster Ready - Click Official Run", true);
-    } else if (window.ethereum) {
-        showWalletStatus("MetaMask detected - Click Official Run", false);
-    } else {
-        showWalletStatus("No wallet found - Play Practice Mode", false);
+    try {
+        const res = await gameContract.getSpinStatus(userAddress);
+        spinStatus = {
+            lastSpinTime: res[0].toNumber(),
+            bonusSpins: res[1].toNumber(),
+            hasFreeSpin: res[2],
+            timeLeft: res[3].toNumber()
+        };
+        updateSpinUI();
+    } catch (e) {
+        console.log("Spin status error:", e);
     }
-});
+}
+
+// Update spin button UI based on status
+function updateSpinUI() {
+    const btn = document.getElementById('spinBtn');
+    const info = document.getElementById('spinInfo');
+    
+    // Check if we can spin
+    const canSpin = spinStatus.bonusSpins > 0 || spinStatus.hasFreeSpin;
+    
+    if (spinStatus.bonusSpins > 0) {
+        btn.disabled = false;
+        btn.innerText = `🏆 SPIN NOW (${spinStatus.bonusSpins} Bonus)`;
+        btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
+        info.innerText = 'Level bonus spins available!';
+    } else if (spinStatus.hasFreeSpin) {
+        btn.disabled = false;
+        btn.innerText = '⏰ FREE HOURLY SPIN';
+        btn.style.background = '#ffd700';
+        info.innerText = 'Free spin ready!';
+    } else {
+        btn.disabled = true;
+        btn.innerText = `⏳ WAIT ${Math.ceil(spinStatus.timeLeft/60)} MIN`;
+        btn.style.background = '#333';
+        const mins = Math.ceil(spinStatus.timeLeft/60);
+        info.innerText = `Next free spin in ${mins} minutes`;
+    }
+}
 
 // Official Run
 async function startOfficialRun() {
@@ -307,7 +350,7 @@ async function startOfficialRun() {
     btn.innerText = "⏳ Connecting...";
 
     try {
-        // Connect if needed
+        // Connect wallet first
         if (!gameContract) {
             const connected = await connectWallet();
             if (!connected) {
@@ -319,7 +362,7 @@ async function startOfficialRun() {
 
         btn.innerText = "⏳ Signing...";
         
-        // Send transaction - NO chainId in overrides!
+        // Start level transaction
         const tx = await gameContract.startLevel(currentLevel, { 
             gasLimit: 300000 
         });
@@ -334,6 +377,7 @@ async function startOfficialRun() {
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         btn.style.background = "#00ff88";
         btn.style.color = "#000";
+        btn.style.borderColor = "#00ff88";
         
         startOrRestartGame(true);
         
@@ -343,6 +387,7 @@ async function startOfficialRun() {
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
         btn.style.background = "";
         btn.style.color = "";
+        btn.style.borderColor = "";
         
         let errMsg = "Transaction failed";
         if (e.code === 4001) errMsg = "User rejected";
@@ -353,7 +398,7 @@ async function startOfficialRun() {
     }
 }
 
-// Spin function
+// SPIN FUNCTION - With safety check!
 async function executeSpin() {
     const btn = document.getElementById('spinBtn');
     
@@ -362,18 +407,28 @@ async function executeSpin() {
         return;
     }
     
+    // 🛡️ SAFETY CHECK: Don't call contract if no spin available!
+    await updateSpinStatus(); // Refresh status first
+    
+    if (!spinStatus.hasFreeSpin && spinStatus.bonusSpins === 0) {
+        showToast("No spin available! Wait for cooldown.", "red");
+        updateSpinUI(); // Update UI to show correct time
+        return;
+    }
+    
     btn.disabled = true;
     document.getElementById('r1').className = 'reel-inner spinning';
     document.getElementById('r2').className = 'reel-inner spinning';
     document.getElementById('r3').className = 'reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning...";
+    document.getElementById('spinResult').innerText = "Spinning on blockchain...";
 
     try {
         const tx = await gameContract.spin({ gasLimit: 300000 });
-        document.getElementById('spinResult').innerText = "Confirming...";
+        document.getElementById('spinResult').innerText = "Confirming transaction...";
         
         await tx.wait();
         
+        // Success!
         document.getElementById('r1').className = 'reel-inner'; 
         document.getElementById('r1').innerText = '💎';
         document.getElementById('r2').className = 'reel-inner'; 
@@ -381,65 +436,37 @@ async function executeSpin() {
         document.getElementById('r3').className = 'reel-inner'; 
         document.getElementById('r3').innerText = '💎';
         
-        fetchSpinStatus();
-        document.getElementById('spinResult').innerText = "🎉 PRIZE SENT!";
+        showToast("🎉 PRIZE SENT! Check wallet!", "#00ff88");
+        document.getElementById('spinResult').innerText = "🎉 WIN! Check your wallet!";
+        
+        // Update status after spin
+        await updateSpinStatus();
         
     } catch (e) {
         console.error(e);
-        btn.disabled = false;
+        
+        document.getElementById('r1').innerText = '❌';
+        document.getElementById('r2').innerText = '❌';
+        document.getElementById('r3').innerText = '❌';
         
         let errMsg = "Spin failed";
-        if (e.code === 4001) errMsg = "Cancelled";
+        if (e.code === 4001) errMsg = "Cancelled by user";
         else if (e.reason) errMsg = e.reason;
         else if (e.message) errMsg = e.message.substring(0, 50);
         
         showToast(errMsg, "red");
-        document.getElementById('r1').innerText = '❌';
-        document.getElementById('r2').innerText = '❌';
-        document.getElementById('r3').innerText = '❌';
         document.getElementById('spinResult').innerText = errMsg;
+        
+        // Refresh status to be safe
+        await updateSpinStatus();
     }
 }
 
 function claimSpin() {
     document.getElementById('overlay').style.display = 'none';
     document.querySelector('.slot-machine').scrollIntoView({behavior: 'smooth'});
-}
-
-// Fetch spin status
-async function fetchSpinStatus() {
-    if (!gameContract || !userAddress) return;
-    try {
-        const res = await gameContract.getSpinStatus(userAddress);
-        updateSpinUI(res[2], res[3].toNumber(), res[1].toNumber());
-    } catch(e) {
-        console.log("Spin status error:", e);
-    }
-}
-
-function updateSpinUI(hasFree, timeLeft, bonus) {
-    const btn = document.getElementById('spinBtn');
-    
-    if (bonus > 0) {
-        btn.disabled = false;
-        btn.innerText = `🏆 LEVEL SPIN - ${bonus}`;
-        btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
-        document.getElementById('spinInfo').innerText = `Bonus spins: ${bonus}`;
-        return;
-    }
-    
-    if (hasFree) {
-        btn.disabled = false;
-        btn.innerText = '⏰ FREE SPIN!';
-        btn.style.background = '#ffd700';
-        document.getElementById('spinInfo').innerText = 'Free spin ready';
-        return;
-    }
-    
-    btn.disabled = true;
-    btn.style.background = '#555';
-    btn.innerText = `⏳ Wait ${Math.floor(timeLeft/60)}m`;
-    document.getElementById('spinInfo').innerText = `Next spin in ${Math.floor(timeLeft/60)}m`;
+    // Refresh spin status when claiming
+    if (gameContract) updateSpinStatus();
 }
 
 // Leaderboard
@@ -451,13 +478,13 @@ async function fetchLeaderboard() {
         const lvl = p[3].toNumber();
         
         if (score === 0) {
-            document.getElementById('lbContent').innerHTML = '<div style="text-align:center;color:#888">Complete Level 1 to see stats</div>';
+            document.getElementById('lbContent').innerHTML = '<div style="text-align:center;color:#888">Complete a level to see stats</div>';
             return;
         }
         
         document.getElementById('lbContent').innerHTML = `
             <div class="lb-row" style="background:rgba(0,240,255,0.1); padding:10px; border-radius:6px;">
-                <span style="color:var(--cyan); font-weight:bold">You</span>
+                <span style="color:var(--cyan); font-weight:bold">${userAddress.slice(0,6)}...${userAddress.slice(-4)}</span>
                 <span style="color:#fff; font-weight:bold">${score.toLocaleString()} pts (Lv${lvl})</span>
             </div>
         `;
@@ -467,7 +494,7 @@ async function fetchLeaderboard() {
 }
 
 // ==========================================
-// GAME ENGINE (Same as before)
+// GAME ENGINE
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -500,7 +527,7 @@ let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
-let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let unlockedLevels=new Set([1]),completedLevels=new Set(),levelStartTimestamp=0;
 let isOfficialRun=false; 
 
 function buildLevelUI(){
@@ -592,7 +619,6 @@ function triggerWin(){
     document.getElementById('overlayTitle').style.color='#00ff88';
     
     if(spinEarned){
-        localBonusSpins++;updateSpinUI(false,3600,localBonusSpins);
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN EARNED!`;
         document.getElementById('overlayBtn').style.display='block';
         document.getElementById('overlayBtn').innerText='🏆 CLAIM LEVEL SPIN';
@@ -603,14 +629,18 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         ob.style.background = "";
         ob.style.color = "";
+        ob.style.borderColor = "";
         
         if(gameContract){
             gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000})
-                .then(()=> fetchLeaderboard())
+                .then(() => {
+                    fetchLeaderboard();
+                    updateSpinStatus(); // Refresh spin count
+                })
                 .catch(e=>console.log("Level complete error:", e));
         }
     }else{
-        let reason=isOfficialRun?"(Too fast, min 60s)":"(Practice Mode)";
+        let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayBtn').style.display='none';
     }
