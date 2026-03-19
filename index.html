@@ -99,6 +99,7 @@
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        
         async function initFarcaster() {
             try {
                 sdk.actions.ready(); 
@@ -162,20 +163,14 @@
     <div class="prize-section-label">⏰ Free Hourly Spin</div>
     <table class="prize-table">
         <tr><th>Rarity</th><th>Result</th><th>Reward</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.001–0.2 ARB</td></tr>
-        <tr class="t-epic"><td>🔵 Epic</td><td>2 matching</td><td>0.2–0.5 ARB</td></tr>
-        <tr class="t-legend"><td>🟡 Legendary</td><td>3 matching</td><td>0.5–2 ARB</td></tr>
+        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
     </table>
     <div class="prize-divider">————————————</div>
     <div class="prize-section-label">🏆 Level Clear Spin (Bonus)</div>
     <table class="prize-table">
         <tr><th>Rarity</th><th>Result</th><th>Prize</th></tr>
-        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>1–5 ARB</td></tr>
-        <tr class="t-epic"><td>🔵 Epic</td><td>2 matching</td><td>5–15 ARB</td></tr>
-        <tr class="t-rare"><td>🟣 Rare</td><td>3 of a kind</td><td>15–30 ARB</td></tr>
-        <tr class="t-legend"><td>🟡 Legendary</td><td>💎💎💎</td><td>30–50 ARB</td></tr>
+        <tr class="t-common"><td>⚪ Common</td><td>Any combo</td><td>0.01 ARB</td></tr>
     </table>
-    <div class="prize-note">★ Level Clear Spin — max up to 2 ARB balance! 🎉</div>
 </div>
 
 <div class="slot-machine">
@@ -198,17 +193,18 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
+// ⚠️ AAPKA NAYA DEPLOYED CONTRACT ADDRESS
+const CONTRACT_ADDRESS="0x6067FBdfdA4F9Fa32F96D00A5840Eec953e4d51c";
 let userAddress=null, provider=null;
 
-// ✅ THE TRUE ORIGINAL DAY-1 SELECTORS (Removed Grok's garbage)
+// ✅ EXACT MATHEMATICAL SELECTORS FOR THE NEW GeoDashFinal.sol CONTRACT
 const SELECTORS = {
-    spin: "0x1515bc2b",
-    levelComplete: "0x6c6e75b7",
-    startLevel: "0x7a7c1c78", // EXACTLY WHAT YOU HAD ON DAY 1!
-    recordAttempt: "0x0047fb42",
+    spin:           "0x1515bc2b",
+    levelComplete:  "0x51b4b204", 
+    startLevel:     "0x840ec885", 
+    recordAttempt:  "0x0047fb42",
     getLeaderboard: "0x716616a2",
-    getSpinStatus: "0x280261cb"
+    getSpinStatus:  "0x280261cb"
 };
 
 function pad32(val){return val.toString(16).padStart(64,'0');}
@@ -339,7 +335,7 @@ async function startOfficialRun(){
             }]
         });
         
-        showToast("Official Run Started!","#00ff88");
+        showToast("Official Run Started! Survive 3 mins.","#00ff88");
         isOfficialRun=true;
         btn.innerText="💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
