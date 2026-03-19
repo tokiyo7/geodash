@@ -85,7 +85,6 @@
         async function initFc() {
             try {
                 await sdk.actions.ready();
-                console.log("Farcaster Ready Signal Sent!");
                 
                 const context = await sdk.context;
                 if (context && context.user) {
@@ -94,7 +93,7 @@
                     if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
                 }
             } catch(e) {
-                console.log("Not running inside Farcaster client or context error:", e);
+                console.log("SDK error:", e);
             }
         }
         initFc();
@@ -190,7 +189,7 @@ const ABI = [
 let userAddress=null;
 let gameContract=null;
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 function getWalletProvider() {
@@ -230,7 +229,9 @@ async function setupEthers(ethProv) {
         await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
     } catch (e) {
         if (e.code === 4902) {
-            await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
+            try {
+                await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
+            } catch(addErr) {}
         }
     }
     const signer = provider.getSigner();
@@ -242,6 +243,8 @@ async function setupEthers(ethProv) {
     fetchLeaderboard(); 
 }
 
+// ✅ 1. FIXED GAS LIMIT ADDED (300,000 avoids Farcaster mobile estimation failure)
+// ✅ 2. REAL ERROR MESSAGE DISPLAY (No more hardcoded "Need ETH")
 async function startOfficialRun(){
     const ethProv = getWalletProvider();
     if(!ethProv) { showToast("Web3 Wallet required!", "red"); return; }
@@ -260,7 +263,7 @@ async function startOfficialRun(){
 
         btn.innerText = "⏳ SIGNING...";
         
-        const tx = await gameContract.startLevel(currentLevel); 
+        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
         
         showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
@@ -275,8 +278,19 @@ async function startOfficialRun(){
     } catch(e) {
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+        
+        // Extract real error message from Farcaster/MetaMask
+        let errStr = "Transaction Failed";
+        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
+            errStr = "Transaction Cancelled by User";
+        } else if (e.reason) {
+            errStr = e.reason;
+        } else if (e.message) {
+            errStr = e.message.substring(0, 40) + "..."; // show short error
+        }
+        
+        showToast(errStr, "red");
         console.error(e);
-        showToast("Transaction Failed (Need ETH for Gas)", "red");
     }
 }
 
@@ -291,7 +305,7 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText="Spinning on Blockchain...";
 
     try{
-        const tx = await gameContract.spin();
+        const tx = await gameContract.spin({ gasLimit: 300000 });
         document.getElementById('spinResult').innerText="Waiting for Validation...";
         
         await tx.wait(); 
@@ -305,11 +319,17 @@ async function executeSpin(){
         
     }catch(e){
         btn.disabled=false;
-        showToast("Spin failed","red");
+        let errStr = "Transaction Failed";
+        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
+            errStr = "Spin Cancelled";
+        } else if (e.reason) {
+            errStr = e.reason;
+        }
+        showToast(errStr,"red");
         r1.className='reel-inner'; r1.innerText='❌';
         r2.className='reel-inner'; r2.innerText='❌';
         r3.className='reel-inner'; r3.innerText='❌';
-        document.getElementById('spinResult').innerText="Transaction Failed.";
+        document.getElementById('spinResult').innerText=errStr;
     }
 }
 
@@ -350,7 +370,6 @@ let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
-let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
@@ -451,7 +470,7 @@ function triggerWin(){
         ob.disabled=false;ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(gameContract){
-            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 250000}).then(()=> fetchLeaderboard() ).catch(e=>console.log(e));
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000}).then(()=> fetchLeaderboard() ).catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 1 min)":"(Practice Mode — No Spin)";
