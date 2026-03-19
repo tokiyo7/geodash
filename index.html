@@ -183,8 +183,10 @@ let userAddress=null;
 let isConnected = false;
 let isFarcasterWallet = false;
 let walletProvider = null;
-let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
+
+const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
+const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
@@ -220,10 +222,6 @@ async function connectWallet(showErrors = true) {
         if (!isFarcasterWallet) {
             try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
         }
-        
-        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
-        const signer = provider.getSigner();
-        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
@@ -234,6 +232,21 @@ async function connectWallet(showErrors = true) {
         if(showErrors) showToast("Connection Cancelled", "red");
         return false;
     }
+}
+
+async function sendRawTransaction(methodName, args) {
+    const iface = new ethers.utils.Interface(ABI);
+    const data = iface.encodeFunctionData(methodName, args);
+
+    const txHash = await walletProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{
+            to: CONTRACT_ADDRESS,
+            from: userAddress,
+            data: data
+        }]
+    });
+    return txHash;
 }
 
 window.addEventListener('load', () => {
@@ -253,7 +266,6 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// ✅ INSTANT START FIX: Sirf user ke 'Confirm' dabane ka wait karenge. (tx.wait() HATA DIYA)
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -270,10 +282,8 @@ async function startOfficialRun(){
     }
     
     try {
-        // Sirf transaction submit hone ka wait hoga
-        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
+        const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
         
-        // JAISE HI USER NE POPUP CONFIRM KIYA, GAME CHALU! NO LOADING FREEZE!
         showToast("✅ Run Started Instantly!", "#00ff88");
         isOfficialRun = true;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
@@ -282,18 +292,14 @@ async function startOfficialRun(){
     } catch(e) {
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        
-        let errStr = "Transaction Failed";
-        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
-            errStr = "Transaction Cancelled";
-        } else if (e.reason) {
-            errStr = e.reason;
-        }
+        let errStr = "Transaction Cancelled";
+        if (e.reason) errStr = e.reason;
         showToast(errStr, "red");
     }
 }
 
-// ✅ INSTANT SPIN FIX: Spin dabaya, confirm kiya, turant ruka! (tx.wait() HATA DIYA)
+// 🔥 THE ULTIMATE SPIN FIX: State Poller 
+// (Wait karega jab tak blockchain sach mein status change na kare)
 async function executeSpin(){
     const btn=document.getElementById('spinBtn');
     
@@ -313,31 +319,61 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText="Confirming Tx...";
 
     try{
-        // Sirf transaction submit hone ka wait hoga
-        const tx = await gameContract.spin({ gasLimit: 300000 });
+        // 1. Pehle current status note kar lo
+        const initialFree = spinStatus.hasFree;
+        const initialBonus = spinStatus.bonus;
+
+        // 2. Transaction Bhejo
+        const txHash = await sendRawTransaction("spin", []);
         
-        // JAISE HI USER NE CONFIRM KIYA, SPIN TURANT RUK GAYA!
+        document.getElementById('spinResult').innerText="Mining on Arbitrum (Takes 5-10s)...";
+        
+        // 3. Asli Blockchain Scanner (Har 2 second check karega ki status update hua ya nahi)
+        let isConfirmed = false;
+        for(let i=0; i<15; i++) {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2 sec wait
+            try {
+                const res = await readContract.getSpinStatus(userAddress);
+                const currentBonus = res[1].toNumber();
+                const currentFree = res[2];
+                
+                // Agar status badal gaya hai, matlab transaction confirm ho chuki hai!
+                if(currentFree !== initialFree || currentBonus !== initialBonus) {
+                    spinStatus.bonus = currentBonus;
+                    spinStatus.hasFree = currentFree;
+                    spinStatus.timeLeft = res[3].toNumber();
+                    isConfirmed = true;
+                    break;
+                }
+            } catch(err){}
+        }
+        
+        // 4. Animation Roko
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
         
-        showToast("Spin Successful!", "#00ff88");
-        document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
-        
-        // Background me status update hoga
-        setTimeout(refreshSpinStatus, 3000);
+        if(isConfirmed) {
+            showToast("Spin Successful!", "#00ff88");
+            document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
+        } else {
+            showToast("Network delayed, check later.", "#ffd700");
+            document.getElementById('spinResult').innerText="Tx Sent. Network is slow.";
+            // Safety lock taaki dubara click na ho
+            spinStatus.hasFree = false;
+            if(spinStatus.bonus > 0) spinStatus.bonus--;
+            spinStatus.timeLeft = 3600;
+        }
+
+        // Timer aur UI ko turant reset karo
+        updateSpinUI();
         
     }catch(e){
         btn.disabled=false;
-        let errStr = "Transaction Failed";
-        if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
-            errStr = "Spin Cancelled";
-        } else if (e.reason) {
-            errStr = e.reason;
-        }
-        showToast(errStr,"red");
+        let errStr = "Transaction Cancelled";
+        if (e.reason) errStr = e.reason;
         
-        // Agar fail hua, toh error dikhao aur reels rok do
+        showToast(errStr,"red");
         document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
         document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
         document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
@@ -348,7 +384,7 @@ async function executeSpin(){
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA (Unchanged)
+// GAME ENGINE & DATA
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -381,7 +417,7 @@ let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
-let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let unlockedLevels=new Set([1]),completedLevels=new Set(),levelStartTimestamp=0;
 let isOfficialRun=false; 
 
 function buildLevelUI(){
@@ -483,9 +519,9 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000})
-            .then(() => { 
-                setTimeout(() => { fetchLeaderboard(); refreshSpinStatus(); }, 4000); 
+            sendRawTransaction("levelComplete", [currentLevel, addScore])
+            .then(txHash => {
+                setTimeout(() => { fetchLeaderboard(); refreshSpinStatus(); }, 5000);
             }).catch(e=>{});
         }
     }else{
@@ -621,51 +657,55 @@ function loop(){update();draw();reqAnimId=requestAnimationFrame(loop);}
 draw();
 
 let timerInt=null;
+
+// ✅ UI UPDATE LOGIC ALAG KAR DIYA (Taki Refresh ke waqt button na atke)
+function updateSpinUI() {
+    const btn = document.getElementById('spinBtn');
+    const info = document.getElementById('spinInfo');
+    clearInterval(timerInt);
+    
+    if(spinStatus.bonus > 0){
+        btn.disabled = false;
+        btn.innerText = `🏆 LEVEL SPIN — ${spinStatus.bonus} available`;
+        btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
+        info.innerText = `Level clear spins: ${spinStatus.bonus}`;
+        return;
+    }
+    if(spinStatus.hasFree){
+        btn.disabled = false;
+        btn.innerText = '⏰ FREE HOURLY SPIN!';
+        btn.style.background = '#ffd700';
+        info.innerText = 'Free spin ready!';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.style.background = '#555';
+    btn.style.color = '#222';
+    let tl = spinStatus.timeLeft;
+    if(tl <= 0) tl = 3600; // Fail-safe timer
+    
+    timerInt = setInterval(() => {
+        if(tl <= 0){
+            refreshSpinStatus();
+            clearInterval(timerInt);
+            return;
+        }
+        tl--;
+        let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
+        btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        info.innerText = `Next free spin in ${h}h ${m}m`;
+    }, 1000);
+}
+
 async function refreshSpinStatus(){
-    if(!gameContract) return;
+    if(!userAddress) return;
     try{
-        // Public provider use karenge read ke liye (fastest)
-        const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
-        const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
         const res = await readContract.getSpinStatus(userAddress);
         spinStatus.bonus = res[1].toNumber();
         spinStatus.hasFree = res[2];
         spinStatus.timeLeft = res[3].toNumber();
-        
-        const btn = document.getElementById('spinBtn');
-        const info = document.getElementById('spinInfo');
-        clearInterval(timerInt);
-        
-        if(spinStatus.bonus > 0){
-            btn.disabled = false;
-            btn.innerText = `🏆 LEVEL SPIN — ${spinStatus.bonus} available`;
-            btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
-            info.innerText = `Level clear spins: ${spinStatus.bonus}`;
-            return;
-        }
-        if(spinStatus.hasFree){
-            btn.disabled = false;
-            btn.innerText = '⏰ FREE HOURLY SPIN!';
-            btn.style.background = '#ffd700';
-            info.innerText = 'Free spin ready!';
-            return;
-        }
-        
-        btn.disabled = true;
-        btn.style.background = '#555';
-        btn.style.color = '#222';
-        let tl = spinStatus.timeLeft;
-        timerInt = setInterval(() => {
-            if(tl <= 0){
-                refreshSpinStatus();
-                clearInterval(timerInt);
-                return;
-            }
-            tl--;
-            let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
-            btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-            info.innerText = `Next free spin in ${h}h ${m}m`;
-        }, 1000);
+        updateSpinUI();
     }catch(e){}
 }
 
@@ -690,8 +730,6 @@ async function getFarcasterUsername(address){
 async function fetchLeaderboard(){
     if(!userAddress) return;
     try{
-        const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
-        const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
         const p = await readContract.players(userAddress);
         const score = p[2].toNumber(); 
         const lvl = p[3].toNumber();   
