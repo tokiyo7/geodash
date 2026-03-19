@@ -102,7 +102,9 @@
         
         async function initFarcaster() {
             try {
-                sdk.actions.ready(); // Clear splash screen immediately
+                // Call ready IMMEDIATELY to remove splash screen and fix the Farcaster bug
+                sdk.actions.ready(); 
+                
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -199,18 +201,17 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// ⚠️ THE FINAL CORRECT CONTRACT CONFIGURATION
 const CONTRACT_ADDRESS="0x9f56f4cD6225D02d528A415206A9ae89352a761d";
 let userAddress=null, provider=null;
 
-// ✅ 100% MATHEMATICALLY CORRECT SELECTORS FOR YOUR SOLIDITY CONTRACT
+// ✅ EXACTLY REPLACED WITH GROK'S CORRECT SELECTORS
 const SELECTORS = {
-    spin:           "0x1515bc2b",
-    levelComplete:  "0x6c6e75b7",
-    startLevel:     "0x82b8a5d3", // THIS WILL NEVER FAIL! (It's the true hex for startLevel(uint8))
-    recordAttempt:  "0x0047fb42",
-    getLeaderboard: "0x716616a2",
-    getSpinStatus:  "0x280261cb"
+    spin: "0x685e7b2d",
+    levelComplete: "0xe0746fc0",
+    startLevel: "0xf9d17709",
+    recordAttempt: "0x32789ee1",
+    getLeaderboard: "0xbfc5b947",
+    getSpinStatus: "0xd1b6b352"
 };
 
 function pad32(val){return val.toString(16).padStart(64,'0');}
@@ -221,7 +222,7 @@ function showWalletStatus(msg,isGood){const w=document.getElementById('walletSta
 // EVENT LISTENERS BINDING
 // ==========================================
 window.addEventListener('load', async () => {
-    // Bind buttons safely
+    // Bind buttons directly in JS to bypass Farcaster CSP blocking
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
     document.getElementById('overlayBtn').addEventListener('click', claimSpin);
@@ -250,9 +251,6 @@ window.addEventListener('load', async () => {
     }
 });
 
-// ==========================================
-// AUDIO SYSTEM
-// ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
 function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
@@ -274,33 +272,18 @@ function buildLevelObstacles(levelNum){
     return obs;
 }
 
-// ==========================================
-// GAME ENGINE
-// ==========================================
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
-const GAME_W = 800; const GAME_H = 400;
-const GROUND_Y = 320; const CEILING_Y = 10;
-const GRAVITY = 0.60; const JUMP_VEL = -13.5; const MAX_VEL = 16;
+const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
+const GRAVITY=0.60,JUMP_VEL=-13.5,MAX_VEL=16;
 
-let gameState = 'idle'; 
-let currentLevel = 1;
-let attemptCount = 0; let totalScore = 0;
-let scrollSpeed = 4.5; let levelLength = 40000;
-let worldX = 0; let frameCount = 0;
-let bgOffset = 0; let shake = 0;
-
-let player = { x: 130, y: GROUND_Y, w: 36, h: 36, vy: 0, rot: 0, ground: true, prevY: GROUND_Y };
-let isGravityFlipped = false;
-let flipTimer = 0;
-let ghostTrail = []; let particles = []; let obstacles = [];
-
-let unlockedLevels = new Set([1]);
-let completedLevels = new Set();
-let localBonusSpins = 0;
-let levelStartTimestamp = 0; 
-let isOfficialRun = false; 
+let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
+let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
+let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
+let isGravityFlipped=false,flipTimer=0;
+let ghostTrail=[],particles=[],obstacles=[];
+let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
@@ -310,15 +293,12 @@ function buildLevelUI(){
         if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
         else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
         else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
-        btn.addEventListener('click', () => window.selectLevel(i)); 
+        btn.addEventListener('click', () => {
+            currentLevel=i;buildLevelUI();document.getElementById('progressText').innerText=`Level ${i}/10`;
+        }); 
         grid.appendChild(btn);
     }
 }
-window.selectLevel = function(n) { 
-    currentLevel = n; 
-    buildLevelUI(); 
-    document.getElementById('progressText').innerText = `Level ${n}/10`; 
-};
 
 function jump(){
     initAudio();
@@ -362,7 +342,7 @@ async function startOfficialRun(){
             }]
         });
         
-        showToast("Official Run Started! Survive 3 mins.","#00ff88");
+        showToast("Official Run Started!","#00ff88");
         isOfficialRun=true;
         btn.innerText="💎 OFFICIAL RUN ACTIVE";
         startOrRestartGame(true);
@@ -370,8 +350,7 @@ async function startOfficialRun(){
     }catch(e){
         btn.disabled=false;
         btn.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        showToast("Transaction failed or rejected!","red");
-        console.error(e);
+        showToast("Transaction rejected","red");
     }
 }
 
