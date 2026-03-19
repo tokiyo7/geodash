@@ -79,11 +79,16 @@
     </style>
     
     <script type="module">
-        import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
         window.fcSdk = sdk; 
         
         async function initFc() {
             try {
+                // 1. Send the ready signal IMMEDIATELY to drop the splash screen
+                await sdk.actions.ready();
+                console.log("Farcaster Ready Signal Sent!");
+                
+                // 2. Safely fetch context if inside Warpcast
                 const context = await sdk.context;
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
@@ -91,20 +96,12 @@
                     if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
                 }
             } catch(e) {
-                console.log("Farcaster context error:", e);
+                console.log("Not running inside Farcaster client or context error:", e);
             }
-
-            // GUARANTEED TO FIRE AFTER GAME IS PAINTED
-            setTimeout(() => {
-                try {
-                    sdk.actions.ready();
-                    console.log("Farcaster Ready Fired!");
-                } catch(err) {}
-            }, 600);
         }
         
-        // window.addEventListener load guarantees everything is ready before telling Farcaster
-        window.addEventListener('load', initFc);
+        // Execute right away (module scripts are natively deferred)
+        initFc();
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
