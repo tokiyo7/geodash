@@ -188,14 +188,17 @@ const ABI = [
 
 let userAddress=null;
 let gameContract=null;
+let isFarcasterWallet = false; // ✅ NEW CHECK FLAG
 
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 function getWalletProvider() {
     if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
+        isFarcasterWallet = true; // ✅ Mark as Farcaster
         return window.fcSdk.wallet.ethProvider; 
     }
+    isFarcasterWallet = false; // ✅ Mark as Regular Web3
     return window.ethereum; 
 }
 
@@ -224,14 +227,17 @@ window.addEventListener('load', async () => {
 });
 
 async function setupEthers(ethProv) {
-    // "any" lagane se ethers crash nahi hoga agar network Farcaster ne set kiya hai
     const provider = new ethers.providers.Web3Provider(ethProv, "any");
     
-    try {
-        // Farcaster in commands ko support nahi karta, isliye isey try-catch me chup kara diya hai
-        await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
-    } catch (e) {
-        console.log("Ignored network switch warning (Mobile Wallet usually handles it)");
+    // ✅ SILENT FIX: Farcaster mobile par ye switch waali command nahi bhejenge, sirf PC pe bhejenge!
+    if (!isFarcasterWallet) {
+        try {
+            await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
+        } catch (e) {
+            if (e.code === 4902) {
+                try { await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]}); } catch(addErr) {}
+            }
+        }
     }
     
     const signer = provider.getSigner();
@@ -255,13 +261,17 @@ async function startOfficialRun(){
     
     try {
         if(!gameContract) {
-            try { await ethProv.request({method: 'eth_requestAccounts'}); } catch(reqErr) {}
+            // ✅ SKIP explicit requestAccounts on mobile to avoid Farcaster errors
+            if (!isFarcasterWallet) {
+                try { await ethProv.request({method: 'eth_requestAccounts'}); } catch(reqErr) {}
+            }
             await setupEthers(ethProv);
         }
 
         btn.innerText = "⏳ SIGNING...";
         
-        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
+        // ✅ Added chainId: 42161 (Arbitrum) directly so Farcaster knows automatically!
+        const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000, chainId: 42161 }); 
         
         showToast("Tx Sent! Waiting...", "#ffd700");
         btn.innerText = "⏳ MINING...";
@@ -279,15 +289,13 @@ async function startOfficialRun(){
         
         let errStr = "Transaction Failed";
         if(e.message && (e.message.toLowerCase().includes("user rejected") || e.message.toLowerCase().includes("denied"))) {
-            errStr = "Transaction Cancelled by User";
+            errStr = "Transaction Cancelled";
         } else if (e.reason) {
             errStr = e.reason;
         } else if (e.message) {
             errStr = e.message.substring(0, 40) + "..."; 
         }
-        
         showToast(errStr, "red");
-        console.error(e);
     }
 }
 
@@ -302,7 +310,8 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText="Spinning on Blockchain...";
 
     try{
-        const tx = await gameContract.spin({ gasLimit: 300000 });
+        // ✅ Ensure Spin works natively on Farcaster too
+        const tx = await gameContract.spin({ gasLimit: 300000, chainId: 42161 });
         document.getElementById('spinResult').innerText="Waiting for Validation...";
         
         await tx.wait(); 
@@ -468,7 +477,7 @@ function triggerWin(){
         ob.disabled=false;ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(gameContract){
-            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000}).then(()=> fetchLeaderboard() ).catch(e=>console.log(e));
+            gameContract.levelComplete(currentLevel, addScore, {gasLimit: 300000, chainId: 42161}).then(()=> fetchLeaderboard() ).catch(e=>console.log(e));
         }
     }else{
         let reason=isOfficialRun?"(Completed too fast, min 1 min)":"(Practice Mode — No Spin)";
