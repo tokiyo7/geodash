@@ -80,6 +80,8 @@
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
+        window.fcSdk = sdk; // Expose globally for wallet connection
+        
         async function initFarcaster() {
             try {
                 sdk.actions.ready(); 
@@ -169,7 +171,6 @@
 <div id="walletStatus">Connecting wallet...</div>
 
 <script>
-// THE FINAL CONTRACT ADDRESS
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 
 const ABI = [
@@ -188,6 +189,14 @@ let gameContract=null;
 function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
+// ✅ GET THE CORRECT WALLET PROVIDER (Farcaster Mobile OR MetaMask)
+function getWalletProvider() {
+    if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
+        return window.fcSdk.wallet.ethProvider; // Mobile Warpcast Wallet
+    }
+    return window.ethereum; // Desktop MetaMask
+}
+
 window.addEventListener('load', async () => {
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
@@ -195,27 +204,31 @@ window.addEventListener('load', async () => {
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
 
-    if (!window.ethereum) { 
-        showWalletStatus("MetaMask not found. Play Practice Mode!", false); 
-    } else {
-        try {
-            const accounts = await window.ethereum.request({method: 'eth_accounts'});
-            if (accounts && accounts.length > 0) {
-                await setupEthers();
-            } else {
-                showWalletStatus("Click 'Official Run' to connect wallet", false);
-            }
-        } catch(e) {}
-    }
+    // Give SDK 0.5s to fully load provider on mobile
+    setTimeout(async () => {
+        const ethProv = getWalletProvider();
+        if (!ethProv) { 
+            showWalletStatus("Web3 Wallet not found. Play Practice Mode!", false); 
+        } else {
+            try {
+                const accounts = await ethProv.request({method: 'eth_accounts'});
+                if (accounts && accounts.length > 0) {
+                    await setupEthers(ethProv);
+                } else {
+                    showWalletStatus("Click 'Official Run' to connect wallet", false);
+                }
+            } catch(e) {}
+        }
+    }, 500);
 });
 
-async function setupEthers() {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
+async function setupEthers(ethProv) {
+    const provider = new ethers.providers.Web3Provider(ethProv);
     try {
-        await window.ethereum.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
+        await ethProv.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]});
     } catch (e) {
         if (e.code === 4902) {
-            await window.ethereum.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
+            await ethProv.request({ method: 'wallet_addEthereumChain', params: [{ chainId: '0xa4b1', chainName: 'Arbitrum One', nativeCurrency: {name: 'ETH', symbol: 'ETH', decimals: 18}, rpcUrls: ['https://arb1.arbitrum.io/rpc'], blockExplorerUrls: ['https://arbiscan.io'] }]});
         }
     }
     const signer = provider.getSigner();
@@ -228,7 +241,8 @@ async function setupEthers() {
 }
 
 async function startOfficialRun(){
-    if(!window.ethereum) { showToast("MetaMask required!", "red"); return; }
+    const ethProv = getWalletProvider();
+    if(!ethProv) { showToast("Web3 Wallet required!", "red"); return; }
     
     const btn = document.getElementById('officialRunBtn');
     btn.disabled = true;
@@ -236,8 +250,8 @@ async function startOfficialRun(){
     
     try {
         if(!gameContract) {
-            await window.ethereum.request({method: 'eth_requestAccounts'});
-            await setupEthers();
+            await ethProv.request({method: 'eth_requestAccounts'});
+            await setupEthers(ethProv);
         }
 
         btn.innerText = "⏳ SIGNING...";
@@ -612,7 +626,6 @@ async function fetchLeaderboard(){
         const lvl = p[3].toNumber();   
 
         if(score === 0){
-            // ✅ UPDATED TEXT HERE SO PLAYERS KNOW THEY HAVE TO WIN!
             document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats on-chain!</div>';
             return;
         }
