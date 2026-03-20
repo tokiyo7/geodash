@@ -177,8 +177,7 @@
 <div id="walletStatus">Ready to Play!</div>
 
 <script>
-// 🚨 NAYA CONTRACT ADDRESS YAHAN UPDATE KIYA HAI 🚨
-const CONTRACT_ADDRESS = "0x8d4DE420031Cfd304075342C60240e8513C812F7";
+const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
 
 const ABI = [
     "function startLevel(uint256 level) external",
@@ -573,6 +572,7 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
+            // THIS ONLY SAVES SCORE NOW! SAFE FROM BOTS!
             gameContract.levelComplete(currentLevel, addScore, { gasLimit: 150000 }).then(()=>{}).catch(e=>{});
         }
     }else{
@@ -759,49 +759,4 @@ async function getFarcasterUsername(address){
     if(fcUsernameCache[address])return fcUsernameCache[address];
     try{
         const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${address}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
-        if(res.ok){
-            const data=await res.json(),lowerAddr=address.toLowerCase();
-            if(data[lowerAddr]&&data[lowerAddr].length>0){
-                const name='@'+data[lowerAddr][0].username;
-                fcUsernameCache[address]=name;
-                return name;
-            }
-        }
-    }catch(e){}
-    return address.slice(0,6)+'...'+address.slice(-4);
-}
-
-async function fetchLeaderboard(){
-    if(!userAddress) return;
-    try{
-        const p = await readContract.players(userAddress);
-        const score = p[2].toNumber(); 
-        const lvl = p[3].toNumber();   
-
-        if(score > 0 || lvl > 0) {
-            completedLevels = new Set();
-            unlockedLevels = new Set([1]);
-            for(let i=1; i<=lvl; i++) {
-                completedLevels.add(i);
-                if(i < 10) unlockedLevels.add(i + 1);
-            }
-            let maxUnlocked = Math.max(...Array.from(unlockedLevels));
-            currentLevel = maxUnlocked;
-            buildLevelUI();
-            document.getElementById('progressText').innerText=`Level ${currentLevel}/10`;
-        }
-
-        if(score === 0){
-            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats on-chain!</div>';
-            return;
-        }
-        const name = await getFarcasterUsername(userAddress) || "You";
-        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); padding:10px; border-radius:6px; border: 1px solid rgba(0,240,255,0.3);">
-            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
-            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Max Lv${lvl}</span></span>
-        </div>`;
-    }catch(e){}
-}
-</script>
-</body>
-</html>
+        if
