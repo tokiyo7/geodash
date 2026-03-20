@@ -24,7 +24,6 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 MOBILE OPTIMIZED CANVAS 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -429,7 +428,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🚀 PERFECT DISTANCE 2X SPEED MAKKHAN 🚀)
+// GAME ENGINE & DATA (🚀 NATIVE 1.3x SPEED + PURE 60FPS 🚀)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,8 +436,19 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🛡️ ORIGINAL PERFECT PHYSICS VALUES 🛡️
-const LVL_CONFIG=[{id:1,speed:4.5,len:40000},{id:2,speed:5.0,len:50000},{id:3,speed:5.2,len:55000},{id:4,speed:5.5,len:60000},{id:5,speed:5.8,len:65000},{id:6,speed:6.2,len:70000},{id:7,speed:6.5,len:75000},{id:8,speed:6.8,len:80000},{id:9,speed:7.2,len:85000},{id:10,speed:7.5,len:100000}];
+// 🚀 EXACT 1.3x TRUE SPEED SCALING
+const LVL_CONFIG=[
+    {id:1,speed:6.0,len:40000},
+    {id:2,speed:6.6,len:50000},
+    {id:3,speed:7.0,len:55000},
+    {id:4,speed:7.4,len:60000},
+    {id:5,speed:7.8,len:65000},
+    {id:6,speed:8.3,len:70000},
+    {id:7,speed:8.7,len:75000},
+    {id:8,speed:9.1,len:80000},
+    {id:9,speed:9.6,len:85000},
+    {id:10,speed:10.0,len:100000}
+];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
 
@@ -457,12 +467,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🛡️ ORIGINAL PERFECT PHYSICS VALUES 🛡️
-const GRAVITY=0.60,JUMP_VEL=-13.5,MAX_VEL=16;
-const GAME_SPEED_MULTIPLIER = 2; // 🚀 2X ENGINE SPEED 🚀
+// 🚀 EXACT MATH FOR PERFECT JUMP ARC AT 1.3x SPEED
+const GRAVITY=1.05,JUMP_VEL=-17.5,MAX_VEL=22;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
+let scrollSpeed=6.0,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
@@ -503,8 +512,7 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
-        // Super minimal particles for FPS
-        for(let i=0;i<3;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
+        for(let i=0;i<4;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
     }
 }
 
@@ -531,7 +539,7 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // 🚀 ULTRA SMOOTH NATIVE 60 FPS LOOP 🚀
+    // NATIVE 60FPS LOOP RESTORED (NO FAKE DELAYS)
     reqAnimId=requestAnimationFrame(loop);
 }
 
@@ -541,7 +549,7 @@ function die(){
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();shake=15;
     let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
-    for(let i=0;i<10;i++) {
+    for(let i=0;i<15;i++) {
         let pSize = 6 + Math.random() * 8; 
         particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.5,col:cols[Math.floor(Math.random()*cols.length)],size:pSize});
     }
@@ -549,8 +557,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    // Since game runs 2x fast, 60 seconds game time is 30 seconds real time. Still extremely hard!
-    let isWinValid=isOfficialRun&&(timePlayed>=30000); 
+    let isWinValid=isOfficialRun&&(timePlayed>=60000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -565,7 +572,7 @@ function triggerWin(){
     document.getElementById('scoreUI').innerText=`Score: ${totalScore}`;
     
     let cols=['#00f0ff','#ff3060','#ffd700','#ffffff','#00ff88'];
-    for(let i=0;i<20;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:3.0,col:cols[Math.floor(Math.random()*cols.length)],size:6+Math.random()*6});
+    for(let i=0;i<25;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:3.0,col:cols[Math.floor(Math.random()*cols.length)],size:6+Math.random()*6});
     
     document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
     document.getElementById('overlayTitle').style.color='#00ff88';
@@ -596,20 +603,18 @@ function triggerWin(){
 function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
 
 function update(){
-    // Particles update
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.1:0.35;p.life-=(gameState==='clear')?0.005:0.018;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
+    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.2:0.6;p.life-=(gameState==='clear')?0.01:0.04;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
     if(gameState!=='playing')return;
 
     frameCount++;worldX+=scrollSpeed;bgOffset+=scrollSpeed*0.5;
     
-    if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
+    if(frameCount%15===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
     let prog=Math.min(100,(worldX/levelLength)*100);
     document.getElementById('progressBar').style.width=prog+'%';
     if(worldX>=levelLength){triggerWin();return;}
 
-    // Ultra optimized ghosts
-    if(frameCount%4===0){ghostTrail.push({x:player.x,y:player.y,rot:player.rot,wx:worldX});if(ghostTrail.length>2)ghostTrail.shift();}
+    if(frameCount%3===0){ghostTrail.push({x:player.x,y:player.y,rot:player.rot,wx:worldX});if(ghostTrail.length>3)ghostTrail.shift();}
 
     if(isGravityFlipped&&flipTimer>0){flipTimer--;if(flipTimer===0)isGravityFlipped=false;}
 
@@ -618,7 +623,7 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    if(!player.ground)player.rot+=14;
+    if(!player.ground)player.rot+=16;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
 
@@ -641,7 +646,7 @@ function update(){
         if(AABB(px,py,pw,ph,oHX,oHY,oHW,oHH)){
             if(o.t==='spike'||o.t==='dspike'||o.t==='cspike'||o.t==='block'){die();return;}
             if(o.t==='jpad'){player.vy=JUMP_VEL*1.8;player.ground=false;o.used=true;}
-            if(o.t==='gorb'&&!o.used){isGravityFlipped=!isGravityFlipped;flipTimer=180;o.used=true;}
+            if(o.t==='gorb'&&!o.used){isGravityFlipped=!isGravityFlipped;flipTimer=120;o.used=true;} 
             
             if(o.t==='platform'||o.t==='mplatf'){
                 if(!isGravityFlipped){
@@ -739,13 +744,8 @@ function draw(){
     ctx.restore();
 }
 
-// 🚀 THE MAGIC 2X SPEED ENGINE TRICK 🚀
 function loop(){
-    // Ye line engine ko 1 second mein 2 guna calculation karne bolegi (Bina physics tode)
-    for(let step = 0; step < GAME_SPEED_MULTIPLIER; step++) {
-        update();
-    }
-    // Aur drawing wahi smooth 60fps pe hogi
+    update();
     draw();
     reqAnimId=requestAnimationFrame(loop);
 }
