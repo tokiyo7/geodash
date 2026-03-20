@@ -17,7 +17,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
         
-        /* 🌟 NEW ANIMATIONS 🌟 */
         @keyframes titlePulse { 0% { text-shadow: 0 0 10px #00f0ff; } 100% { text-shadow: 0 0 25px #00f0ff, 0 0 15px #00f0ff; } }
         @keyframes btnPulse { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 25px var(--gold), 0 0 10px var(--gold); } }
 
@@ -32,6 +31,7 @@
         #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
         #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; white-space: pre-line; }
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; }
+        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; margin-top:10px; }
 
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
         .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
@@ -57,11 +57,9 @@
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .prize-table tr.t-common td { color: #aaa; }
         .prize-table tr.t-rare td { color: var(--cyan); }
-        .prize-table tr.t-epic td { color: #cc44ff; }
         .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
-        .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
+        .prize-note { color: rgba(0,240,255,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
         .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; }
@@ -73,6 +71,7 @@
         .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
         .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
         .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
+        .cast-btn-small { background: #8a2be2; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 10px; display:none; }
 
         .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
         .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
@@ -115,8 +114,9 @@
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     <div id="overlay">
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
-        <p id="overlaySub">+Score</p>
-        <button class="btn-large" id="overlayBtn">🎰 CLAIM SPIN</button>
+        <p id="overlaySub">Data saved on-chain.</p>
+        <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
+        <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px;">Return to Menu</button>
     </div>
 </div>
 
@@ -136,21 +136,24 @@
 </div>
 
 <div class="prize-chart">
-    <div class="prize-chart-title">🎰 SPIN REWARDS</div>
-    <div class="prize-section-label">⏰ Free Hourly Spin</div>
+    <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
     <table class="prize-table">
         <tr><th>Chance</th><th>Prize Range</th></tr>
-        <tr><td>(Common)</td><td>0.01 — 0.20 ARB</td></tr>
-        <tr><td>(Epic)</td><td>0.20 — 0.50 ARB</td></tr>
-        <tr style="color:var(--gold); font-weight:bold;"><td>(Jackpot!)</td><td>0.50 — 1.00 ARB</td></tr>
+        <tr class="t-rare"><td>99.5% (Common)</td><td>0.001 — 0.05 ARB</td></tr>
+        <tr class="t-legend"><td>0.5% (Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
     </table>
     <div style="text-align:center; color:#222; font-size:11px; margin:8px 0;">————————————</div>
-    <div class="prize-section-label">🏆 Level Clear Spin (Bonus)</div>
+    <div class="prize-section-label">🏆 LEVEL CLEAR REWARDS (Manual Claim)</div>
     <table class="prize-table">
-        <tr><th>Reward Type</th><th>Prize Range</th></tr>
-        <tr style="color:#00ff88; font-weight:bold;"><td>Guaranteed Win</td><td>1.0 — 15.0 ARB</td></tr>
+        <tr><th>Level</th><th>Prize Amount</th></tr>
+        <tr><td>Level 1 Clear</td><td>1.0 ARB</td></tr>
+        <tr><td>Level 2 Clear</td><td>2.0 ARB</td></tr>
+        <tr><td>Level 3 Clear</td><td>3.0 ARB</td></tr>
+        <tr><td>Level 4 Clear</td><td>4.0 ARB</td></tr>
+        <tr><td>Level 5 Clear</td><td>5.0 ARB</td></tr>
+        <tr style="color:var(--cyan);"><td>Bug Bounty</td><td>1.0 ARB (DM @tokiyo)</td></tr>
     </table>
-    <div class="prize-note">★ Contract dynamically adjusts if balance is low.</div>
+    <div class="prize-note">★ Clear level -> Cast Score -> @tokiyo manually verifies on Leaderboard and sends ARB!</div>
 </div>
 
 <div class="slot-machine">
@@ -161,6 +164,7 @@
         <div class="reel"><div class="reel-inner" id="r3">💎</div></div>
     </div>
     <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
+    <button class="cast-btn-small" id="spinCastBtn">📢 SHARE YOUR SPIN WIN!</button>
     <div class="slot-info" id="spinInfo">Loading status...</div>
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
@@ -173,8 +177,9 @@
 <div id="walletStatus">Ready to Play!</div>
 
 <script>
-// BLOCKCHAIN LOGIC
-const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
+// 🚨 NAYA CONTRACT ADDRESS YAHAN UPDATE KIYA HAI 🚨
+const CONTRACT_ADDRESS = "0x8d4DE420031Cfd304075342C60240e8513C812F7";
+
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
@@ -186,13 +191,17 @@ const ABI = [
 
 let userAddress=null;
 let isConnected = false;
+let isFarcasterWallet = false;
 let walletProvider = null;
+let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
+
+const GAME_URL = "https://farcaster.xyz/miniapps/vDZmdCj1pC8Z/geodash-by-tokiyo";
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 async function detectWallet() {
@@ -200,10 +209,12 @@ async function detectWallet() {
     for(let i=0; i<10; i++) {
         if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
             walletProvider = window.fcSdk.wallet.ethProvider;
+            isFarcasterWallet = true;
             return true;
         }
         if (window.ethereum) {
             walletProvider = window.ethereum;
+            isFarcasterWallet = false;
             return true;
         }
         await new Promise(r => setTimeout(r, 100));
@@ -211,7 +222,6 @@ async function detectWallet() {
     return false;
 }
 
-// ✅ SILENT WALLET CONNECTION (No Network Switch errors)
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -227,6 +237,14 @@ async function connectWallet(showErrors = true) {
         if(!accounts || accounts.length === 0) throw new Error("No accounts connected");
         userAddress = accounts[0];
 
+        if (!isFarcasterWallet) {
+            try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+        }
+        
+        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
+        const signer = provider.getSigner();
+        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
         refreshSpinStatus(); 
@@ -238,30 +256,50 @@ async function connectWallet(showErrors = true) {
     }
 }
 
-// 🚀 RAW TRANSACTION SENDER (Directly forces Arbitrum explicitly!)
 async function sendRawTransaction(methodName, args) {
     const iface = new ethers.utils.Interface(ABI);
     const data = iface.encodeFunctionData(methodName, args);
-
-    // FORCE SWITCH TO ARBITRUM BEFORE TRANSACTION
     try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-
     const txHash = await walletProvider.request({
         method: 'eth_sendTransaction',
         params: [{
             to: CONTRACT_ADDRESS,
             from: userAddress,
             data: data,
-            chainId: '0xa4b1' // Double protection: pass chainId in params as well
+            chainId: '0xa4b1' 
         }]
     });
     return txHash;
 }
 
+function openCast(text) {
+    const url = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`;
+    if (window.fcSdk && window.fcSdk.actions) {
+        window.fcSdk.actions.openUrl(url);
+    } else {
+        window.open(url, '_blank');
+    }
+}
+
 window.addEventListener('load', () => {
     document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', claimSpin);
+    
+    document.getElementById('overlayBtn').addEventListener('click', () => {
+        document.getElementById('overlay').style.display='none';
+    });
+    
+    // VIRAL CAST BUTTONS
+    document.getElementById('overlayCastBtn').addEventListener('click', () => {
+        const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${currentLevel} of the impossible GeoDash by @tokiyo! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB reward! 💸\n\nThink you can beat my score? Try not to rage-quit: 👇\n${GAME_URL}`;
+        openCast(text);
+    });
+
+    document.getElementById('spinCastBtn').addEventListener('click', () => {
+        const text = `🎰 GeoDash Slot Machine Paid Out! 💸\n\nJust tested my luck on the most brutal Web3 game on Arbitrum by @tokiyo and won some $ARB!\n\nAre you fast enough to clear the levels, or will you just rely on the Free Hourly Spin? 🚨 TOO SCARED? 🚨 Try it: 👇\n${GAME_URL}`;
+        openCast(text);
+    });
+
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
 
@@ -275,7 +313,6 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// ✅ INSTANT PLAY FIX
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -293,7 +330,7 @@ async function startOfficialRun(){
     
     setTimeout(async () => {
         try {
-            const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
+            const tx = await gameContract.startLevel(currentLevel, { gasLimit: 150000 }); 
             
             showToast("✅ Run Started Instantly!", "#00ff88");
             isOfficialRun = true;
@@ -305,15 +342,14 @@ async function startOfficialRun(){
             btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
             let errStr = "Transaction Cancelled";
             if (e.reason) errStr = e.reason;
-            else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Please switch to Arbitrum.";
             showToast(errStr, "red");
         }
     }, 100);
 }
 
-// 🔥 THE TRUE CASINO FIX: 2.5s ANIMATION FIRST -> THEN Farcaster POPUP 🔥
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
+    document.getElementById('spinCastBtn').style.display = 'none'; // Hide cast button initially
     
     if(!isConnected) {
         if(!await connectWallet(true)) return;
@@ -324,10 +360,8 @@ async function executeSpin(){
         return;
     }
     
-    // 1. Force network switch early so it doesn't interrupt the animation
     try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
 
-    // 2. TURANT REELS START BINA KISI DELAY KE
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
@@ -335,19 +369,15 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText = "Spinning... Calculating Reward!";
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    // 3. WAIT 2.5 SECONDS FOR SUSPENSE
     setTimeout(async () => {
         try{
-            // 4. NOW ASK FOR WALLET CONFIRMATION (With Professional English)
             document.getElementById('spinResult').innerText = "Please confirm the transaction in your wallet...";
             document.getElementById('spinResult').style.color = "var(--cyan)";
 
-            // This line opens the Farcaster popup with Green Reward Text (since network is forced to Arbitrum)
             const txHash = await sendRawTransaction("spin", []);
             
             document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
             
-            // Wait for confirmation on blockchain
             let isConfirmed = false;
             for(let i=0; i<15; i++) {
                 await new Promise(r => setTimeout(r, 2000)); 
@@ -360,18 +390,15 @@ async function executeSpin(){
                 } catch(err){}
             }
             
-            // 5. ANIMATION STOP
-            document.getElementById('r1').className='reel-inner'; 
-            document.getElementById('r2').className='reel-inner'; 
-            document.getElementById('r3').className='reel-inner'; 
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
             
             if(isConfirmed) {
-                document.getElementById('r1').innerText='💎';
-                document.getElementById('r2').innerText='💎';
-                document.getElementById('r3').innerText='💎';
                 showToast("Spin Successful!", "#00ff88");
                 document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
                 document.getElementById('spinResult').style.color = "#00ff88";
+                document.getElementById('spinCastBtn').style.display = 'inline-block'; // SHOW CAST BUTTON!
             } else {
                 document.getElementById('r1').innerText='❌';
                 document.getElementById('r2').innerText='❌';
@@ -385,7 +412,6 @@ async function executeSpin(){
             fetchLeaderboard(); 
             
         }catch(e){
-            // ANIMATION STOP ON CANCEL/FAIL
             btn.disabled = false;
             document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
             document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
@@ -393,20 +419,17 @@ async function executeSpin(){
             
             let errStr = "Spin Cancelled";
             if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!";
-            else if (e.message && e.message.includes("No spin available")) errStr = "No Spin Available!";
             else if (e.reason) errStr = e.reason;
             
             showToast(errStr,"red");
             document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-    }, 2500); // 👈 2.5 Second Suspense Timer
+    }, 2500); 
 }
 
-function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
-
 // ==========================================
-// GAME ENGINE & DATA (Visual Upgrades Preserved)
+// GAME ENGINE & DATA (Visual Upgrades)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -519,7 +542,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let spinEarned=isOfficialRun&&(timePlayed>=60000); 
+    let isWinValid=isOfficialRun&&(timePlayed>=60000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -539,10 +562,10 @@ function triggerWin(){
     document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
     document.getElementById('overlayTitle').style.color='#00ff88';
     
-    if(spinEarned){
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n🎰 +1 LEVEL SPIN EARNED!`;
-        document.getElementById('overlayBtn').style.display='block';
-        document.getElementById('overlayBtn').innerText='🏆 CLAIM LEVEL SPIN';
+    if(isWinValid){
+        document.getElementById('overlaySub').innerText=`+${addScore} PTS\nData saved on-chain.`;
+        document.getElementById('overlayCastBtn').style.display='block';
+        document.getElementById('overlayBtn').innerText='Return to Menu';
         
         isOfficialRun=false;
         const ob=document.getElementById('officialRunBtn');
@@ -550,12 +573,14 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            sendRawTransaction("levelComplete", [currentLevel, addScore]).then(()=>{}).catch(e=>{});
+            // THIS ONLY SAVES SCORE NOW! SAFE FROM BOTS!
+            gameContract.levelComplete(currentLevel, addScore, { gasLimit: 150000 }).then(()=>{}).catch(e=>{});
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
-        document.getElementById('overlayBtn').style.display='none';
+        document.getElementById('overlayCastBtn').style.display='none';
+        document.getElementById('overlayBtn').innerText='Return to Menu';
         fetchLeaderboard(); 
     }
     document.getElementById('overlay').style.display='flex';
@@ -692,13 +717,6 @@ function updateSpinUI() {
     const info = document.getElementById('spinInfo');
     clearInterval(timerInt);
     
-    if(spinStatus.bonus > 0){
-        btn.disabled = false;
-        btn.innerText = `🏆 LEVEL SPIN — ${spinStatus.bonus} available`;
-        btn.style.background = 'linear-gradient(135deg,#ffd700,#ff8c00)';
-        info.innerText = `Level clear spins: ${spinStatus.bonus}`;
-        return;
-    }
     if(spinStatus.hasFree){
         btn.disabled = false;
         btn.innerText = '⏰ FREE HOURLY SPIN!';
