@@ -186,15 +186,13 @@ const ABI = [
 
 let userAddress=null;
 let isConnected = false;
-let isFarcasterWallet = false;
 let walletProvider = null;
-let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 async function detectWallet() {
@@ -202,12 +200,10 @@ async function detectWallet() {
     for(let i=0; i<10; i++) {
         if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
             walletProvider = window.fcSdk.wallet.ethProvider;
-            isFarcasterWallet = true;
             return true;
         }
         if (window.ethereum) {
             walletProvider = window.ethereum;
-            isFarcasterWallet = false;
             return true;
         }
         await new Promise(r => setTimeout(r, 100));
@@ -215,6 +211,7 @@ async function detectWallet() {
     return false;
 }
 
+// ✅ SILENT WALLET CONNECTION (No Network Switch errors)
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -230,15 +227,6 @@ async function connectWallet(showErrors = true) {
         if(!accounts || accounts.length === 0) throw new Error("No accounts connected");
         userAddress = accounts[0];
 
-        if (!isFarcasterWallet) {
-            try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-        }
-        
-        // Native Ethers contract initialization for optimal simulation
-        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
-        const signer = provider.getSigner();
-        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
         refreshSpinStatus(); 
@@ -248,6 +236,26 @@ async function connectWallet(showErrors = true) {
         if(showErrors) showToast("Connection Cancelled or Wallet Blocked", "red");
         return false;
     }
+}
+
+// 🚀 RAW TRANSACTION SENDER (Directly forces Arbitrum explicitly!)
+async function sendRawTransaction(methodName, args) {
+    const iface = new ethers.utils.Interface(ABI);
+    const data = iface.encodeFunctionData(methodName, args);
+
+    // FORCE SWITCH TO ARBITRUM BEFORE TRANSACTION
+    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+
+    const txHash = await walletProvider.request({
+        method: 'eth_sendTransaction',
+        params: [{
+            to: CONTRACT_ADDRESS,
+            from: userAddress,
+            data: data,
+            chainId: '0xa4b1' // Double protection: pass chainId in params as well
+        }]
+    });
+    return txHash;
 }
 
 window.addEventListener('load', () => {
@@ -267,6 +275,7 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
+// ✅ INSTANT PLAY FIX
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -282,10 +291,9 @@ async function startOfficialRun(){
         }
     }
     
-    // Tiny delay to let UI text update before wallet popup freezes screen
     setTimeout(async () => {
         try {
-            const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
+            const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
             
             showToast("✅ Run Started Instantly!", "#00ff88");
             isOfficialRun = true;
@@ -297,13 +305,13 @@ async function startOfficialRun(){
             btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
             let errStr = "Transaction Cancelled";
             if (e.reason) errStr = e.reason;
-            else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Switch to Arbitrum.";
+            else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Please switch to Arbitrum.";
             showToast(errStr, "red");
         }
     }, 100);
 }
 
-// 🔥 THE PERFECT CASINO SPIN: ANIMATION -> WAIT 2.5s -> WALLET POPUP 🔥
+// 🔥 THE TRUE CASINO FIX: 2.5s ANIMATION FIRST -> THEN Farcaster POPUP 🔥
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
     
@@ -316,42 +324,68 @@ async function executeSpin(){
         return;
     }
     
-    // 1. REELS START INSTANTLY
+    // 1. Force network switch early so it doesn't interrupt the animation
+    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+
+    // 2. TURANT REELS START BINA KISI DELAY KE
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "🎰 Spinning... Calculating Reward!";
+    document.getElementById('spinResult').innerText = "Spinning... Calculating Reward!";
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    // 2. WAIT FOR 2.5 SECONDS (SUSPENSE)
+    // 3. WAIT 2.5 SECONDS FOR SUSPENSE
     setTimeout(async () => {
         try{
-            document.getElementById('spinResult').innerText = "Reward Ready! Confirm in Wallet...";
+            // 4. NOW ASK FOR WALLET CONFIRMATION (With Professional English)
+            document.getElementById('spinResult').innerText = "Please confirm the transaction in your wallet...";
             document.getElementById('spinResult').style.color = "var(--cyan)";
 
-            // 3. TRIGGER WALLET POPUP USING STANDARD ETHERS (Allows Farcaster to simulate green ARB text)
-            const tx = await gameContract.spin({ gasLimit: 300000 });
+            // This line opens the Farcaster popup with Green Reward Text (since network is forced to Arbitrum)
+            const txHash = await sendRawTransaction("spin", []);
             
             document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
             
-            // 4. WAIT FOR BLOCKCHAIN RECEIPT
-            await tx.wait();
+            // Wait for confirmation on blockchain
+            let isConfirmed = false;
+            for(let i=0; i<15; i++) {
+                await new Promise(r => setTimeout(r, 2000)); 
+                try {
+                    const receipt = await publicProvider.getTransactionReceipt(txHash);
+                    if(receipt && receipt.confirmations > 0) {
+                        if(receipt.status === 1) isConfirmed = true;
+                        break;
+                    }
+                } catch(err){}
+            }
             
             // 5. ANIMATION STOP
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
-            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
-            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
+            document.getElementById('r1').className='reel-inner'; 
+            document.getElementById('r2').className='reel-inner'; 
+            document.getElementById('r3').className='reel-inner'; 
             
-            showToast("Spin Successful!", "#00ff88");
-            document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
-            document.getElementById('spinResult').style.color = "#00ff88";
+            if(isConfirmed) {
+                document.getElementById('r1').innerText='💎';
+                document.getElementById('r2').innerText='💎';
+                document.getElementById('r3').innerText='💎';
+                showToast("Spin Successful!", "#00ff88");
+                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
+                document.getElementById('spinResult').style.color = "#00ff88";
+            } else {
+                document.getElementById('r1').innerText='❌';
+                document.getElementById('r2').innerText='❌';
+                document.getElementById('r3').innerText='❌';
+                showToast("Transaction Reverted or Delayed.", "#ff3060");
+                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas/Funds?";
+                document.getElementById('spinResult').style.color = "#ff3060";
+            }
 
             refreshSpinStatus();
             fetchLeaderboard(); 
             
         }catch(e){
-            // STOP ANIMATION IF CANCELLED OR FAILED
+            // ANIMATION STOP ON CANCEL/FAIL
             btn.disabled = false;
             document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
             document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
@@ -366,13 +400,13 @@ async function executeSpin(){
             document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-    }, 2500); // 👈 2.5 SECOND DELAY
+    }, 2500); // 👈 2.5 Second Suspense Timer
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA (Visual Upgrades)
+// GAME ENGINE & DATA (Visual Upgrades Preserved)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -516,7 +550,7 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            gameContract.levelComplete(currentLevel, addScore, { gasLimit: 300000 }).then(()=>{}).catch(e=>{});
+            sendRawTransaction("levelComplete", [currentLevel, addScore]).then(()=>{}).catch(e=>{});
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
