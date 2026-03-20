@@ -428,7 +428,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (MOBILE OPTIMIZED: Rocket Fast)
+// GAME ENGINE & DATA (🚀 2X ROCKET SPEED 🚀)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -436,8 +436,19 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 FASTER BASE SPEED FOR MORE INTENSE GAMEPLAY ON MOBILE
-const LVL_CONFIG=[{id:1,speed:5.2,len:40000},{id:2,speed:5.8,len:50000},{id:3,speed:6.2,len:55000},{id:4,speed:6.5,len:60000},{id:5,speed:6.8,len:65000},{id:6,speed:7.2,len:70000},{id:7,speed:7.5,len:75000},{id:8,speed:7.8,len:80000},{id:9,speed:8.2,len:85000},{id:10,speed:8.6,len:100000}];
+// 🚀 2X SPEED FOR ADRENALINE RUSH 🚀
+const LVL_CONFIG=[
+    {id:1,speed:9.0,len:40000},
+    {id:2,speed:9.5,len:50000},
+    {id:3,speed:10.0,len:55000},
+    {id:4,speed:10.5,len:60000},
+    {id:5,speed:11.0,len:65000},
+    {id:6,speed:11.5,len:70000},
+    {id:7,speed:12.0,len:75000},
+    {id:8,speed:12.5,len:80000},
+    {id:9,speed:13.0,len:85000},
+    {id:10,speed:14.0,len:100000}
+];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
 
@@ -456,11 +467,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 JUMP MATCHED WITH NEW SCROLL SPEED
-const GRAVITY=0.65,JUMP_VEL=-14,MAX_VEL=16;
+// 🚀 HEAVY GRAVITY & FAST JUMP TO MATCH 2X SPEED
+const GRAVITY=0.85,JUMP_VEL=-16.5,MAX_VEL=20;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=5.2,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
+let scrollSpeed=9.0,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
@@ -610,8 +621,8 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    // 🚀 FASTER FLIP MATCHING NEW SPEED
-    if(!player.ground)player.rot+=18;
+    // 🚀 VERY FAST FLIP ROTATION TO MATCH SPEED
+    if(!player.ground)player.rot+=22;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
 
@@ -668,7 +679,7 @@ function draw(){
     for(let i=0;i<GAME_H;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(GAME_W,i);ctx.stroke();}
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     
-    // 🛠️ REMOVED SHADOW BLUR TO STOP MOBILE LAG
+    // ZERO SHADOW BLUR FOR 60FPS MOBILE PERFORMANCE
     ctx.strokeStyle='#00f0ff';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(0,GROUND_Y);ctx.lineTo(GAME_W,GROUND_Y);ctx.stroke();
     ctx.lineWidth=1;ctx.strokeStyle='rgba(0,240,255,0.3)';
@@ -709,8 +720,8 @@ function draw(){
     ctx.globalAlpha=1;
 
     if(isGravityFlipped){ctx.fillStyle='rgba(255,136,0,0.08)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='rgba(255,136,0,0.8)';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('⚠ GRAVITY FLIPPED ⚠',GAME_W/2,28);ctx.textAlign='left';}
-    if(gameState==='idle'){ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.shadowBlur=20;ctx.shadowColor='#00f0ff';ctx.fillStyle='#00f0ff';ctx.font='bold 28px Courier New';ctx.textAlign='center';ctx.fillText('CLICK / SPACE TO PLAY',GAME_W/2,GAME_H/2);ctx.shadowBlur=0;ctx.textAlign='left';}
-    if(gameState==='dead'){ctx.fillStyle='rgba(255,48,96,0.12)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.shadowBlur=18;ctx.shadowColor='#ff3060';ctx.fillStyle='#ff3060';ctx.font='bold 34px Courier New';ctx.textAlign='center';ctx.fillText('WASTED!',GAME_W/2,GAME_H/2-20);ctx.shadowBlur=0;ctx.fillStyle='#ccc';ctx.font='16px Courier New';ctx.fillText('Click / Space to try again',GAME_W/2,GAME_H/2+20);ctx.fillStyle='#555';ctx.font='13px Courier New';ctx.fillText(`Attempt ${attemptCount}`,GAME_W/2,GAME_H/2+50);ctx.textAlign='left';}
+    if(gameState==='idle'){ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='#00f0ff';ctx.font='bold 28px Courier New';ctx.textAlign='center';ctx.fillText('CLICK / SPACE TO PLAY',GAME_W/2,GAME_H/2);ctx.textAlign='left';}
+    if(gameState==='dead'){ctx.fillStyle='rgba(255,48,96,0.12)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='#ff3060';ctx.font='bold 34px Courier New';ctx.textAlign='center';ctx.fillText('WASTED!',GAME_W/2,GAME_H/2-20);ctx.fillStyle='#ccc';ctx.font='16px Courier New';ctx.fillText('Click / Space to try again',GAME_W/2,GAME_H/2+20);ctx.fillStyle='#555';ctx.font='13px Courier New';ctx.fillText(`Attempt ${attemptCount}`,GAME_W/2,GAME_H/2+50);ctx.textAlign='left';}
     
     ctx.restore();
 }
