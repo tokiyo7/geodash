@@ -177,7 +177,7 @@
 <div id="walletStatus">Ready to Play!</div>
 
 <script>
-// 🚨 GEODASH V3 CONTRACT 🚨
+// 🚨 CONTRACT ADDRESS UNTOUCHED 🚨
 const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
 
 const ABI = [
@@ -289,7 +289,6 @@ window.addEventListener('load', () => {
         document.getElementById('overlay').style.display='none';
     });
     
-    // VIRAL CAST BUTTONS
     document.getElementById('overlayCastBtn').addEventListener('click', () => {
         const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${currentLevel} of the impossible GeoDash by @tokiyo! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB reward! 💸\n\nThink you can beat my score? Try not to rage-quit: 👇\n${GAME_URL}`;
         openCast(text);
@@ -349,7 +348,7 @@ async function startOfficialRun(){
 
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
-    document.getElementById('spinCastBtn').style.display = 'none'; // Hide cast button initially
+    document.getElementById('spinCastBtn').style.display = 'none'; 
     
     if(!isConnected) {
         if(!await connectWallet(true)) return;
@@ -398,7 +397,7 @@ async function executeSpin(){
                 showToast("Spin Successful!", "#00ff88");
                 document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
                 document.getElementById('spinResult').style.color = "#00ff88";
-                document.getElementById('spinCastBtn').style.display = 'inline-block'; // SHOW CAST BUTTON!
+                document.getElementById('spinCastBtn').style.display = 'inline-block'; 
             } else {
                 document.getElementById('r1').innerText='❌';
                 document.getElementById('r2').innerText='❌';
@@ -429,7 +428,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (MOBILE OPTIMIZED)
+// GAME ENGINE & DATA (MOBILE OPTIMIZED: Rocket Fast)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,7 +436,8 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-const LVL_CONFIG=[{id:1,speed:4.5,len:40000},{id:2,speed:5.0,len:50000},{id:3,speed:5.2,len:55000},{id:4,speed:5.5,len:60000},{id:5,speed:5.8,len:65000},{id:6,speed:6.2,len:70000},{id:7,speed:6.5,len:75000},{id:8,speed:6.8,len:80000},{id:9,speed:7.2,len:85000},{id:10,speed:7.5,len:100000}];
+// 🚀 FASTER BASE SPEED FOR MORE INTENSE GAMEPLAY ON MOBILE
+const LVL_CONFIG=[{id:1,speed:5.2,len:40000},{id:2,speed:5.8,len:50000},{id:3,speed:6.2,len:55000},{id:4,speed:6.5,len:60000},{id:5,speed:6.8,len:65000},{id:6,speed:7.2,len:70000},{id:7,speed:7.5,len:75000},{id:8,speed:7.8,len:80000},{id:9,speed:8.2,len:85000},{id:10,speed:8.6,len:100000}];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
 
@@ -455,10 +455,12 @@ function buildLevelObstacles(levelNum){
 const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
-const GRAVITY=0.60,JUMP_VEL=-13.5,MAX_VEL=16;
+
+// 🚀 JUMP MATCHED WITH NEW SCROLL SPEED
+const GRAVITY=0.65,JUMP_VEL=-14,MAX_VEL=16;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
+let scrollSpeed=5.2,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
@@ -499,7 +501,6 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
-        // OPTIMIZED for mobile: 5 particles instead of 12
         for(let i=0;i<5;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:2+Math.random()*4, rot:Math.random()*360});
     }
 }
@@ -535,7 +536,6 @@ function die(){
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();shake=15;
     let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
-    // OPTIMIZED for mobile: 20 particles instead of 40
     for(let i=0;i<20;i++) {
         let pSize = 4 + Math.random() * 12; 
         particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*20,vy:(Math.random()-0.5)*20,life:1.5,col:cols[Math.floor(Math.random()*cols.length)],size:pSize,rot:Math.random()*360});
@@ -559,7 +559,6 @@ function triggerWin(){
     document.getElementById('scoreUI').innerText=`Score: ${totalScore}`;
     
     let cols=['#00f0ff','#ff3060','#ffd700','#ffffff','#00ff88'];
-    // OPTIMIZED for mobile: 50 particles instead of 150
     for(let i=0;i<50;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:3.0,col:cols[Math.floor(Math.random()*cols.length)],size:5+Math.random()*5,rot:0});
     
     document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
@@ -602,7 +601,6 @@ function update(){
     document.getElementById('progressBar').style.width=prog+'%';
     if(worldX>=levelLength){triggerWin();return;}
 
-    // OPTIMIZED for mobile: Less ghost trails (4 instead of 8)
     if(frameCount%3===0){ghostTrail.push({x:player.x,y:player.y,rot:player.rot,wx:worldX});if(ghostTrail.length>4)ghostTrail.shift();}
 
     if(isGravityFlipped&&flipTimer>0){flipTimer--;if(flipTimer===0)isGravityFlipped=false;}
@@ -612,7 +610,8 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    if(!player.ground)player.rot+=14;
+    // 🚀 FASTER FLIP MATCHING NEW SPEED
+    if(!player.ground)player.rot+=18;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
 
@@ -669,7 +668,7 @@ function draw(){
     for(let i=0;i<GAME_H;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(GAME_W,i);ctx.stroke();}
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     
-    // OPTIMIZED for mobile: Removed heavy shadows from grid lines
+    // 🛠️ REMOVED SHADOW BLUR TO STOP MOBILE LAG
     ctx.strokeStyle='#00f0ff';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(0,GROUND_Y);ctx.lineTo(GAME_W,GROUND_Y);ctx.stroke();
     ctx.lineWidth=1;ctx.strokeStyle='rgba(0,240,255,0.3)';
@@ -677,8 +676,6 @@ function draw(){
 
     for(let o of obstacles){
         let ox=o.x-worldX;if(ox<-100||ox>GAME_W+100)continue;
-        
-        // OPTIMIZED for mobile: Removed ctx.shadowBlur from obstacles
         if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y,o.w,GAME_H-GROUND_Y);ctx.fillStyle='rgba(255,48,96,0.3)';ctx.fillRect(ox,GROUND_Y-4,3,8);ctx.fillRect(ox+o.w-3,GROUND_Y-4,3,8);}
         else if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y;ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,baseY-38);ctx.lineTo(ox+38,baseY);ctx.lineTo(ox,baseY);ctx.closePath();ctx.fill();}
         else if(o.t==='dspike'){ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-38);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ox+57,GROUND_Y-38);ctx.lineTo(ox+76,GROUND_Y);ctx.lineTo(ox+38,GROUND_Y);ctx.closePath();ctx.fill();}
@@ -694,11 +691,14 @@ function draw(){
     
     if(gameState!=='dead'){
         ctx.save();ctx.translate(player.x+18,player.y+18);ctx.rotate(player.rot*Math.PI/180);
-        // Player Neon glow is KEPT because it's the main character and looks awesome!
-        ctx.shadowBlur=25;ctx.shadowColor='#00f0ff';ctx.fillStyle='#05080f';ctx.fillRect(-18,-18,36,36);
-        ctx.strokeStyle='#00f0ff';ctx.lineWidth=3;ctx.strokeRect(-18,-18,36,36);
         
-        ctx.shadowBlur=12;ctx.fillStyle='#00f0ff';
+        // 🛠️ FAKE GLOW EFFECT (100x Faster than shadowBlur)
+        ctx.fillStyle='#05080f';ctx.fillRect(-18,-18,36,36);
+        ctx.strokeStyle='rgba(0,240,255,0.4)';ctx.lineWidth=8;ctx.strokeRect(-18,-18,36,36); // Outer Neon
+        ctx.strokeStyle='#00f0ff';ctx.lineWidth=2;ctx.strokeRect(-18,-18,36,36); // Inner Core
+        
+        // Face
+        ctx.fillStyle='#00f0ff';
         ctx.fillRect(-10,-8,6,6); 
         ctx.fillRect(4,-8,6,6);   
         ctx.fillRect(-10,6,20,4); 
