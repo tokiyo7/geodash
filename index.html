@@ -188,6 +188,7 @@ let userAddress=null;
 let isConnected = false;
 let isFarcasterWallet = false;
 let walletProvider = null;
+let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
@@ -214,7 +215,6 @@ async function detectWallet() {
     return false;
 }
 
-// ✅ NETWORK SWITCH FIX (Zabardasti Arbitrum par bhejega)
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -233,6 +233,11 @@ async function connectWallet(showErrors = true) {
         if (!isFarcasterWallet) {
             try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
         }
+        
+        // Native Ethers contract initialization for optimal simulation
+        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
+        const signer = provider.getSigner();
+        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
 
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
@@ -240,26 +245,9 @@ async function connectWallet(showErrors = true) {
         fetchLeaderboard(); 
         return true;
     } catch(e) {
-        if(showErrors) showToast("Connection Cancelled", "red");
+        if(showErrors) showToast("Connection Cancelled or Wallet Blocked", "red");
         return false;
     }
-}
-
-// ✅ FORCE ARBITRUM IN TRANSACTION (Base Network Bug Fix)
-async function sendRawTransaction(methodName, args) {
-    const iface = new ethers.utils.Interface(ABI);
-    const data = iface.encodeFunctionData(methodName, args);
-
-    const txHash = await walletProvider.request({
-        method: 'eth_sendTransaction',
-        params: [{
-            to: CONTRACT_ADDRESS,
-            from: userAddress,
-            data: data,
-            chainId: '0xa4b1' // 👈 Ye Base network pe nahi jaane dega! Arbitrum fix!
-        }]
-    });
-    return txHash;
 }
 
 window.addEventListener('load', () => {
@@ -294,25 +282,28 @@ async function startOfficialRun(){
         }
     }
     
-    try {
-        const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
-        
-        showToast("✅ Run Started Instantly!", "#00ff88");
-        isOfficialRun = true;
-        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
-        startOrRestartGame(true);
-        
-    } catch(e) {
-        btn.disabled = false;
-        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        let errStr = "Transaction Cancelled";
-        if (e.reason) errStr = e.reason;
-        else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Please switch to Arbitrum.";
-        showToast(errStr, "red");
-    }
+    // Tiny delay to let UI text update before wallet popup freezes screen
+    setTimeout(async () => {
+        try {
+            const tx = await gameContract.startLevel(currentLevel, { gasLimit: 300000 }); 
+            
+            showToast("✅ Run Started Instantly!", "#00ff88");
+            isOfficialRun = true;
+            btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+            startOrRestartGame(true);
+            
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+            let errStr = "Transaction Cancelled";
+            if (e.reason) errStr = e.reason;
+            else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Switch to Arbitrum.";
+            showToast(errStr, "red");
+        }
+    }, 100);
 }
 
-// 🔥 THE MASTER CASINO TRICK: PEHLE SPIN ➔ FIR POPUP ➔ FIR REWARD 🔥
+// 🔥 THE PERFECT CASINO SPIN: ANIMATION -> WAIT 2.5s -> WALLET POPUP 🔥
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
     
@@ -320,71 +311,47 @@ async function executeSpin(){
         if(!await connectWallet(true)) return;
     }
 
-    // Safety check pehle hi kar lenge taaki faltu ghoome na
     if (!spinStatus.hasFree && spinStatus.bonus <= 0) {
         showToast("No spin available! Wait for cooldown.", "red");
         return;
     }
     
-    // 1. TURANT REELS START BINA KISI WALLET WAIT KE!
+    // 1. REELS START INSTANTLY
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "🎰 Machine Ghoom Rahi Hai... Suspense!";
+    document.getElementById('spinResult').innerText = "🎰 Spinning... Calculating Reward!";
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    // 2. WAIT FOR 3 SECONDS (Player sirf animation dekhega)
+    // 2. WAIT FOR 2.5 SECONDS (SUSPENSE)
     setTimeout(async () => {
         try{
-            // 3. AB PLAYER KO BOLENGE CONFIRM KARNE KE LIYE
-            document.getElementById('spinResult').innerText = "📲 Ab Farcaster me 'Confirm' dabao reels rokne ke liye!";
+            document.getElementById('spinResult').innerText = "Reward Ready! Confirm in Wallet...";
             document.getElementById('spinResult').style.color = "var(--cyan)";
 
-            // 4. AB POPUP AAYEGA Farcaster ka
-            const txHash = await sendRawTransaction("spin", []);
+            // 3. TRIGGER WALLET POPUP USING STANDARD ETHERS (Allows Farcaster to simulate green ARB text)
+            const tx = await gameContract.spin({ gasLimit: 300000 });
             
-            document.getElementById('spinResult').innerText = "⏳ Processing on Arbitrum...";
+            document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
             
-            // 5. WAIT FOR BLOCKCHAIN CONFIRMATION
-            let isConfirmed = false;
-            for(let i=0; i<15; i++) {
-                await new Promise(r => setTimeout(r, 2000)); 
-                try {
-                    const receipt = await publicProvider.getTransactionReceipt(txHash);
-                    if(receipt && receipt.confirmations > 0) {
-                        if(receipt.status === 1) isConfirmed = true;
-                        break;
-                    }
-                } catch(err){}
-            }
+            // 4. WAIT FOR BLOCKCHAIN RECEIPT
+            await tx.wait();
             
-            // 6. ANIMATION RUK JAYEGI
-            document.getElementById('r1').className='reel-inner'; 
-            document.getElementById('r2').className='reel-inner'; 
-            document.getElementById('r3').className='reel-inner'; 
+            // 5. ANIMATION STOP
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
             
-            if(isConfirmed) {
-                document.getElementById('r1').innerText='💎';
-                document.getElementById('r2').innerText='💎';
-                document.getElementById('r3').innerText='💎';
-                showToast("Spin Successful!", "#00ff88");
-                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
-                document.getElementById('spinResult').style.color = "#00ff88";
-            } else {
-                document.getElementById('r1').innerText='❌';
-                document.getElementById('r2').innerText='❌';
-                document.getElementById('r3').innerText='❌';
-                showToast("Transaction Reverted or Delayed.", "#ff3060");
-                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas/Funds?";
-                document.getElementById('spinResult').style.color = "#ff3060";
-            }
+            showToast("Spin Successful!", "#00ff88");
+            document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
+            document.getElementById('spinResult').style.color = "#00ff88";
 
             refreshSpinStatus();
             fetchLeaderboard(); 
             
         }catch(e){
-            // AGAR CANCEL KIYA TOH YAHA AAYEGA
+            // STOP ANIMATION IF CANCELLED OR FAILED
             btn.disabled = false;
             document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
             document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
@@ -399,13 +366,13 @@ async function executeSpin(){
             document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-    }, 3000); // 👈 3 Second ka pure Casino Suspense!
+    }, 2500); // 👈 2.5 SECOND DELAY
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA (Visual Upgrades Preserved)
+// GAME ENGINE & DATA (Visual Upgrades)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -549,7 +516,7 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            sendRawTransaction("levelComplete", [currentLevel, addScore]).then(()=>{}).catch(e=>{});
+            gameContract.levelComplete(currentLevel, addScore, { gasLimit: 300000 }).then(()=>{}).catch(e=>{});
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
