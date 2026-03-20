@@ -139,8 +139,8 @@
     <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
     <table class="prize-table">
         <tr><th>Chance</th><th>Prize Range</th></tr>
-        <tr class="t-rare"><td>99.5% (Common)</td><td>0.001 — 0.05 ARB</td></tr>
-        <tr class="t-legend"><td>0.5% (Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
+        <tr class="t-rare"><td>(Common)</td><td>0.001 — 0.05 ARB</td></tr>
+        <tr class="t-legend"><td>(Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
     </table>
     <div style="text-align:center; color:#222; font-size:11px; margin:8px 0;">————————————</div>
     <div class="prize-section-label">🏆 LEVEL CLEAR REWARDS (Manual Claim)</div>
@@ -573,7 +573,6 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            // THIS ONLY SAVES SCORE NOW! SAFE FROM BOTS!
             gameContract.levelComplete(currentLevel, addScore, { gasLimit: 150000 }).then(()=>{}).catch(e=>{});
         }
     }else{
