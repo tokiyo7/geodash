@@ -24,9 +24,9 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 ULTRA OPTIMIZED CANVAS CONTAINER 🔥 */
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
-        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+        /* 🔥 MOBILE HARDWARE ACCELERATION ENABLED 🔥 */
+        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); will-change: transform; }
+        canvas { display: block; width: 100%; height: 100%; }
         
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
         #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 NO TELEPORT, 1.3x PERFECT PHYSICS 🔥)
+// GAME ENGINE & DATA (🔥 PURE NATIVE LOOP, NO LAG MATH 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,7 +437,7 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 1.3x TRUE CONSTANT SPEED (No Teleports)
+// 🚀 1.3x TRUE SPEED
 const LVL_CONFIG=[
     {id:1,speed:6.0,len:40000},
     {id:2,speed:6.6,len:50000},
@@ -468,14 +468,14 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 PRECISE PHYSICS MATH: Jump exactly same distance at 1.3x speed
-const GRAVITY=1.05,JUMP_VEL=-17.5,MAX_VEL=20;
+// 🚀 EXACT MATH FOR PERFECT JUMP ARC AT 1.3x SPEED
+const GRAVITY=1.05,JUMP_VEL=-18.0,MAX_VEL=20;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
 let scrollSpeed=6.0,levelLength=40000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
-let ghostTrail=[],particles=[],obstacles=[];
+let particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
 let isOfficialRun=false; 
 
@@ -499,7 +499,7 @@ function buildLevelUI(){
 function resetGameState() {
     initAudio(); 
     cancelAnimationFrame(reqAnimId);
-    particles=[]; obstacles=[]; ghostTrail=[];
+    particles=[]; obstacles=[]; 
     player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
     worldX=0; frameCount=0; shake=0; 
     isGravityFlipped=false; flipTimer=0; 
@@ -513,6 +513,8 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
+        // Less particles for mobile smoothness
+        for(let i=0;i<3;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
     }
 }
 
@@ -539,10 +541,8 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // 🚀 NEW ENGINE START 🚀
-    lastRenderTime = performance.now();
-    accumulator = 0;
-    reqAnimId = requestAnimationFrame(gameLoop);
+    // 🚀 PURE HARDWARE LOOP
+    reqAnimId = requestAnimationFrame(loop);
 }
 
 function die(){
@@ -551,7 +551,7 @@ function die(){
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();shake=15;
     let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
-    for(let i=0;i<12;i++) {
+    for(let i=0;i<10;i++) {
         let pSize = 4 + Math.random() * 8; 
         particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*12,vy:(Math.random()-0.5)*12,life:1.2,col:cols[Math.floor(Math.random()*cols.length)],size:pSize});
     }
@@ -574,7 +574,7 @@ function triggerWin(){
     document.getElementById('scoreUI').innerText=`Score: ${totalScore}`;
     
     let cols=['#00f0ff','#ff3060','#ffd700','#ffffff','#00ff88'];
-    for(let i=0;i<20;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:2.5,col:cols[Math.floor(Math.random()*cols.length)],size:5+Math.random()*5});
+    for(let i=0;i<15;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:2.5,col:cols[Math.floor(Math.random()*cols.length)],size:5+Math.random()*5});
     
     document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
     document.getElementById('overlayTitle').style.color='#00ff88';
@@ -615,9 +615,6 @@ function update(){
     let prog=Math.min(100,(worldX/levelLength)*100);
     document.getElementById('progressBar').style.width=prog+'%';
     if(worldX>=levelLength){triggerWin();return;}
-
-    // Ghost optimization
-    if(frameCount%4===0){ghostTrail.push({x:player.x,y:player.y,rot:player.rot,wx:worldX});if(ghostTrail.length>2)ghostTrail.shift();}
 
     if(isGravityFlipped&&flipTimer>0){flipTimer--;if(flipTimer===0)isGravityFlipped=false;}
 
@@ -675,13 +672,11 @@ function update(){
 }
 
 function draw(){
-    // NO Math.floor needed anymore, let native GPU handle smooth rendering
     ctx.clearRect(0,0,GAME_W,GAME_H);
     ctx.save();
     
     if(shake>0){ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake--;}
     
-    // 🚀 NO BACKGROUND GRID (Zero GPU Load!) 🚀
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     
@@ -735,39 +730,12 @@ function draw(){
     ctx.restore();
 }
 
-// 🚀 NATIVE ANTI-LAG ENGINE 🚀
-let lastRenderTime = 0;
-let accumulator = 0;
-const TIME_STEP = 1000 / 60; // Base 60Hz Physics
-
-function gameLoop(currentTime) {
-    reqAnimId = requestAnimationFrame(gameLoop);
-    
-    let deltaTime = currentTime - lastRenderTime;
-    
-    // 🛑 ANTI-TELEPORT: If phone hangs for more than 50ms, discard the lost time!
-    // This stops the game from suddenly fast-forwarding and killing the player.
-    if (deltaTime > 50) {
-        deltaTime = 50; 
-    }
-    
-    lastRenderTime = currentTime;
-    accumulator += deltaTime;
-    
-    // Max 3 updates per frame to completely prevent rubber-banding
-    let steps = 0;
-    while (accumulator >= TIME_STEP && steps < 3) {
-        update();
-        accumulator -= TIME_STEP;
-        steps++;
-    }
-    
-    // Drop any excess time so next frame starts fresh (Zero Lag)
-    accumulator = accumulator % TIME_STEP;
-    
+// 🚀 PURE NATIVE LOOP 🚀
+function loop() {
+    update();
     draw();
+    reqAnimId = requestAnimationFrame(loop);
 }
-
 draw();
 
 let timerInt=null;
