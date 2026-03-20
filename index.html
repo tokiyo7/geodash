@@ -17,7 +17,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
         body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; }
         
-        /* 🌟 IMPROVED ANIMATIONS 🌟 */
+        /* 🌟 NEW ANIMATIONS 🌟 */
         @keyframes titlePulse { 0% { text-shadow: 0 0 10px #00f0ff; } 100% { text-shadow: 0 0 25px #00f0ff, 0 0 15px #00f0ff; } }
         @keyframes btnPulse { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 25px var(--gold), 0 0 10px var(--gold); } }
 
@@ -57,6 +57,10 @@
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .prize-table tr.t-common td { color: #aaa; }
+        .prize-table tr.t-rare td { color: var(--cyan); }
+        .prize-table tr.t-epic td { color: #cc44ff; }
+        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
         .prize-note { color: rgba(255,215,0,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
@@ -189,7 +193,7 @@ let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 async function detectWallet() {
@@ -210,7 +214,7 @@ async function detectWallet() {
     return false;
 }
 
-// ✅ SILENT WALLET CONNECTION
+// ✅ NETWORK SWITCH FIX (Zabardasti Arbitrum par bhejega)
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -236,12 +240,12 @@ async function connectWallet(showErrors = true) {
         fetchLeaderboard(); 
         return true;
     } catch(e) {
-        if(showErrors) showToast("Connection Cancelled or Wallet Blocked", "red");
+        if(showErrors) showToast("Connection Cancelled", "red");
         return false;
     }
 }
 
-// 🚀 RAW TRANSACTION SENDER
+// ✅ FORCE ARBITRUM IN TRANSACTION (Base Network Bug Fix)
 async function sendRawTransaction(methodName, args) {
     const iface = new ethers.utils.Interface(ABI);
     const data = iface.encodeFunctionData(methodName, args);
@@ -252,7 +256,7 @@ async function sendRawTransaction(methodName, args) {
             to: CONTRACT_ADDRESS,
             from: userAddress,
             data: data,
-            chainId: '0xa4b1'
+            chainId: '0xa4b1' // 👈 Ye Base network pe nahi jaane dega! Arbitrum fix!
         }]
     });
     return txHash;
@@ -291,7 +295,6 @@ async function startOfficialRun(){
     }
     
     try {
-        btn.innerText = "⏳ CONFIRM POPUP...";
         const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
         
         showToast("✅ Run Started Instantly!", "#00ff88");
@@ -304,12 +307,12 @@ async function startOfficialRun(){
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
         let errStr = "Transaction Cancelled";
         if (e.reason) errStr = e.reason;
-        else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Switch to Arbitrum.";
+        else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Please switch to Arbitrum.";
         showToast(errStr, "red");
     }
 }
 
-// 🔥 FIXED SPIN FUNCTION - NO DELAY, DIRECT POPUP
+// 🔥 THE MASTER CASINO TRICK: PEHLE SPIN ➔ FIR POPUP ➔ FIR REWARD 🔥
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
     
@@ -317,85 +320,92 @@ async function executeSpin(){
         if(!await connectWallet(true)) return;
     }
 
+    // Safety check pehle hi kar lenge taaki faltu ghoome na
     if (!spinStatus.hasFree && spinStatus.bonus <= 0) {
         showToast("No spin available! Wait for cooldown.", "red");
         return;
     }
     
-    // 1. START ANIMATION IMMEDIATELY
+    // 1. TURANT REELS START BINA KISI WALLET WAIT KE!
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Please confirm the popup...";
+    document.getElementById('spinResult').innerText = "🎰 Machine Ghoom Rahi Hai... Suspense!";
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    try{
-        // 2. SEND TRANSACTION (Opens wallet popup)
-        const txHash = await sendRawTransaction("spin", []);
-        
-        // 3. POPUP CONFIRMED - Now wait for blockchain
-        document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
-        document.getElementById('spinResult').style.color = "var(--cyan)";
-        
-        // 4. WAIT FOR TRANSACTION CONFIRMATION
-        let isConfirmed = false;
-        for(let i=0; i<15; i++) {
-            await new Promise(r => setTimeout(r, 2000)); 
-            try {
-                const receipt = await publicProvider.getTransactionReceipt(txHash);
-                if(receipt && receipt.confirmations > 0) {
-                    if(receipt.status === 1) isConfirmed = true;
-                    break;
-                }
-            } catch(err){}
-        }
-        
-        // 5. STOP ANIMATION
-        document.getElementById('r1').className='reel-inner'; 
-        document.getElementById('r2').className='reel-inner'; 
-        document.getElementById('r3').className='reel-inner'; 
-        
-        if(isConfirmed) {
-            document.getElementById('r1').innerText='💎';
-            document.getElementById('r2').innerText='💎';
-            document.getElementById('r3').innerText='💎';
-            showToast("Spin Successful!", "#00ff88");
-            document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
-            document.getElementById('spinResult').style.color = "#00ff88";
-        } else {
-            document.getElementById('r1').innerText='❌';
-            document.getElementById('r2').innerText='❌';
-            document.getElementById('r3').innerText='❌';
-            showToast("Transaction Reverted or Delayed.", "#ff3060");
-            document.getElementById('spinResult').innerText="Tx Failed or Network Slow.";
+    // 2. WAIT FOR 3 SECONDS (Player sirf animation dekhega)
+    setTimeout(async () => {
+        try{
+            // 3. AB PLAYER KO BOLENGE CONFIRM KARNE KE LIYE
+            document.getElementById('spinResult').innerText = "📲 Ab Farcaster me 'Confirm' dabao reels rokne ke liye!";
+            document.getElementById('spinResult').style.color = "var(--cyan)";
+
+            // 4. AB POPUP AAYEGA Farcaster ka
+            const txHash = await sendRawTransaction("spin", []);
+            
+            document.getElementById('spinResult').innerText = "⏳ Processing on Arbitrum...";
+            
+            // 5. WAIT FOR BLOCKCHAIN CONFIRMATION
+            let isConfirmed = false;
+            for(let i=0; i<15; i++) {
+                await new Promise(r => setTimeout(r, 2000)); 
+                try {
+                    const receipt = await publicProvider.getTransactionReceipt(txHash);
+                    if(receipt && receipt.confirmations > 0) {
+                        if(receipt.status === 1) isConfirmed = true;
+                        break;
+                    }
+                } catch(err){}
+            }
+            
+            // 6. ANIMATION RUK JAYEGI
+            document.getElementById('r1').className='reel-inner'; 
+            document.getElementById('r2').className='reel-inner'; 
+            document.getElementById('r3').className='reel-inner'; 
+            
+            if(isConfirmed) {
+                document.getElementById('r1').innerText='💎';
+                document.getElementById('r2').innerText='💎';
+                document.getElementById('r3').innerText='💎';
+                showToast("Spin Successful!", "#00ff88");
+                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
+                document.getElementById('spinResult').style.color = "#00ff88";
+            } else {
+                document.getElementById('r1').innerText='❌';
+                document.getElementById('r2').innerText='❌';
+                document.getElementById('r3').innerText='❌';
+                showToast("Transaction Reverted or Delayed.", "#ff3060");
+                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas/Funds?";
+                document.getElementById('spinResult').style.color = "#ff3060";
+            }
+
+            refreshSpinStatus();
+            fetchLeaderboard(); 
+            
+        }catch(e){
+            // AGAR CANCEL KIYA TOH YAHA AAYEGA
+            btn.disabled = false;
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+            
+            let errStr = "Spin Cancelled";
+            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!";
+            else if (e.message && e.message.includes("No spin available")) errStr = "No Spin Available!";
+            else if (e.reason) errStr = e.reason;
+            
+            showToast(errStr,"red");
+            document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-
-        refreshSpinStatus();
-        fetchLeaderboard();
-        
-    }catch(e){
-        // USER CANCELLED OR ERROR
-        btn.disabled = false;
-        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
-        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
-        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-        
-        let errStr = "Spin Cancelled";
-        if (e.message && e.message.includes("No spin available")) errStr = "No Spin Available!";
-        else if (e.reason) errStr = e.reason;
-        
-        showToast(errStr,"red");
-        document.getElementById('spinResult').innerText = errStr;
-        document.getElementById('spinResult').style.color = "#ff3060";
-    }
+    }, 3000); // 👈 3 Second ka pure Casino Suspense!
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE WITH IMPROVED VISUALS
+// GAME ENGINE & DATA (Visual Upgrades Preserved)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
