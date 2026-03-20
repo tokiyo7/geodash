@@ -79,7 +79,7 @@
         .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px; }
         #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
         
-        .toast { fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
     
     <script type="module">
@@ -173,6 +173,7 @@
 <div id="walletStatus">Ready to Play!</div>
 
 <script>
+// BLOCKCHAIN LOGIC
 const CONTRACT_ADDRESS = "0x1019b9371faf37BFd461e75833706f7fd3e647B0";
 const ABI = [
     "function startLevel(uint256 level) external",
@@ -192,7 +193,7 @@ let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
+function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
 function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
 
 async function detectWallet() {
@@ -213,6 +214,7 @@ async function detectWallet() {
     return false;
 }
 
+// ✅ SILENT WALLET CONNECTION (No Network Switch errors)
 async function connectWallet(showErrors = true) {
     if (!await detectWallet()) {
         if(showErrors) showToast("No Web3 Wallet found!", "red");
@@ -220,7 +222,12 @@ async function connectWallet(showErrors = true) {
     }
 
     try {
-        const accounts = await walletProvider.request({ method: 'eth_requestAccounts' });
+        let accounts = await walletProvider.request({ method: 'eth_accounts' }).catch(() => []);
+        if(!accounts || accounts.length === 0) {
+            accounts = await walletProvider.request({ method: 'eth_requestAccounts' }).catch(() => []);
+        }
+        
+        if(!accounts || accounts.length === 0) throw new Error("No accounts connected");
         userAddress = accounts[0];
 
         if (!isFarcasterWallet) {
@@ -233,11 +240,12 @@ async function connectWallet(showErrors = true) {
         fetchLeaderboard(); 
         return true;
     } catch(e) {
-        if(showErrors) showToast("Connection Cancelled", "red");
+        if(showErrors) showToast("Connection Cancelled or Wallet Blocked", "red");
         return false;
     }
 }
 
+// 🚀 RAW TRANSACTION SENDER (Fixes the Base network bug!)
 async function sendRawTransaction(methodName, args) {
     const iface = new ethers.utils.Interface(ABI);
     const data = iface.encodeFunctionData(methodName, args);
@@ -248,7 +256,7 @@ async function sendRawTransaction(methodName, args) {
             to: CONTRACT_ADDRESS,
             from: userAddress,
             data: data,
-            chainId: '0xa4b1' // 👈 Arbitrum ID (fixes Base network bug)
+            chainId: '0xa4b1' // 👈 FORCES ARBITRUM EVERY TIME
         }]
     });
     return txHash;
@@ -271,7 +279,6 @@ window.addEventListener('load', () => {
     }, 500);
 });
 
-// ✅ EXACT MATCH FROM YOUR CODE (No setTimeout here)
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
@@ -287,27 +294,27 @@ async function startOfficialRun(){
         }
     }
     
-    try {
-        btn.innerText = "⏳ CONFIRM POPUP...";
-        const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
-        
-        // Starts instantly as soon as user confirms popup
-        showToast("✅ Run Started Instantly!", "#00ff88");
-        isOfficialRun = true;
-        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
-        startOrRestartGame(true);
-        
-    } catch(e) {
-        btn.disabled = false;
-        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        let errStr = "Transaction Cancelled";
-        if (e.reason) errStr = e.reason;
-        else if (e.message) errStr = e.message.substring(0,40);
-        showToast(errStr, "red");
-    }
+    setTimeout(async () => {
+        try {
+            const txHash = await sendRawTransaction("startLevel", [currentLevel]); 
+            
+            showToast("✅ Run Started Instantly!", "#00ff88");
+            isOfficialRun = true;
+            btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+            startOrRestartGame(true);
+            
+        } catch(e) {
+            btn.disabled = false;
+            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+            let errStr = "Transaction Cancelled";
+            if (e.reason) errStr = e.reason;
+            else if (e.message && e.message.includes("No state changes")) errStr = "Wrong Network! Please switch to Arbitrum.";
+            showToast(errStr, "red");
+        }
+    }, 500);
 }
 
-// 🔥 EXACT MATCH FROM YOUR WORKING CODE (No setTimeout around sendRawTransaction)
+// 🔥 THE ULTIMATE SPIN FIX: SPIN FIRST, POPUP SECOND, THEN WAIT FOR TX
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
     
@@ -320,7 +327,6 @@ async function executeSpin(){
         return;
     }
     
-    // 1. TURANT REELS START (No delay!)
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning';
     document.getElementById('r2').className='reel-inner spinning';
@@ -328,73 +334,70 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText = "Please confirm the popup...";
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    try{
-        // 2. TRANSACTION SEND (Opens popup in wallet, EXACTLY as it was)
-        const txHash = await sendRawTransaction("spin", []);
-        
-        // Agar yaha tak aaya, matlab user ne Confirm daba diya hai!
-        document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
-        document.getElementById('spinResult').style.color = "var(--cyan)";
-        
-        // 3. REAL BLOCKCHAIN WAIT (Checks for receipt)
-        let isConfirmed = false;
-        for(let i=0; i<15; i++) {
-            await new Promise(r => setTimeout(r, 2000)); // check every 2s
-            try {
-                const receipt = await publicProvider.getTransactionReceipt(txHash);
-                if(receipt && receipt.confirmations > 0) {
-                    if(receipt.status === 1) isConfirmed = true;
-                    break;
-                }
-            } catch(err){}
-        }
-        
-        // 4. ANIMATION STOP
-        document.getElementById('r1').className='reel-inner'; 
-        document.getElementById('r2').className='reel-inner'; 
-        document.getElementById('r3').className='reel-inner'; 
-        
-        if(isConfirmed) {
-            document.getElementById('r1').innerText='💎';
-            document.getElementById('r2').innerText='💎';
-            document.getElementById('r3').innerText='💎';
-            showToast("Spin Successful!", "#00ff88");
-            document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
-            document.getElementById('spinResult').style.color = "#00ff88";
-        } else {
-            // Reverted on chain or too slow
-            document.getElementById('r1').innerText='❌';
-            document.getElementById('r2').innerText='❌';
-            document.getElementById('r3').innerText='❌';
-            showToast("Transaction Reverted or Delayed.", "#ff3060");
-            document.getElementById('spinResult').innerText="Tx Failed or Network Slow.";
+    // 500ms Delay to start animation smoothly
+    setTimeout(async () => {
+        try{
+            const txHash = await sendRawTransaction("spin", []);
+            
+            document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
+            document.getElementById('spinResult').style.color = "var(--cyan)";
+            
+            let isConfirmed = false;
+            for(let i=0; i<15; i++) {
+                await new Promise(r => setTimeout(r, 2000)); 
+                try {
+                    const receipt = await publicProvider.getTransactionReceipt(txHash);
+                    if(receipt && receipt.confirmations > 0) {
+                        if(receipt.status === 1) isConfirmed = true;
+                        break;
+                    }
+                } catch(err){}
+            }
+            
+            document.getElementById('r1').className='reel-inner'; 
+            document.getElementById('r2').className='reel-inner'; 
+            document.getElementById('r3').className='reel-inner'; 
+            
+            if(isConfirmed) {
+                document.getElementById('r1').innerText='💎';
+                document.getElementById('r2').innerText='💎';
+                document.getElementById('r3').innerText='💎';
+                showToast("Spin Successful!", "#00ff88");
+                document.getElementById('spinResult').innerText="🎉 PRIZE SENT! Check Wallet! 🎉";
+                document.getElementById('spinResult').style.color = "#00ff88";
+            } else {
+                document.getElementById('r1').innerText='❌';
+                document.getElementById('r2').innerText='❌';
+                document.getElementById('r3').innerText='❌';
+                showToast("Transaction Reverted or Delayed.", "#ff3060");
+                document.getElementById('spinResult').innerText="Tx Failed or Network Slow.";
+                document.getElementById('spinResult').style.color = "#ff3060";
+            }
+
+            refreshSpinStatus();
+            fetchLeaderboard();
+            
+        }catch(e){
+            btn.disabled = false;
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+            
+            let errStr = "Spin Cancelled";
+            if (e.message && e.message.includes("No spin available")) errStr = "No Spin Available!";
+            else if (e.reason) errStr = e.reason;
+            
+            showToast(errStr,"red");
+            document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-
-        // Humesha UI ko turant reset karo
-        refreshSpinStatus();
-        
-    }catch(e){
-        // AGAR USER NE CANCEL KIYA TOH REELS ROK DO
-        btn.disabled = false;
-        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
-        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
-        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-        
-        let errStr = "Spin Cancelled";
-        if (e.message && e.message.includes("No spin available")) errStr = "No Spin Available!";
-        else if (e.reason) errStr = e.reason;
-        
-        showToast(errStr,"red");
-        document.getElementById('spinResult').innerText = errStr;
-        document.getElementById('spinResult').style.color = "#ff3060";
-    }
+    }, 500); 
 }
 
 function claimSpin(){document.getElementById('overlay').style.display='none';document.querySelector('.slot-machine').scrollIntoView({behavior:'smooth'});}
 
 // ==========================================
-// GAME ENGINE & DATA (Visual Upgrades Maintained)
+// GAME ENGINE & DATA (Visual Upgrades)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -427,7 +430,8 @@ let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,bgOffset=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let ghostTrail=[],particles=[],obstacles=[];
-let unlockedLevels=new Set([1]),completedLevels=new Set(),levelStartTimestamp=0;
+let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
+let isOfficialRun=false; 
 
 function buildLevelUI(){
     const grid=document.getElementById('levelGrid');
@@ -463,7 +467,6 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
-        // 🌟 JUMP DUST PARTICLES 🌟
         for(let i=0;i<12;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:2+Math.random()*4, rot:Math.random()*360});
     }
 }
@@ -572,7 +575,6 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    // 🌟 FASTER FLIP ANIMATION 🌟
     if(!player.ground)player.rot+=14;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
@@ -650,7 +652,6 @@ function draw(){
     
     if(gameState==='playing'){ghostTrail.forEach((t,i)=>{ctx.save();ctx.translate(t.x+18-(worldX-t.wx),t.y+18);ctx.rotate(t.rot*Math.PI/180);ctx.globalAlpha=0.15*(i/ghostTrail.length);ctx.fillStyle='#00f0ff';ctx.fillRect(-18,-18,36,36);ctx.restore();});ctx.globalAlpha=1;}
     
-    // 🌟 NEON FACE CUBE DESIGN 🌟
     if(gameState!=='dead'){
         ctx.save();ctx.translate(player.x+18,player.y+18);ctx.rotate(player.rot*Math.PI/180);
         ctx.shadowBlur=25;ctx.shadowColor='#00f0ff';ctx.fillStyle='#05080f';ctx.fillRect(-18,-18,36,36);
@@ -744,7 +745,6 @@ async function getFarcasterUsername(address){
     return address.slice(0,6)+'...'+address.slice(-4);
 }
 
-// ✅ BLOCKCHAIN LEVEL LOAD (Fixes Reset Bug)
 async function fetchLeaderboard(){
     if(!userAddress) return;
     try{
