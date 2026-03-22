@@ -117,7 +117,7 @@
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
         <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
-        <button class="btn-large" id="overlayBtn">Return to Menu</button>
+        <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px;">Return to Menu</button>
     </div>
 </div>
 
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 FUN LEVELS + 6.7 SPEED + ZERO LAG 🔥)
+// GAME ENGINE & DATA (🔥 FUN PHASES + 80% LENGTH + GRADUAL SPEED 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 SHORTER LEVELS (Approx 40% Reduced Length for more snappy gameplay)
+// 🚀 LENGTH 80% (32000m) & GRADUAL SPEED (6.0 to 9.6)
 const LVL_CONFIG=[
-    {id:1,speed:6.7,len:18000}, // Was 40000
-    {id:2,speed:7.2,len:24000}, // Was 50000
-    {id:3,speed:7.6,len:28000},
-    {id:4,speed:8.0,len:32000},
-    {id:5,speed:8.4,len:36000},
-    {id:6,speed:8.9,len:40000},
-    {id:7,speed:9.3,len:44000},
-    {id:8,speed:9.8,len:48000},
-    {id:9,speed:10.3,len:52000},
-    {id:10,speed:10.8,len:60000} // Was 100000
+    {id:1,speed:6.0,len:32000},
+    {id:2,speed:6.4,len:40000},
+    {id:3,speed:6.8,len:44000},
+    {id:4,speed:7.2,len:48000},
+    {id:5,speed:7.6,len:52000},
+    {id:6,speed:8.0,len:56000},
+    {id:7,speed:8.4,len:60000},
+    {id:8,speed:8.8,len:64000},
+    {id:9,speed:9.2,len:68000},
+    {id:10,speed:9.6,len:80000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -456,31 +456,42 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    // 🤩 FUN LEVEL 1 REDESIGN: Jump Pads & Moving Platforms instead of just spikes!
+    // 🔥 DYNAMIC LEVEL 1 FUN MODE 🔥 (4 Different Phases)
     if(levelNum===1){
         while(curX<len-800){
-            let r=pseudoRand(curX,levelNum);
-            if(r<0.25){
-                obs.push({t:'jpad',x:curX}); // Fun high jump
-                curX+=350;
-            }else if(r<0.50){
-                obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); // Safe platform
-                curX+=400;
-            }else if(r<0.75){
-                obs.push({t:'spike',x:curX}); // Easy single spike
-                curX+=380;
-            }else{
-                obs.push({t:'mplatf',x:curX,y:230,w:120,amp:40,spd:0.05}); // Fun moving platform
-                curX+=450;
+            // Phase 1: 0% to 30% (Spikes and Double Spikes)
+            if (curX < len * 0.30) {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.6){ obs.push({t:'spike',x:curX}); curX+=400; }
+                else{ obs.push({t:'dspike',x:curX}); curX+=450; }
+            }
+            // Phase 2: 30% to 60% (Platforms & Gaps)
+            else if (curX >= len * 0.30 && curX < len * 0.60) {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.4){ obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); curX+=400; }
+                else if(r<0.7){ obs.push({t:'gap',x:curX,w:120}); curX+=450; }
+                else{ obs.push({t:'platform',x:curX,y:PLAT_MID,w:120},{t:'spike',x:curX+40,onPlatY:PLAT_MID}); curX+=450; }
+            }
+            // Phase 3: 60% to 85% (Jump Pads & Action)
+            else if (curX >= len * 0.60 && curX < len * 0.85) {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.5){ obs.push({t:'jpad',x:curX},{t:'spike',x:curX+280}); curX+=500; }
+                else{ obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100}); curX+=450; }
+            }
+            // Phase 4: 85% to 100% (Gravity Orbs & Mix)
+            else {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.5){ obs.push({t:'gorb',x:curX,y:250},{t:'spike',x:curX+150},{t:'gorb',x:curX+350,y:150}); curX+=650; }
+                else{ obs.push({t:'dspike',x:curX},{t:'platform',x:curX+100,y:PLAT_LOW,w:150}); curX+=500; }
             }
         }
     }
-    // Level 2 & Beyond (Original layout logic adapted)
+    // Level 2 & Beyond (Removed moving platforms `mplatf` to fix lag completely, replaced with static)
     else if(levelNum===2){while(curX<len-1000){obs.push({t:'spike',x:curX});curX+=340;obs.push({t:'spike',x:curX});curX+=300;obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});curX+=560;}}
     else if(levelNum===3){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.33){obs.push({t:'spike',x:curX},{t:'cspike',x:curX+160},{t:'spike',x:curX+200});curX+=480;}else if(r<0.66){obs.push({t:'platform',x:curX,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+40},{t:'spike',x:curX+80},{t:'cspike',x:curX+50},{t:'cspike',x:curX+90},{t:'spike',x:curX+210});curX+=540;}else{obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+60,y:PLAT_LOW,w:140},{t:'platform',x:curX+250,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+420});curX+=600;}}}
-    else if(levelNum===4){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.35){obs.push({t:'spike',x:curX},{t:'gap',x:curX+60,w:140},{t:'platform',x:curX+30,y:235,w:PLAT_MEDIUM},{t:'spike',x:curX+100,onPlatY:235},{t:'spike',x:curX+240});curX+=580;}else if(r<0.65){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'mplatf',x:curX+100,y:230,w:120,amp:65,spd:0.035},{t:'spike',x:curX+180},{t:'spike',x:curX+220},{t:'spike',x:curX+300});curX+=560;}else{obs.push({t:'gap',x:curX,w:110},{t:'platform',x:curX-20,y:235,w:160},{t:'gap',x:curX+300,w:110},{t:'mplatf',x:curX+280,y:235,w:150,amp:55,spd:0.03});curX+=700;}}}
-    else if(levelNum===5){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.3){obs.push({t:'gorb',x:curX,y:260},{t:'spike',x:curX+100},{t:'spike',x:curX+200},{t:'gorb',x:curX+350,y:160},{t:'spike',x:curX+450});curX+=700;}else if(r<0.6){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+60},{t:'platform',x:curX+20,y:235,w:220},{t:'spike',x:curX+80,onPlatY:235},{t:'spike',x:curX+130,onPlatY:235},{t:'spike',x:curX+250});curX+=580;}else{obs.push({t:'gap',x:curX,w:130},{t:'mplatf',x:curX-10,y:235,w:120,amp:70,spd:0.04},{t:'gap',x:curX+280,w:130},{t:'mplatf',x:curX+270,y:235,w:120,amp:70,spd:0.04},{t:'dspike',x:curX+500});curX+=720;}}}
-    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'mplatf',x:curX+30,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'mplatf',x:curX+230,y:230,w:120,amp:70,spd:0.04},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'mplatf',x:curX+ms-30,y:235,w:110,amp:75,spd:0.045},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
+    else if(levelNum===4){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.35){obs.push({t:'spike',x:curX},{t:'gap',x:curX+60,w:140},{t:'platform',x:curX+30,y:235,w:PLAT_MEDIUM},{t:'spike',x:curX+100,onPlatY:235},{t:'spike',x:curX+240});curX+=580;}else if(r<0.65){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX+100,y:230,w:120},{t:'spike',x:curX+180},{t:'spike',x:curX+220},{t:'spike',x:curX+300});curX+=560;}else{obs.push({t:'gap',x:curX,w:110},{t:'platform',x:curX-20,y:235,w:160},{t:'gap',x:curX+300,w:110},{t:'platform',x:curX+280,y:235,w:150});curX+=700;}}}
+    else if(levelNum===5){while(curX<len-1000){let r=pseudoRand(curX,levelNum);if(r<0.3){obs.push({t:'gorb',x:curX,y:260},{t:'spike',x:curX+100},{t:'spike',x:curX+200},{t:'gorb',x:curX+350,y:160},{t:'spike',x:curX+450});curX+=700;}else if(r<0.6){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+60},{t:'platform',x:curX+20,y:235,w:220},{t:'spike',x:curX+80,onPlatY:235},{t:'spike',x:curX+130,onPlatY:235},{t:'spike',x:curX+250});curX+=580;}else{obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-10,y:235,w:120},{t:'gap',x:curX+280,w:130},{t:'platform',x:curX+270,y:235,w:120},{t:'dspike',x:curX+500});curX+=720;}}}
+    else{let ms=Math.max(260,360-levelNum*15);while(curX<len-1000){let r=pseudoRand(curX,levelNum),sec=Math.floor(r*8);if(sec===0){obs.push({t:'spike',x:curX},{t:'spike',x:curX+ms},{t:'dspike',x:curX+ms*2});curX+=ms*3+100;}else if(sec===1){obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+70,onPlatY:235},{t:'spike',x:curX+120,onPlatY:235},{t:'spike',x:curX+230});curX+=ms*2+200;}else if(sec===2){obs.push({t:'spike',x:curX},{t:'spike',x:curX+50},{t:'spike',x:curX+100},{t:'platform',x:curX+30,y:230,w:120},{t:'spike',x:curX+200},{t:'spike',x:curX+250},{t:'platform',x:curX+230,y:230,w:120},{t:'spike',x:curX+400});curX+=ms*2+280;}else if(sec===3){obs.push({t:'spike',x:curX},{t:'platform',x:curX+60,y:245,w:150},{t:'cspike',x:curX+90},{t:'platform',x:curX+260,y:PLAT_MID,w:130},{t:'spike',x:curX+290,onPlatY:PLAT_MID},{t:'spike',x:curX+430});curX+=ms*2+250;}else if(sec===4){obs.push({t:'gap',x:curX,w:130},{t:'platform',x:curX-20,y:235,w:190},{t:'spike',x:curX+60,onPlatY:235},{t:'spike',x:curX+200});curX+=ms+300;}else if(sec===5){obs.push({t:'gorb',x:curX,y:255},{t:'spike',x:curX+120},{t:'spike',x:curX+200},{t:'gorb',x:curX+320,y:155},{t:'spike',x:curX+440});curX+=ms*2+250;}else if(sec===6){obs.push({t:'jpad',x:curX},{t:'cspike',x:curX+100},{t:'cspike',x:curX+150},{t:'spike',x:curX+280},{t:'spike',x:curX+320});curX+=ms+280;}else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+ms,w:120},{t:'platform',x:curX+ms-30,y:235,w:110},{t:'spike',x:curX+ms+110,onPlatY:235},{t:'spike',x:curX+ms*2+60});curX+=ms*2+200;}}}
     return obs;
 }
 
@@ -488,11 +499,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 6.7 SPEED (PERFECT DISTANCE JUMP) 🚀
-const GRAVITY=1.33,JUMP_VEL=-20.1,MAX_VEL=24;
+// 🚀 EXACT MATH FOR PERFECT PHYSICS
+const GRAVITY=1.05,JUMP_VEL=-17.5,MAX_VEL=22;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=6.7,levelLength=40000,worldX=0,frameCount=0,shake=0;
+let scrollSpeed=6.0,levelLength=32000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let particles=[],obstacles=[];
@@ -533,7 +544,7 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
-        // Minimal particles
+        // Minimal particles for mobile
         for(let i=0;i<3;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
     }
 }
@@ -561,6 +572,8 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
+    // 🚀 START NATIVE ENGINE
+    lastTime = performance.now();
     reqAnimId = requestAnimationFrame(loop);
 }
 
@@ -579,8 +592,8 @@ function die(){
 // 🔥 BUG FIX: BLOCKCHAIN SAVE CONFIRMATION BEFORE SHOWING SHARE BUTTON 🔥
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    // Since levels are shorter, anti-hack timer is reduced to 25 seconds minimum.
-    let isWinValid=isOfficialRun&&(timePlayed>=25000); 
+    // Since levels are 80% length, minimum time is adjusted to approx 35 seconds.
+    let isWinValid=isOfficialRun&&(timePlayed>=35000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -645,7 +658,7 @@ function triggerWin(){
             })();
         }
     }else{
-        let reason=isOfficialRun?"(Need 25s min)":"(Practice Mode)";
+        let reason=isOfficialRun?"(Need 35s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayCastBtn').style.display='none';
         document.getElementById('overlayBtn').style.display='block';
@@ -684,7 +697,9 @@ function update(){
 
     for(let o of obstacles){
         let ox=o.x-worldX;if(ox<-200||ox>GAME_W+100)continue;
-        let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y;
+        
+        // Static platform logic, no `mplatf` calculation needed anymore
+        let oy = o.y;
         
         if(o.t==='gap'){if(player.x+18>ox&&player.x+18<ox+o.w)overGap=true;continue;}
         
@@ -692,7 +707,7 @@ function update(){
         if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y;oHX=ox+6;oHY=baseY-32;oHW=26;oHH=32;}
         else if(o.t==='cspike'){oHX=ox+6;oHY=CEILING_Y;oHW=26;oHH=32;}
         else if(o.t==='dspike'){oHX=ox+6;oHY=GROUND_Y-32;oHW=64;oHH=32;}
-        else if(o.t==='platform'||o.t==='mplatf'){oHX=ox;oHY=oy-8;oHW=o.w;oHH=32;}
+        else if(o.t==='platform'){oHX=ox;oHY=oy-8;oHW=o.w;oHH=32;}
         else if(o.t==='block'){oHX=ox;oHY=o.y;oHW=o.w;oHH=o.h;}
         else if(o.t==='jpad'){oHX=ox+4;oHY=GROUND_Y-10;oHW=30;oHH=10;}
         else if(o.t==='gorb'){oHX=ox-15;oHY=o.y-15;oHW=30;oHH=30;}
@@ -703,7 +718,7 @@ function update(){
             if(o.t==='jpad'){player.vy=JUMP_VEL*1.15;player.ground=false;o.used=true;}
             if(o.t==='gorb'&&!o.used){isGravityFlipped=!isGravityFlipped;flipTimer=120;o.used=true;} 
             
-            if(o.t==='platform'||o.t==='mplatf'){
+            if(o.t==='platform'){
                 if(!isGravityFlipped){
                     if(player.prevY+player.h<=oy+12&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
                     else{die();}
@@ -727,36 +742,36 @@ function update(){
 }
 
 function draw(){
+    // 🔥 Math.round REMOVED completely to prevent "Pixel Jitter" / "Aage-Piche" Effect 🔥
+    // The browser natively handles float coordinates smoothly.
     ctx.clearRect(0,0,GAME_W,GAME_H);
+    ctx.save();
     
     let sX = 0, sY = 0;
-    if(shake>0){sX = Math.round((Math.random()-0.5)*shake); sY = Math.round((Math.random()-0.5)*shake); shake--;}
+    if(shake>0){sX = (Math.random()-0.5)*shake; sY = (Math.random()-0.5)*shake; shake--;}
     
-    // 🔥 ZERO GPU LOAD: CLEAN BACKGROUND (No slow grid lines!)
     ctx.fillStyle='#05080f';ctx.fillRect(sX,sY,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(sX,GROUND_Y+sY,GAME_W,GAME_H-GROUND_Y);
     
-    // 🔥 ZERO GPU LOAD: FAST BLOCKS (No slow strokeRect lines!)
     ctx.fillStyle='#00f0ff'; ctx.fillRect(sX, GROUND_Y-1+sY, GAME_W, 3);
     ctx.fillStyle='rgba(0,240,255,0.3)'; ctx.fillRect(sX, CEILING_Y+sY, GAME_W, 1);
 
     for(let o of obstacles){
-        let ox = Math.round(o.x-worldX) + sX; if(ox<-100||ox>GAME_W+100)continue;
+        let ox = (o.x-worldX) + sX; if(ox<-100||ox>GAME_W+100)continue;
         
         if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y+sY,o.w,GAME_H-GROUND_Y);ctx.fillStyle='rgba(255,48,96,0.3)';ctx.fillRect(ox,GROUND_Y-4+sY,3,8);ctx.fillRect(ox+o.w-3,GROUND_Y-4+sY,3,8);}
         else if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y; baseY+=sY; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,baseY-38);ctx.lineTo(ox+38,baseY);ctx.lineTo(ox,baseY);ctx.closePath();ctx.fill();}
         else if(o.t==='dspike'){let gy=GROUND_Y+sY; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,gy-38);ctx.lineTo(ox+38,gy);ctx.lineTo(ox,gy);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ox+57,gy-38);ctx.lineTo(ox+76,gy);ctx.lineTo(ox+38,gy);ctx.closePath();ctx.fill();}
         else if(o.t==='cspike'){let cy=CEILING_Y+sY; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,cy+38);ctx.lineTo(ox+38,cy);ctx.lineTo(ox,cy);ctx.closePath();ctx.fill();}
-        else if(o.t==='platform'||o.t==='mplatf'){
-            let oy=Math.round(o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y) + sY;
-            let bc=o.t==='mplatf'?'#ff7700':'#00ff88';
-            ctx.fillStyle=bc; ctx.fillRect(ox,oy,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); // Fast Border Hack
+        else if(o.t==='platform'){
+            let oy=o.y + sY;
+            ctx.fillStyle='#00ff88'; ctx.fillRect(ox,oy,o.w,16); 
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); 
         }
         else if(o.t==='block'){
             let oy = o.y + sY;
             ctx.fillStyle='#ff3060'; ctx.fillRect(ox,oy,o.w,o.h); 
-            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,oy+2,o.w-4,o.h-4); // Fast Border Hack
+            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,oy+2,o.w-4,o.h-4); 
         }
         else if(o.t==='jpad'){ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16+sY);ctx.lineTo(ox+38,GROUND_Y+sY);ctx.lineTo(ox,GROUND_Y+sY);ctx.closePath();ctx.fill();ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4+sY);}
         else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.fillRect(ox, o.y-15+sY, 30, 30);ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5+sY);}
@@ -765,10 +780,9 @@ function draw(){
     
     if(gameState!=='dead'){
         ctx.save();
-        ctx.translate(Math.round(player.x+18)+sX, Math.round(player.y+18)+sY);
+        ctx.translate(player.x+18+sX, player.y+18+sY);
         ctx.rotate(player.rot*Math.PI/180);
         
-        // Fast Neon Core Hack (No stroke lines)
         ctx.fillStyle='rgba(0,240,255,0.3)'; ctx.fillRect(-22,-22,44,44); // Outer glow
         ctx.fillStyle='#00f0ff'; ctx.fillRect(-18,-18,36,36); // Border
         ctx.fillStyle='#05080f'; ctx.fillRect(-16,-16,32,32); // Inner 
@@ -784,18 +798,28 @@ function draw(){
         let p=particles[i];
         ctx.globalAlpha=Math.max(0,p.life);
         ctx.fillStyle=p.col;
-        ctx.fillRect(Math.round(p.x - p.size/2)+sX, Math.round(p.y - p.size/2)+sY, Math.round(p.size), Math.round(p.size));
+        ctx.fillRect(p.x - p.size/2 + sX, p.y - p.size/2 + sY, p.size, p.size);
     }
     ctx.globalAlpha=1;
 
     if(isGravityFlipped){ctx.fillStyle='rgba(255,136,0,0.08)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='rgba(255,136,0,0.8)';ctx.font='bold 13px Courier New';ctx.textAlign='center';ctx.fillText('⚠ GRAVITY FLIPPED ⚠',GAME_W/2,28);ctx.textAlign='left';}
     if(gameState==='idle'){ctx.fillStyle='rgba(0,0,0,0.75)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='#00f0ff';ctx.font='bold 28px Courier New';ctx.textAlign='center';ctx.fillText('CLICK / SPACE TO PLAY',GAME_W/2,GAME_H/2);ctx.textAlign='left';}
     if(gameState==='dead'){ctx.fillStyle='rgba(255,48,96,0.12)';ctx.fillRect(0,0,GAME_W,GAME_H);ctx.fillStyle='#ff3060';ctx.font='bold 34px Courier New';ctx.textAlign='center';ctx.fillText('WASTED!',GAME_W/2,GAME_H/2-20);ctx.fillStyle='#ccc';ctx.font='16px Courier New';ctx.fillText('Click / Space to try again',GAME_W/2,GAME_H/2+20);ctx.fillStyle='#555';ctx.font='13px Courier New';ctx.fillText(`Attempt ${attemptCount}`,GAME_W/2,GAME_H/2+50);ctx.textAlign='left';}
+    
+    ctx.restore();
 }
 
 // 🚀 CLEAN 60FPS LOOP 🚀
+let lastTime = 0;
 function loop(timestamp) {
     reqAnimId = requestAnimationFrame(loop);
+    
+    // Stop 120Hz screens from going double speed, but keep native smoothness
+    if (timestamp - lastTime < 12) {
+        return; 
+    }
+    
+    lastTime = timestamp;
     update();
     draw();
 }
