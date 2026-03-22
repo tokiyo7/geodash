@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE (🔥 DELTATIME ENGINE - ZERO RUBBERBANDING 🔥)
+// GAME ENGINE & DATA (🔥 EXACT 60% LENGTH + LEVEL 2 DESIGN ON LEVEL 1 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 EXACT 6.8 SPEED & 80% LENGTH
+// 🚀 LENGTH CUT BY 40% (Only 60% remaining: 24,000 for level 1)
 const LVL_CONFIG=[
-    {id:1,speed:6.8,len:32000},
-    {id:2,speed:7.2,len:40000},
-    {id:3,speed:7.6,len:44000},
-    {id:4,speed:8.0,len:48000},
-    {id:5,speed:8.4,len:52000},
-    {id:6,speed:8.8,len:56000},
-    {id:7,speed:9.2,len:60000},
-    {id:8,speed:9.6,len:64000},
-    {id:9,speed:10.0,len:68000},
-    {id:10,speed:10.5,len:80000}
+    {id:1,speed:6.8,len:24000},
+    {id:2,speed:7.2,len:30000},
+    {id:3,speed:7.6,len:33000},
+    {id:4,speed:8.0,len:36000},
+    {id:5,speed:8.4,len:39000},
+    {id:6,speed:8.8,len:42000},
+    {id:7,speed:9.2,len:45000},
+    {id:8,speed:9.6,len:48000},
+    {id:9,speed:10.0,len:51000},
+    {id:10,speed:10.5,len:60000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -456,35 +456,26 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    // 🔥 AWESOME MIXED LEVEL 1 START (Hardcoded 6 obstacles so it's instantly fun!) 🔥
-    if (levelNum === 1) {
-        obs.push({t:'spike', x: 900});                    // 1. Easy Spike
-        obs.push({t:'platform', x: 1400, y:PLAT_LOW, w:180}); // 2. Safe Platform
-        obs.push({t:'gap', x: 1900, w:130});              // 3. Simple Gap
-        obs.push({t:'jpad', x: 2400});                    // 4. Fun Jump Pad
-        obs.push({t:'dspike', x: 3000});                  // 5. Double Spike
-        obs.push({t:'gap', x: 3500, w:110});              // 6. Another Gap
-        
-        curX = 4200; // Continue from here
-        
-        while(curX<len-800){
-            let r=pseudoRand(curX,levelNum);
-            if (curX < len * 0.40) {
-                if(r<0.6){ obs.push({t:'spike',x:curX}); curX+=400; }
-                else{ obs.push({t:'dspike',x:curX}); curX+=450; }
-            }
-            else if (curX >= len * 0.40 && curX < len * 0.70) {
-                if(r<0.4){ obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); curX+=400; }
-                else if(r<0.7){ obs.push({t:'gap',x:curX,w:120}); curX+=450; }
-                else{ obs.push({t:'platform',x:curX,y:PLAT_MID,w:120},{t:'spike',x:curX+40,onPlatY:PLAT_MID}); curX+=450; }
-            }
-            else {
-                if(r<0.5){ obs.push({t:'jpad',x:curX},{t:'spike',x:curX+280}); curX+=500; }
-                else{ obs.push({t:'jpad',x:curX},{t:'platform',x:curX+150,y:PLAT_MID,w:120}); curX+=550; }
-            }
+    // 🔥 LEVEL 1 ME EXACTLY LEVEL 2 WALA DESIGN (As requested!) 🔥
+    if(levelNum===1){
+        while(curX<len-1000){
+            obs.push({t:'spike',x:curX});curX+=340;
+            obs.push({t:'spike',x:curX});curX+=300;
+            obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});
+            curX+=560;
+        }
+    }
+    // Level 2 (Same as Level 1 now, but a bit faster)
+    else if(levelNum===2){
+        while(curX<len-1000){
+            obs.push({t:'spike',x:curX});curX+=340;
+            obs.push({t:'spike',x:curX});curX+=300;
+            obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});
+            curX+=560;
         }
     }
     else {
+        // Levels 3-10
         while(curX<len-1000){
             let r=pseudoRand(curX,levelNum),sec=Math.floor(r*6);
             if(sec===0){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+350});curX+=750;}
@@ -502,11 +493,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 6.8 SPEED PHYSICS (Sharp & Perfect)
+// 🚀 EXACT MATH FOR 6.8 SPEED PHYSICS (Perfect and Smooth)
 const GRAVITY=1.35,JUMP_VEL=-19.8,MAX_VEL=24;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=6.8,levelLength=32000,worldX=0,frameCount=0;
+let scrollSpeed=6.8,levelLength=24000,worldX=0,frameCount=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
@@ -587,7 +578,8 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let isWinValid=isOfficialRun&&(timePlayed>=20000); 
+    // Since levels are 60% length now, minimum time adjusted to 15 seconds.
+    let isWinValid=isOfficialRun&&(timePlayed>=15000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -636,10 +628,10 @@ function triggerWin(){
                         if(currentLevel<10) unlockedLevels.add(currentLevel+1);
                         fetchLeaderboard(); 
                     } else {
-                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Failed`;
+                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Failed / Delayed`;
                     }
                 } catch(e) {
-                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled!`;
+                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled! Data not saved.`;
                 }
                 
                 document.getElementById('overlayCastBtn').style.display='block';
@@ -648,7 +640,7 @@ function triggerWin(){
             })();
         }
     }else{
-        let reason=isOfficialRun?"(Need 20s min)":"(Practice Mode)";
+        let reason=isOfficialRun?"(Need 15s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayCastBtn').style.display='none';
         document.getElementById('overlayBtn').style.display='block';
@@ -713,7 +705,6 @@ function update(dtScale){
 }
 
 function draw(){
-    // Draw without Math.floor to allow native canvas smoothing
     ctx.clearRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
@@ -735,7 +726,6 @@ function draw(){
         }
     }
     
-    // PLAYER
     if(gameState!=='dead'){
         ctx.save();
         ctx.translate(player.x+18, player.y+18);
@@ -747,7 +737,6 @@ function draw(){
         ctx.restore();
     }
 
-    // PARTICLES
     ctx.fillStyle='#00f0ff';
     for(let i=particles.length-1;i>=0;i--){
         let p=particles[i];
@@ -757,7 +746,7 @@ function draw(){
     ctx.globalAlpha = 1.0;
 }
 
-// 🚀 DELTATIME ENGINE (Zero Aage-Piche, perfect smooth on ALL phones) 🚀
+// 🚀 DELTATIME ENGINE (Zero Aage-Piche) 🚀
 let lastTime = 0;
 function loop(timestamp) {
     if (!lastTime) lastTime = timestamp;
@@ -765,10 +754,7 @@ function loop(timestamp) {
     let deltaTime = timestamp - lastTime;
     lastTime = timestamp;
     
-    // Cap lag spikes so game doesn't fly forward if phone hangs
     if (deltaTime > 50) deltaTime = 16.666;
-    
-    // Multiplier based on perfect 60fps frame
     let dtScale = deltaTime / 16.666;
     
     update(dtScale);
