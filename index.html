@@ -24,7 +24,7 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 TRUE HARDWARE ACCELERATION FOR MOBILE 🔥 */
+        /* 🔥 TRUE HARDWARE ACCELERATION 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); will-change: transform; }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 ORIGINAL SPEED + ZERO GPU LAG 🔥)
+// GAME ENGINE & DATA (🔥 EXACT 5.4 SPEED FIX 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 ORIGINAL PERFECT SPEED (4.5) 🚀
+// 🚀 EXACT 5.4 SPEED REQUESTED BY YOU
 const LVL_CONFIG=[
-    {id:1,speed:4.5,len:40000},
-    {id:2,speed:5.0,len:50000},
-    {id:3,speed:5.2,len:55000},
-    {id:4,speed:5.5,len:60000},
-    {id:5,speed:5.8,len:65000},
-    {id:6,speed:6.2,len:70000},
-    {id:7,speed:6.5,len:75000},
-    {id:8,speed:6.8,len:80000},
-    {id:9,speed:7.2,len:85000},
-    {id:10,speed:7.5,len:100000}
+    {id:1,speed:5.4,len:40000},
+    {id:2,speed:5.8,len:50000},
+    {id:3,speed:6.1,len:55000},
+    {id:4,speed:6.5,len:60000},
+    {id:5,speed:6.8,len:65000},
+    {id:6,speed:7.2,len:70000},
+    {id:7,speed:7.6,len:75000},
+    {id:8,speed:8.0,len:80000},
+    {id:9,speed:8.5,len:85000},
+    {id:10,speed:9.0,len:100000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -468,11 +468,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 ORIGINAL PERFECT PHYSICS 🚀
-const GRAVITY=0.60,JUMP_VEL=-13.5,MAX_VEL=16;
+// 🚀 EXACT MATH FOR 5.4 SPEED (PERFECT DISTANCE JUMP)
+const GRAVITY=0.85,JUMP_VEL=-16.0,MAX_VEL=20;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=4.5,levelLength=40000,worldX=0,frameCount=0,shake=0;
+let scrollSpeed=5.4,levelLength=40000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let particles=[],obstacles=[];
@@ -513,7 +513,8 @@ function jump(){
         player.vy=isGravityFlipped?-JUMP_VEL:JUMP_VEL;
         player.ground=false;
         playJump();
-        for(let i=0;i<4;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
+        // Minimal particles for mobile
+        for(let i=0;i<3;i++) particles.push({x:player.x+18, y:isGravityFlipped?player.y:player.y+36, vx:(Math.random()-0.5)*8, vy:(isGravityFlipped?1:-1)*(Math.random()*4), life:1.2, col:'#ffffff', size:3+Math.random()*3});
     }
 }
 
@@ -540,7 +541,8 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // 🚀 CLEAN LOOP START 🚀
+    // 🚀 START THE 120HZ BLOCKER LOOP 🚀
+    lastTime = performance.now();
     reqAnimId = requestAnimationFrame(loop);
 }
 
@@ -550,15 +552,15 @@ function die(){
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();shake=15;
     let cols=['#00f0ff','#00f0ff','#ffffff','#05080f']; 
-    for(let i=0;i<12;i++) {
+    for(let i=0;i<10;i++) {
         let pSize = 6 + Math.random() * 8; 
-        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.5,col:cols[Math.floor(Math.random()*cols.length)],size:pSize});
+        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.2,col:cols[Math.floor(Math.random()*cols.length)],size:pSize});
     }
 }
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let isWinValid=isOfficialRun&&(timePlayed>=60000); 
+    let isWinValid=isOfficialRun&&(timePlayed>=45000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -573,7 +575,7 @@ function triggerWin(){
     document.getElementById('scoreUI').innerText=`Score: ${totalScore}`;
     
     let cols=['#00f0ff','#ff3060','#ffd700','#ffffff','#00ff88'];
-    for(let i=0;i<20;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:3.0,col:cols[Math.floor(Math.random()*cols.length)],size:6+Math.random()*6});
+    for(let i=0;i<20;i++)particles.push({x:Math.random()*GAME_W,y:-20-Math.random()*100,vx:(Math.random()-0.5)*4,vy:2+Math.random()*5,life:2.5,col:cols[Math.floor(Math.random()*cols.length)],size:5+Math.random()*5});
     
     document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
     document.getElementById('overlayTitle').style.color='#00ff88';
@@ -604,7 +606,7 @@ function triggerWin(){
 function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
 
 function update(){
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.1:0.35;p.life-=(gameState==='clear')?0.005:0.018;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
+    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.2:0.6;p.life-=(gameState==='clear')?0.01:0.04;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
     if(gameState!=='playing')return;
 
     frameCount++;worldX+=scrollSpeed;
@@ -622,7 +624,7 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    if(!player.ground)player.rot+=14;
+    if(!player.ground)player.rot+=16;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
 
@@ -644,15 +646,15 @@ function update(){
 
         if(AABB(px,py,pw,ph,oHX,oHY,oHW,oHH)){
             if(o.t==='spike'||o.t==='dspike'||o.t==='cspike'||o.t==='block'){die();return;}
-            if(o.t==='jpad'){player.vy=JUMP_VEL*1.8;player.ground=false;o.used=true;}
-            if(o.t==='gorb'&&!o.used){isGravityFlipped=!isGravityFlipped;flipTimer=180;o.used=true;} 
+            if(o.t==='jpad'){player.vy=JUMP_VEL*1.15;player.ground=false;o.used=true;}
+            if(o.t==='gorb'&&!o.used){isGravityFlipped=!isGravityFlipped;flipTimer=120;o.used=true;} 
             
             if(o.t==='platform'||o.t==='mplatf'){
                 if(!isGravityFlipped){
-                    if(player.prevY+player.h<=oy+8&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
+                    if(player.prevY+player.h<=oy+12&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
                     else{die();}
                 }else{
-                    if(player.prevY>=oy+16-8&&player.vy<=0){player.y=oy+16;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
+                    if(player.prevY>=oy+16-12&&player.vy<=0){player.y=oy+16;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
                     else{die();}
                 }
             }
@@ -676,11 +678,9 @@ function draw(){
     
     if(shake>0){ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake--;}
     
-    // 🔥 ZERO GPU LOAD: CLEAN BACKGROUND (No slow grid lines!)
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     
-    // 🔥 ZERO GPU LOAD: FAST BLOCKS (No slow strokeRect lines!)
     ctx.fillStyle='#00f0ff'; ctx.fillRect(0, GROUND_Y-1, GAME_W, 3);
     ctx.fillStyle='rgba(0,240,255,0.3)'; ctx.fillRect(0, CEILING_Y, GAME_W, 1);
 
@@ -695,28 +695,25 @@ function draw(){
             let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y;
             let bc=o.t==='mplatf'?'#ff7700':'#00ff88';
             ctx.fillStyle=bc; ctx.fillRect(ox,oy,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); // Fast Border Hack
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12);
         }
         else if(o.t==='block'){
             ctx.fillStyle='#ff3060'; ctx.fillRect(ox,o.y,o.w,o.h); 
-            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); // Fast Border Hack
+            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); 
         }
         else if(o.t==='jpad'){ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4);}
         else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.fillRect(ox, o.y-15, 30, 30);ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5);}
     }
     ctx.textAlign='left';
     
-    // 🔥 ZERO GPU LOAD: GHOST TRAIL REMOVED 🔥
-    
     if(gameState!=='dead'){
         ctx.save();
         ctx.translate(player.x+18, player.y+18);
         ctx.rotate(player.rot*Math.PI/180);
         
-        // Fast Neon Core Hack (No stroke lines)
-        ctx.fillStyle='rgba(0,240,255,0.3)'; ctx.fillRect(-22,-22,44,44); // Outer glow
-        ctx.fillStyle='#00f0ff'; ctx.fillRect(-18,-18,36,36); // Border
-        ctx.fillStyle='#05080f'; ctx.fillRect(-16,-16,32,32); // Inner 
+        ctx.fillStyle='rgba(0,240,255,0.3)'; ctx.fillRect(-22,-22,44,44); 
+        ctx.fillStyle='#00f0ff'; ctx.fillRect(-18,-18,36,36); 
+        ctx.fillStyle='#05080f'; ctx.fillRect(-16,-16,32,32); 
         
         ctx.fillStyle='#00f0ff';
         ctx.fillRect(-10,-8,6,6); 
@@ -740,11 +737,20 @@ function draw(){
     ctx.restore();
 }
 
-// 🚀 CLEAN 60FPS LOOP 🚀
-function loop() {
+// 🚀 120HZ BUG KILLER LOOP (Zero Rubber-banding) 🚀
+let lastTime = 0;
+function loop(timestamp) {
+    reqAnimId = requestAnimationFrame(loop);
+    
+    // Agar mobile 120Hz pe hai (lagbhag 8ms frame time), toh ye har doosra frame skip kar dega!
+    // Isse game HAMESHA strictly 60 FPS pe chalega, chahe screen ki speed kuchh bhi ho.
+    if (timestamp - lastTime < 15) {
+        return; 
+    }
+    
+    lastTime = timestamp;
     update();
     draw();
-    reqAnimId = requestAnimationFrame(loop);
 }
 
 draw();
