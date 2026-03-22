@@ -24,7 +24,7 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 SMOOTH HARDWARE CANVAS 🔥 */
+        /* 🔥 TRUE HARDWARE CANVAS (NO FLICKER) 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -32,7 +32,7 @@
         #overlay h1 { font-size: 28px; margin-bottom: 8px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
         #overlay p { font-size: 14px; margin-bottom: 15px; color: #ffd700; white-space: pre-line; line-height: 1.4; }
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 8px; }
-        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; margin-top:10px; }
+        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
         .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE (🔥 MIXED LEVEL 1 + ZERO RUBBER-BANDING 🔥)
+// GAME ENGINE & DATA (🔥 NATIVE PURE MAKKHAN ENGINE 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,7 +437,7 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 LENGTH CUT BY 40% (24,000 for level 1)
+// 🚀 LENGTH 60% (24000m) & CONSTANT SPEED PER LEVEL
 const LVL_CONFIG=[
     {id:1,speed:6.8,len:24000},
     {id:2,speed:7.2,len:30000},
@@ -456,37 +456,31 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    // 🔥 PURE VARIETY IN LEVEL 1 🔥
+    // 🔥 NEW LEVEL 1 (MIXED FROM THE START, ZERO BORING PARTS) 🔥
     if(levelNum===1){
-        // Easy starter obstacle
-        obs.push({t:'spike',x:curX}); curX+=450;
-        
+        // Action begins immediately!
         while(curX<len-1000){
-            let r=pseudoRand(curX,levelNum),sec=Math.floor(r*6);
+            let r=pseudoRand(curX,levelNum),sec=Math.floor(r*5); // 5 distinct obstacles
             
-            if(sec===0){ // Basic Spikes
-                obs.push({t:'spike',x:curX},{t:'dspike',x:curX+350});
-                curX+=750;
+            if(sec===0){ // Basic Spike
+                obs.push({t:'spike',x:curX});
+                curX+=450;
             }
-            else if(sec===1){ // Platform with spike on it
-                obs.push({t:'spike',x:curX},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+120,onPlatY:235});
+            else if(sec===1){ // Platform Jump
+                obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180});
+                curX+=500;
+            }
+            else if(sec===2){ // Gap (Gadda)
+                obs.push({t:'gap',x:curX,w:140});
                 curX+=550;
             }
-            else if(sec===2){ // Gap to platform
-                obs.push({t:'gap',x:curX,w:140},{t:'platform',x:curX+200,y:200,w:120});
-                curX+=650;
-            }
-            else if(sec===3){ // Jump Pad action
-                obs.push({t:'jpad',x:curX},{t:'spike',x:curX+300});
-                curX+=650;
-            }
-            else if(sec===4){ // Gap + Double Spike
-                obs.push({t:'dspike',x:curX},{t:'gap',x:curX+300,w:130});
-                curX+=650;
-            }
-            else { // Low Platform jump
-                obs.push({t:'platform',x:curX,y:PLAT_LOW,w:150},{t:'spike',x:curX+250});
+            else if(sec===3){ // Yellow Jump Pad
+                obs.push({t:'jpad',x:curX});
                 curX+=550;
+            }
+            else{ // Double Spike
+                obs.push({t:'dspike',x:curX});
+                curX+=500;
             }
         }
     }
@@ -515,7 +509,7 @@ const GRAVITY=1.35,JUMP_VEL=-19.8,MAX_VEL=24;
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
 let scrollSpeed=6.8,levelLength=24000,worldX=0,frameCount=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
-let particles=[],obstacles=[];
+let obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
 let isOfficialRun=false; 
 
@@ -539,7 +533,7 @@ function buildLevelUI(){
 function resetGameState() {
     initAudio(); 
     cancelAnimationFrame(reqAnimId);
-    particles=[]; obstacles=[]; 
+    obstacles=[]; 
     player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
     worldX=0; frameCount=0;
 }
@@ -578,10 +572,8 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // Start Engine
-    lastTime = performance.now();
-    accumulator = 0;
-    reqAnimId = requestAnimationFrame(gameLoop);
+    // NATIVE LOOP START
+    reqAnimId = requestAnimationFrame(loop);
 }
 
 function die(){
@@ -589,14 +581,10 @@ function die(){
     gameState='dead';attemptCount++;
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();
-    for(let i=0;i<6;i++) {
-        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.0,col:'#00f0ff',size:8});
-    }
 }
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    // Since levels are 60% length now, minimum time adjusted to 15 seconds.
     let isWinValid=isOfficialRun&&(timePlayed>=15000); 
     
     gameState='clear';playWin();
@@ -672,15 +660,13 @@ function triggerWin(){
 
 function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
 
-// 🔥 PURE FIXED UPDATE (No dtScale to break physics) 🔥
 function update(){
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.2:0.6;p.life-=(gameState==='clear')?0.01:0.04;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
     if(gameState!=='playing')return;
 
     frameCount++;
     worldX += scrollSpeed;
     
-    if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
+    if(Math.floor(frameCount)%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
     let prog=Math.min(100,(worldX/levelLength)*100);
     document.getElementById('progressBar').style.width=prog+'%';
@@ -745,7 +731,6 @@ function draw(){
         }
     }
     
-    // PLAYER
     if(gameState!=='dead'){
         ctx.save();
         ctx.translate(player.x+18, player.y+18);
@@ -756,46 +741,13 @@ function draw(){
         ctx.fillStyle='#00f0ff'; ctx.fillRect(-8,-6,4,4); ctx.fillRect(4,-6,4,4); ctx.fillRect(-8,6,16,4); 
         ctx.restore();
     }
-
-    // PARTICLES
-    ctx.fillStyle='#00f0ff';
-    for(let i=particles.length-1;i>=0;i--){
-        let p=particles[i];
-        ctx.globalAlpha=Math.max(0,p.life);
-        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
-    }
-    ctx.globalAlpha = 1.0;
 }
 
-// 🚀 FIXED TIME-STEP ENGINE (ZERO AAGE-PICHE RUBBERBANDING) 🚀
-let lastTime = 0;
-let accumulator = 0;
-const TIME_STEP = 1000 / 60; // Exact 60 updates per second
-
-function gameLoop(timestamp) {
-    reqAnimId = requestAnimationFrame(gameLoop);
-    
-    if (!lastTime) lastTime = timestamp;
-    let dt = timestamp - lastTime;
-    lastTime = timestamp;
-    
-    // Cap massive lag spikes to prevent spiral
-    if (dt > 100) dt = TIME_STEP;
-    
-    accumulator += dt;
-    
-    let steps = 0;
-    // Strictly update logic 60 times a second. NO variable jumping/clipping!
-    while (accumulator >= TIME_STEP && steps < 3) {
-        update();
-        accumulator -= TIME_STEP;
-        steps++;
-    }
-    
-    // Clear out tiny decimals to prevent slow lag build up
-    accumulator = accumulator % TIME_STEP;
-    
-    draw(); // Draw instantly where objects are.
+// 🚀 ZERO JITTER PURE LOOP 🚀
+function loop() {
+    update();
+    draw();
+    reqAnimId = requestAnimationFrame(loop);
 }
 
 draw();
