@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 EXACT 5.4 SPEED FIX 🔥)
+// GAME ENGINE & DATA (🔥 EXACT 5.7 SPEED + PERFECT PHYSICS 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 EXACT 5.4 SPEED REQUESTED BY YOU
+// 🚀 EXACT 5.7 SPEED SCALING
 const LVL_CONFIG=[
-    {id:1,speed:5.4,len:40000},
-    {id:2,speed:5.8,len:50000},
-    {id:3,speed:6.1,len:55000},
-    {id:4,speed:6.5,len:60000},
-    {id:5,speed:6.8,len:65000},
-    {id:6,speed:7.2,len:70000},
-    {id:7,speed:7.6,len:75000},
-    {id:8,speed:8.0,len:80000},
-    {id:9,speed:8.5,len:85000},
-    {id:10,speed:9.0,len:100000}
+    {id:1,speed:5.7,len:40000},
+    {id:2,speed:6.1,len:50000},
+    {id:3,speed:6.4,len:55000},
+    {id:4,speed:6.8,len:60000},
+    {id:5,speed:7.1,len:65000},
+    {id:6,speed:7.5,len:70000},
+    {id:7,speed:7.9,len:75000},
+    {id:8,speed:8.3,len:80000},
+    {id:9,speed:8.8,len:85000},
+    {id:10,speed:9.3,len:100000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -468,11 +468,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 5.4 SPEED (PERFECT DISTANCE JUMP)
-const GRAVITY=0.85,JUMP_VEL=-16.0,MAX_VEL=20;
+// 🚀 EXACT MATH FOR 5.7 SPEED (PERFECT DISTANCE JUMP)
+const GRAVITY=0.96,JUMP_VEL=-17.1,MAX_VEL=20;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=5.4,levelLength=40000,worldX=0,frameCount=0,shake=0;
+let scrollSpeed=5.7,levelLength=40000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let particles=[],obstacles=[];
@@ -591,6 +591,7 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
+            // 🔥 User Transaction Action happens here!
             gameContract.levelComplete(currentLevel, addScore, { gasLimit: 150000 }).then(()=>{}).catch(e=>{});
         }
     }else{
@@ -695,11 +696,11 @@ function draw(){
             let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y;
             let bc=o.t==='mplatf'?'#ff7700':'#00ff88';
             ctx.fillStyle=bc; ctx.fillRect(ox,oy,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12);
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); // Fast Border Hack
         }
         else if(o.t==='block'){
             ctx.fillStyle='#ff3060'; ctx.fillRect(ox,o.y,o.w,o.h); 
-            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); 
+            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); // Fast Border Hack
         }
         else if(o.t==='jpad'){ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4);}
         else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.fillRect(ox, o.y-15, 30, 30);ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5);}
