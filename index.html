@@ -24,6 +24,7 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
+        /* 🔥 SMOOTH HARDWARE CANVAS 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -170,7 +171,7 @@
 </div>
 
 <div class="leaderboard">
-    <div class="lb-title">🌍 GLOBAL LEADERBOARD</div>
+    <div class="lb-title">🌍 GLOBAL TOP 10</div>
     <div id="globalLbContent" style="margin-bottom:15px;">Loading...</div>
     
     <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:10px;">👤 YOUR ON-CHAIN STATS</div>
@@ -198,7 +199,7 @@ let isFarcasterWallet = false;
 let walletProvider = null;
 let gameContract = null;
 let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
-let lastClearedLevel = 1; // 🔥 BUG FIX: Variable to track accurate clear level
+let lastClearedLevel = 1;
 
 const GAME_URL = "https://farcaster.xyz/miniapps/vDZmdCj1pC8Z/geodash-by-tokiyo";
 
@@ -293,9 +294,10 @@ window.addEventListener('load', () => {
         document.getElementById('overlay').style.display='none';
     });
     
-    // 🔥 BUG FIX: Using lastClearedLevel instead of currentLevel
+    // 🔥 FEATURE ADDED: Attempts in Share Text 🔥
     document.getElementById('overlayCastBtn').addEventListener('click', () => {
-        const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB reward! 💸\n\nThink you can beat my score? Try not to rage-quit: 👇\n${GAME_URL}`;
+        let tries = attemptCount + 1; // +1 because current winning run is also an attempt
+        const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo in ${tries} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB reward! 💸\n\nThink you can beat my score? Try not to rage-quit: 👇\n${GAME_URL}`;
         openCast(text);
     });
 
@@ -307,7 +309,7 @@ window.addEventListener('load', () => {
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     buildLevelUI();
     
-    fetchGlobalLeaderboard(); // Load Global Leaderboard on start
+    fetchGlobalLeaderboard();
 
     setTimeout(async () => {
         if (await detectWallet()) {
@@ -436,7 +438,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE (🔥 6.8 SPEED + LEVEL 2 DESIGN 🔥)
+// GAME ENGINE (🔥 DELTATIME ENGINE - ZERO RUBBERBANDING 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -445,16 +447,16 @@ function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain()
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
 const LVL_CONFIG=[
-    {id:1,speed:6.8,len:24000},
-    {id:2,speed:7.2,len:30000},
-    {id:3,speed:7.6,len:33000},
-    {id:4,speed:8.0,len:36000},
-    {id:5,speed:8.4,len:39000},
-    {id:6,speed:8.8,len:42000},
-    {id:7,speed:9.2,len:45000},
-    {id:8,speed:9.6,len:48000},
-    {id:9,speed:10.0,len:51000},
-    {id:10,speed:10.5,len:60000}
+    {id:1,speed:7.2,len:24000},
+    {id:2,speed:7.6,len:30000},
+    {id:3,speed:8.0,len:33000},
+    {id:4,speed:8.4,len:36000},
+    {id:5,speed:8.8,len:39000},
+    {id:6,speed:9.2,len:42000},
+    {id:7,speed:9.6,len:45000},
+    {id:8,speed:10.0,len:48000},
+    {id:9,speed:10.4,len:51000},
+    {id:10,speed:11.0,len:60000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -462,20 +464,27 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    if(levelNum===1){
-        while(curX<len-1000){
-            obs.push({t:'spike',x:curX});curX+=340;
-            obs.push({t:'spike',x:curX});curX+=300;
-            obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});
-            curX+=560;
-        }
-    }
-    else if(levelNum===2){
-        while(curX<len-1000){
-            obs.push({t:'spike',x:curX});curX+=340;
-            obs.push({t:'spike',x:curX});curX+=300;
-            obs.push({t:'spike',x:curX},{t:'spike',x:curX+40},{t:'platform',x:curX-20,y:PLAT_LOW,w:PLAT_MEDIUM},{t:'spike',x:curX+60},{t:'spike',x:curX+100},{t:'spike',x:curX+140},{t:'spike',x:curX+210});
-            curX+=560;
+    // 🔥 NEW LEVEL 1 FIX: Smart Array to guarantee variety & zero repetitive bugs 🔥
+    if (levelNum === 1) {
+        let patterns = [
+            [{t:'spike', x:0}],
+            [{t:'platform', x:0, y:PLAT_LOW, w:150}],
+            [{t:'gap', x:0, w:120}],
+            [{t:'jpad', x:0}, {t:'platform', x:200, y:PLAT_MID, w:120}],
+            [{t:'dspike', x:0}],
+            [{t:'platform', x:0, y:PLAT_LOW, w:120}, {t:'spike', x:160}],
+            [{t:'gap', x:0, w:100}, {t:'platform', x:180, y:PLAT_LOW, w:120}]
+        ];
+
+        while(curX < len - 1000) {
+            let r = pseudoRand(curX, levelNum);
+            let patIdx = Math.floor(r * patterns.length);
+            let pat = patterns[patIdx];
+
+            for(let p of pat) {
+                obs.push({t: p.t, x: curX + p.x, y: p.y, w: p.w});
+            }
+            curX += 600; // Consistent nice spacing for 7.2 speed
         }
     }
     else {
@@ -496,10 +505,10 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-const GRAVITY=1.35,JUMP_VEL=-19.8,MAX_VEL=24;
+const GRAVITY=1.51,JUMP_VEL=-21.0,MAX_VEL=26;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=6.8,levelLength=24000,worldX=0,frameCount=0;
+let scrollSpeed=7.2,levelLength=24000,worldX=0,frameCount=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let particles=[],obstacles=[];
 let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
@@ -512,11 +521,15 @@ function buildLevelUI(){
         if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
         else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
         else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
+        
         btn.addEventListener('click', () => { 
             currentLevel=i; 
+            attemptCount = 0; // 🔥 Reset attempts when starting a fresh level
+            document.getElementById('attemptUI').innerText=`Attempt: 0`;
             buildLevelUI(); 
             document.getElementById('progressText').innerText=`Level ${i}/10`; 
         }); 
+        
         grid.appendChild(btn);
     }
 }
@@ -578,10 +591,10 @@ function die(){
 }
 
 function triggerWin(){
-    lastClearedLevel = currentLevel; // 🔥 Save correct level for Farcaster Cast Text
+    lastClearedLevel = currentLevel; 
     
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let isWinValid=isOfficialRun&&(timePlayed>=15000); 
+    let isWinValid=isOfficialRun&&(timePlayed>=10000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -643,7 +656,7 @@ function triggerWin(){
             })();
         }
     }else{
-        let reason=isOfficialRun?"(Need 15s min)":"(Practice Mode)";
+        let reason=isOfficialRun?"(Need 10s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayCastBtn').style.display='none';
         document.getElementById('overlayBtn').style.display='block';
@@ -696,7 +709,7 @@ function update(dtScale){
             if(o.t==='jpad'){player.vy=JUMP_VEL*1.2;player.ground=false;o.used=true;} 
             
             if(o.t==='platform'){
-                if(player.prevY+player.h<=oy+18&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
+                if(player.prevY+player.h<=oy+24&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
                 else{die();}
             }
         }
@@ -749,20 +762,18 @@ function draw(){
     ctx.globalAlpha = 1.0;
 }
 
-// 🚀 ZERO AAGE-PICHE SMOOTH LOOP 🚀
 let lastTime = 0;
 function loop(timestamp) {
     if (!lastTime) lastTime = timestamp;
-    
     let deltaTime = timestamp - lastTime;
     lastTime = timestamp;
-    
-    if (deltaTime > 50) deltaTime = 16.666;
+    if (deltaTime > 60) deltaTime = 16.666;
     let dtScale = deltaTime / 16.666;
+    if (dtScale < 0.1) dtScale = 0.1;
+    if (dtScale > 2.0) dtScale = 2.0;
     
     update(dtScale);
     draw();
-    
     reqAnimId = requestAnimationFrame(loop);
 }
 
@@ -821,13 +832,11 @@ async function getFarcasterUsername(address){
     return address.slice(0,6)+'...'+address.slice(-4);
 }
 
-// 🔥 BUG FIX: TRUE GLOBAL LEADERBOARD FUNCTION 🔥
 async function fetchGlobalLeaderboard(){
     try{
         const [addrs, scores, lvls] = await readContract.getLeaderboard();
         let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000");
         
-        // Fetch usernames in bulk to be super fast
         let nameMap = {};
         if(validAddrs.length > 0) {
             try {
@@ -866,7 +875,6 @@ async function fetchGlobalLeaderboard(){
     }
 }
 
-// This keeps your personal stats working below the global board
 async function fetchPersonalStats(){
     if(!userAddress) return;
     try{
@@ -892,7 +900,6 @@ async function fetchPersonalStats(){
             return;
         }
         
-        // Single fetch for personal name just in case it wasn't in global
         let name = "You";
         try{
             const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${userAddress}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
