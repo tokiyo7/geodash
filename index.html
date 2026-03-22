@@ -24,9 +24,9 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 RAW HARDWARE ACCELERATION 🔥 */
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); will-change: transform; }
-        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+        /* 🔥 NO HARDWARE ACCEL BUG 🔥 */
+        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; }
+        canvas { display: block; width: 100%; height: 100%; }
         
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; }
         #overlay h1 { font-size: 28px; margin-bottom: 8px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
@@ -363,20 +363,23 @@ async function executeSpin(){
     try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
 
     btn.disabled=true;
-    document.getElementById('r1').className='reel-inner spinning';
-    document.getElementById('r2').className='reel-inner spinning';
-    document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning... Calculating Reward!";
+    document.getElementById('r1').className='reel-inner'; // Stop spin animation
+    document.getElementById('r2').className='reel-inner';
+    document.getElementById('r3').className='reel-inner';
+    document.getElementById('spinResult').innerText = "Confirm transaction in wallet...";
     document.getElementById('spinResult').style.color = "#ffd700";
 
     setTimeout(async () => {
         try{
-            document.getElementById('spinResult').innerText = "Please confirm the transaction in your wallet...";
-            document.getElementById('spinResult').style.color = "var(--cyan)";
-
             const txHash = await sendRawTransaction("spin", []);
             
             document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
+            document.getElementById('spinResult').style.color = "var(--cyan)";
+            
+            // Start spinning animation visually
+            document.getElementById('r1').className='reel-inner spinning';
+            document.getElementById('r2').className='reel-inner spinning';
+            document.getElementById('r3').className='reel-inner spinning';
             
             let isConfirmed = false;
             for(let i=0; i<15; i++) {
@@ -425,11 +428,11 @@ async function executeSpin(){
             document.getElementById('spinResult').innerText = errStr;
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-    }, 2500); 
+    }, 500); 
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 FUN MIXED LEVEL + LOCKED SPEED 6.8 🔥)
+// GAME ENGINE (🔥 6.8 SPEED + ZERO LAG MATHEMATICS 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,7 +440,7 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 FIXED 6.8 SPEED PER LEVEL (No mid-level acceleration)
+// 🚀 EXACT 6.8 SPEED & 80% LENGTH
 const LVL_CONFIG=[
     {id:1,speed:6.8,len:32000},
     {id:2,speed:7.2,len:40000},
@@ -456,36 +459,28 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    // 🔥 FUN LEVEL 1: Gadde, Jump Pads, Platforms right from the START! 🔥
+    // Level 1 Fun Phases
     if(levelNum===1){
         while(curX<len-800){
-            let r=pseudoRand(curX,levelNum);
-            let sec=Math.floor(r*5); // Pick 1 of 5 random obstacles from the very beginning
-            
-            if(sec===0){ 
-                obs.push({t:'spike',x:curX}); 
-                curX+=380; 
+            if (curX < len * 0.30) {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.6){ obs.push({t:'spike',x:curX}); curX+=400; }
+                else{ obs.push({t:'dspike',x:curX}); curX+=450; }
             }
-            else if(sec===1){ 
-                obs.push({t:'gap',x:curX,w:130}); // Gadde (Gap)
-                curX+=450; 
+            else if (curX >= len * 0.30 && curX < len * 0.60) {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.4){ obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); curX+=400; }
+                else if(r<0.7){ obs.push({t:'gap',x:curX,w:120}); curX+=450; }
+                else{ obs.push({t:'platform',x:curX,y:PLAT_MID,w:120},{t:'spike',x:curX+40,onPlatY:PLAT_MID}); curX+=450; }
             }
-            else if(sec===2){ 
-                obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); // Platform
-                curX+=450; 
-            }
-            else if(sec===3){ 
-                obs.push({t:'jpad',x:curX},{t:'platform',x:curX+200,y:PLAT_MID,w:120}); // Jump Pad leading to platform
-                curX+=550; 
-            }
-            else { 
-                obs.push({t:'dspike',x:curX}); // Double Spikes
-                curX+=450; 
+            else {
+                let r=pseudoRand(curX,levelNum);
+                if(r<0.5){ obs.push({t:'jpad',x:curX},{t:'spike',x:curX+280}); curX+=500; }
+                else{ obs.push({t:'jpad',x:curX},{t:'platform',x:curX+150,y:PLAT_MID,w:120}); curX+=550; }
             }
         }
     }
     else {
-        // Levels 2-10
         while(curX<len-1000){
             let r=pseudoRand(curX,levelNum),sec=Math.floor(r*6);
             if(sec===0){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+350});curX+=750;}
@@ -503,7 +498,7 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 6.8 SPEED PHYSICS (Sharp & Perfect)
+// 🚀 EXACT MATH FOR 6.8 SPEED PHYSICS
 const GRAVITY=1.35,JUMP_VEL=-19.8,MAX_VEL=24;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
@@ -555,7 +550,6 @@ canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:fa
 
 function startOrRestartGame(fromOfficial=false){
     resetGameState(); 
-    // Speed is LOCKED per level here
     let cfg=LVL_CONFIG[currentLevel-1];
     scrollSpeed=cfg.speed;
     levelLength=cfg.len;
@@ -573,6 +567,7 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
+    then = performance.now();
     reqAnimId = requestAnimationFrame(loop);
 }
 
@@ -581,6 +576,7 @@ function die(){
     gameState='dead';attemptCount++;
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();
+    // Bare minimum particles for zero lag
     for(let i=0;i<6;i++) {
         particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.0,col:'#00f0ff',size:8});
     }
@@ -667,9 +663,7 @@ function update(){
     for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.2:0.6;p.life-=(gameState==='clear')?0.01:0.04;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
     if(gameState!=='playing')return;
 
-    frameCount++;
-    // Speed is constant within the level
-    worldX+=scrollSpeed;
+    frameCount++;worldX+=scrollSpeed;
     
     if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
@@ -715,20 +709,21 @@ function update(){
 }
 
 function draw(){
-    // 🔥 PURE SOLID COLORS (NO rgba, NO globalAlpha, NO shadowBlur) 🔥
+    // 🔥 MATH.FLOOR EVERYWHERE FOR SOLID PERFORMANCE 🔥
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     ctx.fillStyle='#00f0ff';ctx.fillRect(0,GROUND_Y-1,GAME_W,3);
 
     for(let o of obstacles){
-        let ox = o.x-worldX; if(ox<-100||ox>GAME_W+100)continue;
+        let ox = Math.floor(o.x-worldX); if(ox<-100||ox>GAME_W+100)continue;
         
-        if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y,o.w,GAME_H-GROUND_Y);}
+        if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y,Math.floor(o.w),GAME_H-GROUND_Y);}
         else if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,baseY-38);ctx.lineTo(ox+38,baseY);ctx.lineTo(ox,baseY);ctx.closePath();ctx.fill();}
         else if(o.t==='dspike'){let gy=GROUND_Y; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,gy-38);ctx.lineTo(ox+38,gy);ctx.lineTo(ox,gy);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ox+57,gy-38);ctx.lineTo(ox+76,gy);ctx.lineTo(ox+38,gy);ctx.closePath();ctx.fill();}
         else if(o.t==='platform'){
-            ctx.fillStyle='#00ff88'; ctx.fillRect(ox,o.y,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,o.y+2,o.w-4,12); 
+            let oy = Math.floor(o.y); let ow = Math.floor(o.w);
+            ctx.fillStyle='#00ff88'; ctx.fillRect(ox,oy,ow,16); 
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,ow-4,12); 
         }
         else if(o.t==='jpad'){
             ctx.fillStyle='#ffd700'; ctx.fillRect(ox,GROUND_Y-16,38,16);
@@ -739,7 +734,7 @@ function draw(){
     // PLAYER (Simple Solid Drawing)
     if(gameState!=='dead'){
         ctx.save();
-        ctx.translate(player.x+18, player.y+18);
+        ctx.translate(Math.floor(player.x+18), Math.floor(player.y+18));
         ctx.rotate(player.rot*Math.PI/180);
         
         ctx.fillStyle='#00f0ff'; ctx.fillRect(-18,-18,36,36); 
@@ -748,19 +743,30 @@ function draw(){
         ctx.restore();
     }
 
-    // PARTICLES (Solid colors, no transparency math)
+    // PARTICLES (Solid colors)
     ctx.fillStyle='#00f0ff';
     for(let i=particles.length-1;i>=0;i--){
         let p=particles[i];
-        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+        ctx.fillRect(Math.floor(p.x - p.size/2), Math.floor(p.y - p.size/2), Math.floor(p.size), Math.floor(p.size));
     }
 }
 
-// 🚀 RAW, UNLOCKED 60FPS LOOP 🚀
-function loop() {
-    update();
-    draw();
+// 🚀 BULLETPROOF 60FPS LIMITER (Zero Rubber-Banding) 🚀
+let then = performance.now();
+const fpsInterval = 1000 / 60; // Exact 60 FPS
+
+function loop(now) {
     reqAnimId = requestAnimationFrame(loop);
+    
+    let elapsed = now - then;
+    
+    // Only update and draw when EXACTLY enough time has passed (16.6ms)
+    // This ignores 120Hz completely and forces a perfectly smooth 60fps frame pace.
+    if (elapsed > fpsInterval) {
+        then = now - (elapsed % fpsInterval);
+        update();
+        draw();
+    }
 }
 
 draw();
