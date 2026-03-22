@@ -24,15 +24,15 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 TRUE HARDWARE ACCELERATION 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); will-change: transform; }
         canvas { display: block; width: 100%; height: 100%; }
         
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; }
-        #overlay h1 { font-size: 36px; margin-bottom: 10px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
-        #overlay p { font-size: 16px; margin-bottom: 24px; color: #ffd700; white-space: pre-line; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 2px; }
-        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; margin-top:10px; }
+        /* 🔥 MOBILE OPTIMIZED OVERLAY UI 🔥 */
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; }
+        #overlay h1 { font-size: 28px; margin-bottom: 8px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
+        #overlay p { font-size: 14px; margin-bottom: 15px; color: #ffd700; white-space: pre-line; line-height: 1.4; }
+        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 8px; }
+        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
         .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
@@ -117,7 +117,7 @@
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
         <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
-        <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px;">Return to Menu</button>
+        <button class="btn-large" id="overlayBtn">Return to Menu</button>
     </div>
 </div>
 
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 EXACT 5.7 SPEED + PERFECT PHYSICS 🔥)
+// GAME ENGINE & DATA (🔥 EXACT 6.1 SPEED + PERFECT PHYSICS 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 EXACT 5.7 SPEED SCALING
+// 🚀 EXACT 6.1 SPEED SCALING 🚀
 const LVL_CONFIG=[
-    {id:1,speed:5.7,len:40000},
-    {id:2,speed:6.1,len:50000},
-    {id:3,speed:6.4,len:55000},
-    {id:4,speed:6.8,len:60000},
-    {id:5,speed:7.1,len:65000},
-    {id:6,speed:7.5,len:70000},
-    {id:7,speed:7.9,len:75000},
-    {id:8,speed:8.3,len:80000},
-    {id:9,speed:8.8,len:85000},
-    {id:10,speed:9.3,len:100000}
+    {id:1,speed:6.1,len:40000},
+    {id:2,speed:6.5,len:50000},
+    {id:3,speed:6.8,len:55000},
+    {id:4,speed:7.2,len:60000},
+    {id:5,speed:7.6,len:65000},
+    {id:6,speed:8.0,len:70000},
+    {id:7,speed:8.4,len:75000},
+    {id:8,speed:8.8,len:80000},
+    {id:9,speed:9.3,len:85000},
+    {id:10,speed:9.8,len:100000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -468,11 +468,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 5.7 SPEED (PERFECT DISTANCE JUMP)
-const GRAVITY=0.96,JUMP_VEL=-17.1,MAX_VEL=20;
+// 🚀 EXACT MATH FOR 6.1 SPEED (PERFECT DISTANCE JUMP) 🚀
+const GRAVITY=1.10,JUMP_VEL=-18.3,MAX_VEL=22;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=5.7,levelLength=40000,worldX=0,frameCount=0,shake=0;
+let scrollSpeed=6.1,levelLength=40000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let particles=[],obstacles=[];
@@ -541,7 +541,7 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // 🚀 START THE 120HZ BLOCKER LOOP 🚀
+    // 🚀 START NATIVE ENGINE
     lastTime = performance.now();
     reqAnimId = requestAnimationFrame(loop);
 }
@@ -558,14 +558,13 @@ function die(){
     }
 }
 
+// 🔥 BUG FIX: BLOCKCHAIN SAVE CONFIRMATION BEFORE SHOWING SHARE BUTTON 🔥
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
     let isWinValid=isOfficialRun&&(timePlayed>=45000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
-    if(currentLevel<10)unlockedLevels.add(currentLevel+1);
-    buildLevelUI();
     
     let levelBonus=currentLevel*500;
     let safeWorldX=Math.min(worldX,levelLength);
@@ -581,9 +580,10 @@ function triggerWin(){
     document.getElementById('overlayTitle').style.color='#00ff88';
     
     if(isWinValid){
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\nData saved on-chain.`;
-        document.getElementById('overlayCastBtn').style.display='block';
-        document.getElementById('overlayBtn').innerText='Return to Menu';
+        document.getElementById('overlaySub').innerText=`Saving to blockchain...\nPlease confirm in your wallet ⏳`;
+        document.getElementById('overlayCastBtn').style.display='none';
+        document.getElementById('overlayBtn').style.display='none';
+        document.getElementById('overlay').style.display='flex';
         
         isOfficialRun=false;
         const ob=document.getElementById('officialRunBtn');
@@ -591,17 +591,48 @@ function triggerWin(){
         ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
         
         if(isConnected){
-            // 🔥 User Transaction Action happens here!
-            gameContract.levelComplete(currentLevel, addScore, { gasLimit: 150000 }).then(()=>{}).catch(e=>{});
+            (async () => {
+                try {
+                    const txHash = await sendRawTransaction("levelComplete", [currentLevel, addScore]);
+                    document.getElementById('overlaySub').innerText=`Mining on Arbitrum (5-10s)... ⏳`;
+                    
+                    let isConfirmed = false;
+                    for(let i=0; i<15; i++) {
+                        await new Promise(r => setTimeout(r, 2000));
+                        try {
+                            const receipt = await publicProvider.getTransactionReceipt(txHash);
+                            if(receipt && receipt.confirmations > 0) {
+                                if(receipt.status === 1) isConfirmed = true;
+                                break;
+                            }
+                        } catch(err){}
+                    }
+                    
+                    if(isConfirmed) {
+                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n✅ Saved on-chain!`;
+                        fetchLeaderboard(); // Refresh Name and Levels IMMEDIATELY
+                    } else {
+                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Failed / Delayed`;
+                    }
+                } catch(e) {
+                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled! Data not saved.`;
+                }
+                
+                // Show the buttons now that it's done!
+                document.getElementById('overlayCastBtn').style.display='block';
+                document.getElementById('overlayBtn').style.display='block';
+                document.getElementById('overlayBtn').innerText='Return to Menu';
+            })();
         }
     }else{
         let reason=isOfficialRun?"(Need 60s min)":"(Practice Mode)";
         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
         document.getElementById('overlayCastBtn').style.display='none';
+        document.getElementById('overlayBtn').style.display='block';
         document.getElementById('overlayBtn').innerText='Return to Menu';
+        document.getElementById('overlay').style.display='flex';
         fetchLeaderboard(); 
     }
-    document.getElementById('overlay').style.display='flex';
 }
 
 function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
@@ -696,11 +727,11 @@ function draw(){
             let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y;
             let bc=o.t==='mplatf'?'#ff7700':'#00ff88';
             ctx.fillStyle=bc; ctx.fillRect(ox,oy,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); // Fast Border Hack
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12);
         }
         else if(o.t==='block'){
             ctx.fillStyle='#ff3060'; ctx.fillRect(ox,o.y,o.w,o.h); 
-            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); // Fast Border Hack
+            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); 
         }
         else if(o.t==='jpad'){ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4);}
         else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.fillRect(ox, o.y-15, 30, 30);ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5);}
@@ -738,13 +769,13 @@ function draw(){
     ctx.restore();
 }
 
-// 🚀 120HZ BUG KILLER LOOP (Zero Rubber-banding) 🚀
+// 🚀 120HZ BUG KILLER LOOP (No Jumps/Teleports) 🚀
 let lastTime = 0;
 function loop(timestamp) {
     reqAnimId = requestAnimationFrame(loop);
     
-    // Agar mobile 120Hz pe hai (lagbhag 8ms frame time), toh ye har doosra frame skip kar dega!
-    // Isse game HAMESHA strictly 60 FPS pe chalega, chahe screen ki speed kuchh bhi ho.
+    // Agar mobile 120Hz ya 90Hz pe hai, toh ye usko skip kar dega taaki game 60Hz se tej na bhage.
+    // Normal 60Hz phones pe ye code bilkul rukawat nahi daalega, game ekdum makkhan chalega!
     if (timestamp - lastTime < 15) {
         return; 
     }
