@@ -24,10 +24,10 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
+        /* 🔥 TRUE HARDWARE ACCELERATION 🔥 */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); will-change: transform; }
         canvas { display: block; width: 100%; height: 100%; }
         
-        /* 🔥 MOBILE OPTIMIZED OVERLAY UI 🔥 */
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; }
         #overlay h1 { font-size: 28px; margin-bottom: 8px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
         #overlay p { font-size: 14px; margin-bottom: 15px; color: #ffd700; white-space: pre-line; line-height: 1.4; }
@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE & DATA (🔥 EXACT 6.1 SPEED + PERFECT PHYSICS 🔥)
+// GAME ENGINE & DATA (🔥 EXACT 6.7 SPEED + PERFECT PHYSICS 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,18 +437,18 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 EXACT 6.1 SPEED SCALING 🚀
+// 🚀 EXACT 6.7 SPEED SCALING 🚀
 const LVL_CONFIG=[
-    {id:1,speed:6.1,len:40000},
-    {id:2,speed:6.5,len:50000},
-    {id:3,speed:6.8,len:55000},
-    {id:4,speed:7.2,len:60000},
-    {id:5,speed:7.6,len:65000},
-    {id:6,speed:8.0,len:70000},
-    {id:7,speed:8.4,len:75000},
-    {id:8,speed:8.8,len:80000},
-    {id:9,speed:9.3,len:85000},
-    {id:10,speed:9.8,len:100000}
+    {id:1,speed:6.7,len:40000},
+    {id:2,speed:7.2,len:50000},
+    {id:3,speed:7.6,len:55000},
+    {id:4,speed:8.0,len:60000},
+    {id:5,speed:8.4,len:65000},
+    {id:6,speed:8.9,len:70000},
+    {id:7,speed:9.3,len:75000},
+    {id:8,speed:9.8,len:80000},
+    {id:9,speed:10.3,len:85000},
+    {id:10,speed:10.8,len:100000}
 ];
 const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
 function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
@@ -468,11 +468,11 @@ const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
 let reqAnimId;
 const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
 
-// 🚀 EXACT MATH FOR 6.1 SPEED (PERFECT DISTANCE JUMP) 🚀
-const GRAVITY=1.10,JUMP_VEL=-18.3,MAX_VEL=22;
+// 🚀 EXACT MATH FOR 6.7 SPEED (PERFECT DISTANCE JUMP) 🚀
+const GRAVITY=1.33,JUMP_VEL=-20.1,MAX_VEL=24;
 
 let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=6.1,levelLength=40000,worldX=0,frameCount=0,shake=0;
+let scrollSpeed=6.7,levelLength=40000,worldX=0,frameCount=0,shake=0;
 let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
 let isGravityFlipped=false,flipTimer=0;
 let particles=[],obstacles=[];
@@ -541,8 +541,9 @@ function startOrRestartGame(fromOfficial=false){
     document.getElementById('overlay').style.display='none';
     document.getElementById('progressBar').style.width='0%';
     
-    // 🚀 START NATIVE ENGINE
+    // 🚀 START PERFECT ACCUMULATOR ENGINE
     lastTime = performance.now();
+    accumulator = 0;
     reqAnimId = requestAnimationFrame(loop);
 }
 
@@ -656,7 +657,7 @@ function update(){
     player.vy+=g;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
     player.y+=player.vy;
     
-    if(!player.ground)player.rot+=16;
+    if(!player.ground)player.rot+=18;
 
     let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
 
@@ -710,6 +711,7 @@ function draw(){
     
     if(shake>0){ctx.translate((Math.random()-0.5)*shake, (Math.random()-0.5)*shake); shake--;}
     
+    // 🔥 CLEAN BACKGROUND (No slow grid lines!)
     ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
     ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
     
@@ -727,11 +729,11 @@ function draw(){
             let oy=o.t==='mplatf'?o.y+Math.sin(frameCount*o.spd)*o.amp:o.y;
             let bc=o.t==='mplatf'?'#ff7700':'#00ff88';
             ctx.fillStyle=bc; ctx.fillRect(ox,oy,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12);
+            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,oy+2,o.w-4,12); // Fast Border Hack
         }
         else if(o.t==='block'){
             ctx.fillStyle='#ff3060'; ctx.fillRect(ox,o.y,o.w,o.h); 
-            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); 
+            ctx.fillStyle='#cc2244'; ctx.fillRect(ox+2,o.y+2,o.w-4,o.h-4); // Fast Border Hack
         }
         else if(o.t==='jpad'){ctx.fillStyle='#ffd700';ctx.beginPath();ctx.moveTo(ox+19,GROUND_Y-16);ctx.lineTo(ox+38,GROUND_Y);ctx.lineTo(ox,GROUND_Y);ctx.closePath();ctx.fill();ctx.fillStyle='#000';ctx.font='bold 9px Courier';ctx.textAlign='center';ctx.fillText('JUMP',ox+19,GROUND_Y-4);}
         else if(o.t==='gorb'){let pulse=0.7+0.3*Math.sin(frameCount*0.1);ctx.fillStyle=o.used?'#333':`rgba(255,136,0,${pulse})`;ctx.fillRect(ox, o.y-15, 30, 30);ctx.fillStyle=o.used?'#666':'#fff';ctx.font='bold 14px Courier';ctx.textAlign='center';ctx.fillText('G',ox+15,o.y+5);}
@@ -769,19 +771,30 @@ function draw(){
     ctx.restore();
 }
 
-// 🚀 120HZ BUG KILLER LOOP (No Jumps/Teleports) 🚀
+// 🚀 PRO GAME STUDIO ENGINE (Accumulator for 100% smooth framerate) 🚀
 let lastTime = 0;
+let accumulator = 0;
+const TIME_STEP = 1000 / 60; // Exact 60 FPS Physics Step
+
 function loop(timestamp) {
     reqAnimId = requestAnimationFrame(loop);
     
-    // Agar mobile 120Hz ya 90Hz pe hai, toh ye usko skip kar dega taaki game 60Hz se tej na bhage.
-    // Normal 60Hz phones pe ye code bilkul rukawat nahi daalega, game ekdum makkhan chalega!
-    if (timestamp - lastTime < 15) {
-        return; 
-    }
+    if (!lastTime) lastTime = timestamp;
+    let deltaTime = timestamp - lastTime;
+    
+    // Anti-teleport & Anti-lag: If phone hangs, max catchup is 100ms
+    if (deltaTime > 100) deltaTime = 100; 
     
     lastTime = timestamp;
-    update();
+    accumulator += deltaTime;
+    
+    // This ensures the game ALWAYS updates exactly 60 times a second, 
+    // no matter if the screen is 60Hz, 90Hz, or 120Hz!
+    while (accumulator >= TIME_STEP) {
+        update();
+        accumulator -= TIME_STEP;
+    }
+    
     draw();
 }
 
