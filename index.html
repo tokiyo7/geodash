@@ -429,7 +429,7 @@ async function executeSpin(){
 }
 
 // ==========================================
-// GAME ENGINE (🔥 6.8 SPEED + ZERO LAG RAW POWER 🔥)
+// GAME ENGINE & DATA (🔥 FUN MIXED LEVEL + LOCKED SPEED 6.8 🔥)
 // ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
@@ -437,7 +437,7 @@ function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain(
 function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
 function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
 
-// 🚀 EXACT 6.8 SPEED & 80% LENGTH (32000m)
+// 🚀 FIXED 6.8 SPEED PER LEVEL (No mid-level acceleration)
 const LVL_CONFIG=[
     {id:1,speed:6.8,len:32000},
     {id:2,speed:7.2,len:40000},
@@ -456,30 +456,36 @@ function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;
 function buildLevelObstacles(levelNum){
     let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
     
-    // 🔥 BEKAR OBJECTS (Gravity Orbs/Moving Plats) REMOVED FOR PURE PERFORMANCE 🔥
-    // Level 1 Fun Phases (Spikes -> Gaps -> Jump Pads)
+    // 🔥 FUN LEVEL 1: Gadde, Jump Pads, Platforms right from the START! 🔥
     if(levelNum===1){
         while(curX<len-800){
-            if (curX < len * 0.30) {
-                let r=pseudoRand(curX,levelNum);
-                if(r<0.6){ obs.push({t:'spike',x:curX}); curX+=400; }
-                else{ obs.push({t:'dspike',x:curX}); curX+=450; }
+            let r=pseudoRand(curX,levelNum);
+            let sec=Math.floor(r*5); // Pick 1 of 5 random obstacles from the very beginning
+            
+            if(sec===0){ 
+                obs.push({t:'spike',x:curX}); 
+                curX+=380; 
             }
-            else if (curX >= len * 0.30 && curX < len * 0.60) {
-                let r=pseudoRand(curX,levelNum);
-                if(r<0.4){ obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); curX+=400; }
-                else if(r<0.7){ obs.push({t:'gap',x:curX,w:120}); curX+=450; }
-                else{ obs.push({t:'platform',x:curX,y:PLAT_MID,w:120},{t:'spike',x:curX+40,onPlatY:PLAT_MID}); curX+=450; }
+            else if(sec===1){ 
+                obs.push({t:'gap',x:curX,w:130}); // Gadde (Gap)
+                curX+=450; 
             }
-            else {
-                let r=pseudoRand(curX,levelNum);
-                if(r<0.5){ obs.push({t:'jpad',x:curX},{t:'spike',x:curX+280}); curX+=500; }
-                else{ obs.push({t:'jpad',x:curX},{t:'platform',x:curX+150,y:PLAT_MID,w:120}); curX+=550; }
+            else if(sec===2){ 
+                obs.push({t:'platform',x:curX,y:PLAT_LOW,w:180}); // Platform
+                curX+=450; 
+            }
+            else if(sec===3){ 
+                obs.push({t:'jpad',x:curX},{t:'platform',x:curX+200,y:PLAT_MID,w:120}); // Jump Pad leading to platform
+                curX+=550; 
+            }
+            else { 
+                obs.push({t:'dspike',x:curX}); // Double Spikes
+                curX+=450; 
             }
         }
     }
     else {
-        // Levels 2-10 (Simplified for max FPS, removed heavy objects)
+        // Levels 2-10
         while(curX<len-1000){
             let r=pseudoRand(curX,levelNum),sec=Math.floor(r*6);
             if(sec===0){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+350});curX+=750;}
@@ -549,6 +555,7 @@ canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:fa
 
 function startOrRestartGame(fromOfficial=false){
     resetGameState(); 
+    // Speed is LOCKED per level here
     let cfg=LVL_CONFIG[currentLevel-1];
     scrollSpeed=cfg.speed;
     levelLength=cfg.len;
@@ -574,7 +581,6 @@ function die(){
     gameState='dead';attemptCount++;
     document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
     playDie();
-    // Bare minimum particles for zero lag
     for(let i=0;i<6;i++) {
         particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.0,col:'#00f0ff',size:8});
     }
@@ -582,7 +588,7 @@ function die(){
 
 function triggerWin(){
     let timePlayed=(Date.now()-levelStartTimestamp);
-    let isWinValid=isOfficialRun&&(timePlayed>=20000); // 20s minimum for 6.8 speed
+    let isWinValid=isOfficialRun&&(timePlayed>=20000); 
     
     gameState='clear';playWin();
     completedLevels.add(currentLevel);
@@ -661,7 +667,9 @@ function update(){
     for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=(gameState==='clear')?0.2:0.6;p.life-=(gameState==='clear')?0.01:0.04;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
     if(gameState!=='playing')return;
 
-    frameCount++;worldX+=scrollSpeed;
+    frameCount++;
+    // Speed is constant within the level
+    worldX+=scrollSpeed;
     
     if(frameCount%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
     
@@ -687,7 +695,7 @@ function update(){
         if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y;oHX=ox+6;oHY=baseY-32;oHW=26;oHH=32;}
         else if(o.t==='dspike'){oHX=ox+6;oHY=GROUND_Y-32;oHW=64;oHH=32;}
         else if(o.t==='platform'){oHX=ox;oHY=oy-8;oHW=o.w;oHH=32;}
-        else if(o.t==='jpad'){oHX=ox;oHY=GROUND_Y-16;oHW=38;oHH=16;} // Simplified Jpad math
+        else if(o.t==='jpad'){oHX=ox;oHY=GROUND_Y-16;oHW=38;oHH=16;} 
         else continue;
 
         if(AABB(px,py,pw,ph,oHX,oHY,oHW,oHH)){
