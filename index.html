@@ -30,8 +30,7 @@
         .modal-title { color: #00f0ff; font-size: 24px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.5); }
         .modal-text { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 12px; text-align: left; }
         .highlight { color: var(--gold); font-weight: bold; }
-        .modal-btn { background: #00f0ff; color: #000; border: none; padding: 12px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-        .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); margin-top: 15px; animation: btnPulse 1.5s infinite alternate; }
+        .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; animation: btnPulse 1.5s infinite alternate; }
 
         /* GAME CANVAS */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
@@ -69,6 +68,7 @@
         .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .prize-table tr.t-rare td { color: var(--cyan); }
         .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
+        .prize-note { color: rgba(0,240,255,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
         .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
         .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; }
@@ -114,8 +114,7 @@
         <div class="modal-title">Welcome to GeoDash! ⚡</div>
         <div class="modal-text">🚀 <span class="highlight">ABOUT THE GAME:</span><br>Survive the impossible neon obstacles to claim $ARB bounties! Levels update and change periodically, so if you're stuck, take a break and try again later!</div>
         <div class="modal-text">💻 <span class="highlight">PRO TIP:</span><br>For the ultimate, buttery-smooth experience, playing on a <b>Desktop or Laptop</b> is highly recommended.</div>
-        <button class="modal-btn modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
-        <button class="modal-btn" onclick="closeModal()">🎮 I'm Ready, Let's Play!</button>
+        <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
 </div>
 <div class="toast" id="toast">Message</div>
@@ -461,9 +460,6 @@ async function executeSpin(){
     }, 2500); 
 }
 
-// ==========================================
-// GAME ENGINE (🔥 DELTATIME ENGINE - ZERO RUBBERBANDING 🔥)
-// ==========================================
 let ac=null;
 function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
 function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
