@@ -8,86 +8,85 @@
     <meta property="og:description" content="Geometry Dash on Arbitrum! Play 10 levels, spin to win ARB tokens. Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
     <meta name="theme-color" content="#05080f">
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
         :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
-        body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px; overflow-x: hidden; scroll-behavior: smooth; }
+        body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 12px; overflow-x: hidden; scroll-behavior: smooth; }
         
-        @keyframes titlePulse { 0% { text-shadow: 0 0 10px #00f0ff; } 100% { text-shadow: 0 0 25px #00f0ff, 0 0 15px #00f0ff; } }
-        @keyframes btnPulse { 0% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 25px var(--gold), 0 0 10px var(--gold); } }
+        @keyframes titlePulse { 0% { text-shadow: 0 0 8px #00f0ff; } 100% { text-shadow: 0 0 15px #00f0ff, 0 0 8px #00f0ff; } }
+        @keyframes btnPulse { 0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } }
 
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 10px 15px; background: rgba(5,8,15,0.95); border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; margin-bottom: 10px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
-        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 3px; animation: titlePulse 1.5s infinite alternate; }
+        /* 🔥 PREMIUM UI UPGRADES 🔥 */
+        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 12px 18px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.05)); border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 2px; animation: titlePulse 2s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* 🔥 WELCOME POPUP MODAL 🔥 */
-        #welcomeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.92); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #0a0f18; border: 2px solid var(--cyan); border-radius: 12px; padding: 25px; max-width: 90%; width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,240,255,0.2); }
-        .modal-title { color: #00f0ff; font-size: 24px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.5); }
-        .modal-text { font-size: 14px; color: #ccc; line-height: 1.6; margin-bottom: 12px; text-align: left; }
+        #welcomeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-content { background: linear-gradient(180deg, #0a0f18, #05080f); border: 1px solid var(--cyan); border-radius: 16px; padding: 30px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,240,255,0.15); }
+        .modal-title { color: #00f0ff; font-size: 26px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.3); }
+        .modal-text { font-size: 14px; color: #d0d0d0; line-height: 1.7; margin-bottom: 15px; text-align: left; }
         .highlight { color: var(--gold); font-weight: bold; }
-        .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 15px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 15px; animation: btnPulse 1.5s infinite alternate; }
+        .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; animation: btnPulse 1.5s infinite alternate; transition: transform 0.2s; }
+        .modal-btn-spin:active { transform: scale(0.95); }
 
-        /* GAME CANVAS */
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 4px; transform: translateZ(0); }
+        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); box-shadow: 0 8px 30px rgba(0,0,0,0.8); }
         canvas { display: block; width: 100%; height: 100%; }
         
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; }
-        #overlay h1 { font-size: 28px; margin-bottom: 8px; text-shadow: 0 0 20px currentColor; animation: pulse 0.6s ease infinite alternate; }
-        #overlay p { font-size: 14px; margin-bottom: 15px; color: #ffd700; white-space: pre-line; line-height: 1.4; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 8px; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; backdrop-filter: blur(3px); }
+        #overlay h1 { font-size: 32px; margin-bottom: 10px; text-shadow: 0 0 15px currentColor; animation: pulse 0.6s ease infinite alternate; }
+        #overlay p { font-size: 15px; margin-bottom: 20px; color: #ffd700; white-space: pre-line; line-height: 1.5; }
+        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 10px; }
         .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
-        .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: #0a0f18; border: 1px solid rgba(0,240,255,0.3); border-radius: 6px; padding: 5px; }
-        .progress-bar { height: 14px; background: #00f0ff; width: 0%; box-shadow: 0 0 10px #00f0ff; border-radius: 4px; }
-        .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; }
+        .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 15px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
+        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; box-shadow: 0 0 10px rgba(0,240,255,0.5); border-radius: 6px; transition: width 0.1s linear; }
+        .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
 
-        .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .lvl-btn { flex: 1; min-width: 45px; padding: 10px 0; text-align: center; font-weight: bold; border-radius: 4px; border: 1px solid #1a2332; background: #0a0f18; color: #2a3a4a; cursor: not-allowed; }
-        .lvl-btn.unlocked { background: transparent; border-color: #00f0ff; color: #00f0ff; cursor: pointer; }
-        .lvl-btn.active { background: #00f0ff; color: #000; box-shadow: 0 0 15px #00f0ff; }
-        .lvl-btn.done { background: rgba(0,255,136,0.08); border-color: #00ff88; color: #00ff88; cursor: pointer; }
+        .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .lvl-btn { flex: 1; min-width: 45px; padding: 12px 0; text-align: center; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(10,15,24,0.6); color: #4a5a6a; cursor: not-allowed; transition: all 0.2s; }
+        .lvl-btn.unlocked { background: rgba(0,240,255,0.05); border-color: rgba(0,240,255,0.3); color: #00f0ff; cursor: pointer; }
+        .lvl-btn.active { background: #00f0ff; color: #000; border-color: #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
+        .lvl-btn.done { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.4); color: #00ff88; cursor: pointer; }
 
-        .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 5px; display: flex; gap: 10px; }
-        .play-btn { flex: 1; padding: 14px; background: transparent; border: 2px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; font-family: 'Courier New', monospace; }
-        .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 20px #00f0ff; }
-        .play-btn-gold { border-color: var(--gold); color: var(--gold); animation: btnPulse 1.5s infinite alternate; } 
-        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 20px var(--gold); }
-        .play-btn-gold:disabled { border-color: #555; color: #888; background: transparent; cursor: not-allowed; animation: none; }
-        .btn-note { font-size: 11px; color: #888; text-align: center; width: 100%; margin-bottom: 20px; }
+        .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 8px; display: flex; gap: 12px; }
+        .play-btn { flex: 1; padding: 16px; background: rgba(0,240,255,0.05); border: 1px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 8px; font-family: 'Courier New', monospace; transition: all 0.2s; }
+        .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
+        .play-btn-gold { background: rgba(255,215,0,0.05); border-color: var(--gold); color: var(--gold); animation: btnPulse 2s infinite alternate; } 
+        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+        .play-btn-gold:disabled { border-color: #444; color: #666; background: transparent; cursor: not-allowed; animation: none; }
+        .btn-note { font-size: 11px; color: #777; text-align: center; width: 100%; margin-bottom: 25px; }
 
-        .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.25); border-radius: 8px; padding: 16px; background: rgba(8,6,0,0.95); margin-bottom: 12px; }
-        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px #ffd700; }
-        .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 6px; text-align: center; text-transform: uppercase; }
+        .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(255,215,0,0.02); }
+        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 8px; text-align: center; text-transform: uppercase; }
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
-        .prize-table th { color: #444; font-size: 10px; letter-spacing: 1px; padding: 3px 8px; border-bottom: 1px solid #1a2332; text-align: left; }
-        .prize-table td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .prize-table th { color: #555; font-size: 10px; letter-spacing: 1px; padding: 4px 8px; border-bottom: 1px solid #222; text-align: left; }
+        .prize-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
         .prize-table tr.t-rare td { color: var(--cyan); }
         .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
-        .prize-note { color: rgba(0,240,255,0.6); font-size: 10px; text-align: center; margin-top: 8px; letter-spacing: 1px; }
 
-        .slot-machine { width: 100%; max-width: 800px; border: 2px solid var(--gold); border-radius: 8px; padding: 20px; text-align: center; background: linear-gradient(180deg, #1a1a10, #0d1100); margin-bottom: 20px; }
-        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 15px; }
-        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #fff; border-radius: 8px; font-size: 45px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; letter-spacing: 1px; }
+        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 22px; }
+        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: inset 0 0 15px rgba(255,255,255,0.1); }
         .reel-inner { position: absolute; transition: top 0.1s; }
-        .spinning { filter: blur(3px); animation: fastSpin 0.1s infinite; }
+        .spinning { filter: blur(2px); animation: fastSpin 0.1s infinite; }
         @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
-        .spin-btn { background: var(--gold); color: #000; border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #555 !important; color: #222 !important; cursor: not-allowed; }
-        .slot-info { font-size: 14px; color: #ccc; margin-top: 5px; }
-        .cast-btn-small { background: #8a2be2; color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 10px; display:none; }
+        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 4px 10px rgba(255,215,0,0.2); }
+        .spin-btn:disabled { background: #333 !important; color: #666 !important; box-shadow: none; cursor: not-allowed; }
+        .slot-info { font-size: 13px; color: #aaa; margin-top: 8px; }
+        .cast-btn-small { background: linear-gradient(90deg, #8a2be2, #4a00e0); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 12px; display:none; }
 
-        .leaderboard { width: 100%; max-width: 800px; border: 1px solid var(--cyan); border-radius: 4px; padding: 15px; background: rgba(13,17,23,0.9); }
-        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 18px; }
-        .lb-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #222; font-size: 14px; }
-        #walletStatus { font-size: 12px; color: #888; margin-top: 20px; text-align: center; margin-bottom: 40px; }
+        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); box-shadow: inset 0 0 20px rgba(0,240,255,0.02); }
+        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 18px; font-size: 18px; letter-spacing: 1px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; border-radius: 6px; margin-bottom: 4px; }
+        #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
         
-        .toast { position: fixed; top: 20px; right: 20px; background: #222; color: #fff; padding: 15px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border-radius: 4px; font-size: 14px; backdrop-filter: blur(5px); }
     </style>
     
     <script type="module">
@@ -100,7 +99,7 @@
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
                     const titleEl = document.getElementById('mainTitle');
-                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;">@${window.fcUsername}</span>`;
+                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
                 }
             }).catch(()=>{});
         } catch(e) {}
@@ -112,18 +111,19 @@
 <div id="welcomeModal">
     <div class="modal-content">
         <div class="modal-title">Welcome to GeoDash! ⚡</div>
-        <div class="modal-text">🚀 <span class="highlight">ABOUT THE GAME:</span><br>Survive the impossible neon obstacles to claim $ARB bounties! Levels update and change periodically, so if you're stuck, take a break and try again later!</div>
-        <div class="modal-text">💻 <span class="highlight">PRO TIP:</span><br>For the ultimate, buttery-smooth experience, playing on a <b>Desktop or Laptop</b> is highly recommended.</div>
+        <div class="modal-text">🚀 **OUR CUSTOM ENGINE:** We don't rely on bloated, slow 3rd-party software. We built our own lightweight Game Engine from scratch to give you the ultimate, zero-lag Web3 gaming experience!</div>
+        <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience for God-tier reflexes.</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
 </div>
+
 <div class="toast" id="toast">Message</div>
 
 <div class="header">
     <div class="title" id="mainTitle">GEODASH</div>
     <div class="stats">
         <div id="attemptUI">Attempt: 0</div>
-        <div id="scoreUI">Score: 0</div>
+        <div id="scoreUI" style="color:var(--gold);">Score: 0</div>
     </div>
 </div>
 
@@ -133,7 +133,7 @@
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
         <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
-        <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px;">Return to Menu</button>
+        <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px; background: #222; color: #fff;">Return to Menu</button>
     </div>
 </div>
 
@@ -159,7 +159,7 @@
         <tr class="t-rare"><td>(Common)</td><td>0.001 — 0.05 ARB</td></tr>
         <tr class="t-legend"><td>(Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
     </table>
-    <div style="text-align:center; color:#222; font-size:11px; margin:8px 0;">————————————</div>
+    <div style="text-align:center; color:#333; font-size:11px; margin:10px 0;">————————————</div>
     <div class="prize-section-label">🏆 LEVEL CLEAR REWARDS (Manual Claim)</div>
     <table class="prize-table">
         <tr><th>Level</th><th>Prize Amount</th></tr>
@@ -187,27 +187,604 @@
 
 <div class="leaderboard">
     <div class="lb-title">🌍 GLOBAL TOP 10</div>
-    <div id="globalLbContent" style="margin-bottom:15px;">Loading...</div>
+    <div id="globalLbContent" style="margin-bottom:20px;">Loading...</div>
     
-    <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:10px;">👤 YOUR ON-CHAIN STATS</div>
+    <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:12px;">👤 YOUR ON-CHAIN STATS</div>
     <div id="lbContent">Connect wallet to load...</div>
 </div>
 
 <div id="walletStatus">Ready to Play!</div>
 
+
 <script>
-// 🚨 Modal Functions 🚨
-function closeModal() {
-    document.getElementById('welcomeModal').style.display = 'none';
-}
-function scrollToSpin() {
-    closeModal();
-    document.getElementById('slotMachineSection').scrollIntoView({ behavior: 'smooth' });
+let ac = null;
+function initAudio() {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
 }
 
-// 🚨 CONTRACT ADDRESS UNTOUCHED 🚨
+function playJump() {
+    if (!ac) return;
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g);
+    g.connect(ac.destination);
+    o.frequency.setValueAtTime(440, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(880, ac.currentTime + 0.1);
+    g.gain.setValueAtTime(0.15, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.15);
+    o.start();
+    o.stop(ac.currentTime + 0.15);
+}
+
+function playDie() {
+    if (!ac) return;
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g);
+    g.connect(ac.destination);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(220, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(55, ac.currentTime + 0.3);
+    g.gain.setValueAtTime(0.2, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
+    o.start();
+    o.stop(ac.currentTime + 0.3);
+}
+
+function playWin() {
+    if (!ac) return;
+    [523, 659, 784, 1047].forEach((f, i) => {
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.connect(g);
+        g.connect(ac.destination);
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.15, ac.currentTime + i * 0.12);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.12 + 0.2);
+        o.start(ac.currentTime + i * 0.12);
+        o.stop(ac.currentTime + i * 0.12 + 0.25);
+    });
+}
+</script>
+
+<script>
+class GeoDashEngine {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
+        
+        this.W = 800;
+        this.H = 400;
+        this.GROUND_Y = 320;
+        this.GRAVITY = 1.51;
+        this.JUMP_VEL = -21.0;
+        this.SPEED = 7.2;
+        
+        this.state = 'IDLE'; 
+        this.worldX = 0;
+        this.frameCount = 0;
+        this.lastTime = 0;
+        this.reqId = null;
+        this.levelLength = 24000;
+        this.currentLevel = 1;
+        this.official = false;
+        this.attempts = 0;
+
+        this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY: 0, ground: true };
+        
+        this.obstaclePool = []; 
+        this.activeObstacles = [];
+        this.particlePool = []; 
+        
+        this.trail = []; // Ghost Trail array
+        this.stars = []; // Background stars
+        
+        this.initPools();
+        this.initStars();
+
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') this.jump(); });
+        this.canvas.addEventListener('mousedown', () => this.jump());
+        this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
+    }
+
+    initPools() {
+        for(let i=0; i<150; i++) {
+            this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:'#00f0ff' });
+        }
+        for(let i=0; i<60; i++) {
+            this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
+        }
+    }
+
+    initStars() {
+        for(let i=0; i<30; i++) {
+            this.stars.push({
+                x: Math.random() * this.W,
+                y: Math.random() * this.GROUND_Y,
+                s: Math.random() * 2 + 1,
+                speed: Math.random() * 0.4 + 0.1
+            });
+        }
+    }
+
+    initPatterns() {
+        this.geometryPatterns = [];
+        
+        // 🔥 ACTION-PACKED START (Tight but completely fair) 🔥
+        let startSequence = [
+            {t:'jpad', x: 500}, 
+            {t:'platform', x: 700, y: 180, w: 150},
+            {t:'gap', x: 1050, w: 120},
+            {t:'platform', x: 1250, y: 250, w: 180},
+            {t:'spike', x: 1320, onPlatY: 250}, // Spike ON platform
+            {t:'platform', x: 1750, y: 260, w: 90}, // Fast Stairs
+            {t:'platform', x: 1900, y: 200, w: 90}, 
+            {t:'platform', x: 2050, y: 140, w: 90}, 
+            {t:'spike', x: 1900, onPlatY: this.GROUND_Y}, // Spikes below stairs
+            {t:'spike', x: 2050, onPlatY: this.GROUND_Y},
+            {t:'dspike', x: 2550}
+        ];
+        
+        for(let p of startSequence) {
+            let h = (p.t==='spike'||p.t==='dspike')?32:16;
+            let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
+            this.geometryPatterns.push({t: p.t, x: p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
+        }
+
+        // Random chunks for the rest of the level (TIGHTER SPACING: 450px base gap)
+        let curX = 3100;
+        let chunks = [
+            [{t:'spike', x:0}],
+            [{t:'gap', x:0, w:120}, {t:'platform', x:180, y:240, w:120}],
+            [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}, {t:'spike', x:250, onPlatY:180}], // Jump pad to platform with spike
+            [{t:'platform', x:0, y:260, w:80}, {t:'platform', x:160, y:200, w:80}, {t:'platform', x:320, y:140, w:80}], // Fast stairs
+            [{t:'dspike', x:0}, {t:'gap', x:250, w倒100}], 
+            [{t:'platform', x:0, y:220, w:280}, {t:'spike', x:120, onPlatY:220}], // Long platform with spike in middle
+            [{t:'spike', x:0}, {t:'spike', x:240}] // Fast double jump
+        ];
+        
+        while(curX < this.levelLength - 1500) {
+            let r = Math.sin(curX * 0.01) * 10000;
+            let idx = Math.floor((r - Math.floor(r)) * chunks.length);
+            let chunk = chunks[idx];
+            
+            for(let p of chunk) {
+                let h = (p.t==='spike'||p.t==='dspike')?32:16;
+                let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
+                this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
+            }
+            // 🔥 MUCH CLOSER SPACING for constant action 🔥
+            curX += 450 + ((r - Math.floor(r)) * 120); 
+        }
+    }
+
+    spawnObstacle(t, x, y, w, h, onPlatY) {
+        let o = this.obstaclePool.find(obj => !obj.active);
+        if(o) { 
+            o.active=true; o.t=t; o.x=x; o.y=y; o.w=w; o.h=h; o.onPlatY=onPlatY; 
+            this.activeObstacles.push(o); 
+        }
+    }
+
+    // 🔥 BIGGER JUMP DUST 🔥
+    spawnJumpDust() {
+        for(let i=0; i<8; i++) {
+            let p = this.particlePool.find(obj => !obj.active);
+            if(p) {
+                p.active=true; 
+                p.x = this.player.x + 18; 
+                p.y = this.player.y + 36; 
+                p.vx = (Math.random() - 0.5) * 10; 
+                p.vy = -(Math.random() * 3 + 1);
+                p.life = 1.0; 
+                p.s = 4 + Math.random() * 4; 
+                p.c = '#e0e0e0'; // Light dust
+            }
+        }
+    }
+
+    spawnDeathExplosion() {
+        for(let i=0; i<40; i++) {
+            let p = this.particlePool.find(obj => !obj.active);
+            if(p) {
+                p.active=true; 
+                p.x=this.player.x+18; 
+                p.y=this.player.y+18;
+                p.vx=(Math.random()-0.5)*18; 
+                p.vy=(Math.random()-0.5)*18;
+                p.life=1.0; 
+                p.s=5+Math.random()*5; 
+                p.c='#00f0ff';
+            }
+        }
+    }
+
+    reset() {
+        initAudio();
+        cancelAnimationFrame(this.reqId);
+        this.ctx.fillStyle='#05080f'; 
+        this.ctx.fillRect(0,0,this.W,this.H); 
+        
+        this.worldX = 0; 
+        this.frameCount = 0;
+        this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
+        this.trail = [];
+        
+        this.activeObstacles.forEach(o=>o.active=false); 
+        this.activeObstacles=[];
+        this.particlePool.forEach(p=>p.active=false); 
+
+        this.initPatterns();
+        this.geometryPatterns.forEach(p=> {
+            this.spawnObstacle(p.t, p.x, p.y, p.w, p.h, p.onPlatY);
+        });
+    }
+
+    start(isOfficial) {
+        if(this.state === 'PLAYING') return;
+        this.reset();
+        this.state = 'PLAYING'; 
+        this.official = isOfficial;
+        if(!isOfficial) showToast("Practice Mode - Custom Engine Active","#ff3060");
+        document.getElementById('progressBar').style.width='0%';
+        this.lastTime = performance.now();
+        this.loop(this.lastTime);
+    }
+
+    jump() {
+        initAudio();
+        if(this.state==='DEAD'||this.state==='IDLE'||this.state==='CLEAR'){ 
+            this.start(false); 
+            return; 
+        } 
+        if(this.state!=='PLAYING') return;
+        if(this.player.ground){ 
+            this.player.vy=this.JUMP_VEL; 
+            this.player.ground=false; 
+            this.spawnJumpDust(); 
+            playJump(); 
+        }
+    }
+
+    die() {
+        if(this.state==='DEAD') return;
+        this.state = 'DEAD'; 
+        this.attempts++;
+        document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
+        playDie();
+        this.spawnDeathExplosion();
+        if(this.official) handleOfficialDie();
+    }
+
+    win() {
+        if(this.state==='CLEAR') return;
+        this.state = 'CLEAR'; 
+        playWin();
+        triggerWinUi(this.attempts); 
+    }
+
+    update(dt) {
+        for(let p of this.particlePool){ 
+            if(p.active){ 
+                p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=0.6*dt; p.life-=0.03*dt; 
+                if(p.life<=0) p.active=false; 
+            } 
+        }
+
+        for(let s of this.stars) {
+            if(this.state === 'PLAYING') s.x -= s.speed * this.SPEED * dt;
+            if(s.x < 0) { s.x = this.W; s.y = Math.random() * this.GROUND_Y; }
+        }
+
+        if(this.state!=='PLAYING') return;
+        
+        this.frameCount += dt; 
+        this.worldX += this.SPEED*dt;
+
+        // 🔥 SMOOTH & LONG GHOST TRAIL 🔥
+        if(Math.floor(this.frameCount) % 2 === 0) {
+            // Start at 0.7 opacity for a nice bright trail tail
+            this.trail.push({x: this.player.x, y: this.player.y, rot: this.player.rot, life: 0.7});
+        }
+        for(let t of this.trail) t.life -= 0.04 * dt; // Fade out slowly
+        this.trail = this.trail.filter(t => t.life > 0);
+
+        if(Math.floor(this.frameCount)%30===0){
+            let prog = Math.min(100,(this.worldX/this.levelLength)*100);
+            document.getElementById('progressBar').style.width=prog+'%';
+            let progressBonus = Math.floor((this.worldX/this.levelLength) * this.currentLevel * 50);
+            document.getElementById('scoreUI').innerText=`Score: ${window.baseScore + progressBonus}`;
+        }
+
+        if(this.worldX>=this.levelLength){ this.win(); return; }
+
+        this.player.prevY = this.player.y;
+        this.player.vy += this.GRAVITY*dt;
+        if(this.player.vy>26) this.player.vy=26; 
+        this.player.y += this.player.vy*dt;
+        if(!this.player.ground) this.player.rot += 15*dt;
+
+        let px=this.player.x+6, py=this.player.y+6, pw=24, ph=24;
+        let overGap=false, onPlatform=false;
+
+        for(let o of this.obstaclePool){
+            if(!o.active) continue;
+            let ox=o.x-this.worldX;
+            if(ox<-200||ox>800+100) continue; 
+
+            if(o.t==='gap'){
+                if(this.player.x+18>ox&&this.player.x+18<ox+o.w) overGap=true; 
+                continue;
+            }
+            
+            let oHX=ox, oHY=o.y, oHW=o.w, oHH=o.h;
+            if(o.t==='spike'){ oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; }
+            else if(o.t==='dspike'){oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;}
+            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-16; oHW=38; oHH=16;}
+            else if(o.t==='platform'){oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;}
+
+            if(px<oHX+oHW && px+pw>oHX && py<oHY+oHH && py+ph>oHY){
+                if(o.t==='spike'||o.t==='dspike'){ 
+                    this.die(); 
+                    return; 
+                }
+                if(o.t==='jpad'){ 
+                    this.player.vy=this.JUMP_VEL*1.3; 
+                    this.player.ground=false; 
+                    this.spawnJumpDust();
+                    playJump(); 
+                }
+                if(o.t==='platform'){
+                    if(this.player.prevY+this.player.h<=o.y+15 && this.player.vy>=0){
+                        this.player.y=o.y-this.player.h; 
+                        this.player.vy=0; 
+                        this.player.ground=true; 
+                        onPlatform=true; 
+                        this.player.rot=Math.round(this.player.rot/90)*90;
+                    }else{ 
+                        this.die(); 
+                        return; 
+                    }
+                }
+            }
+        }
+
+        if(this.player.y+this.player.h>=this.GROUND_Y && !overGap){ 
+            this.player.y=this.GROUND_Y-this.player.h; 
+            this.player.vy=0; 
+            this.player.ground=true; 
+            this.player.rot=Math.round(this.player.rot/90)*90; 
+        }
+        else if(this.player.y>400) {
+            this.die(); 
+        }
+        else if(!onPlatform){
+            if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false;
+        }
+    }
+
+    draw() {
+        this.ctx.fillStyle='#05080f'; 
+        this.ctx.fillRect(0,0,this.W,this.H); 
+        
+        this.ctx.fillStyle = '#ffffff';
+        for(let s of this.stars) {
+            this.ctx.globalAlpha = Math.random() * 0.5 + 0.2; 
+            this.ctx.fillRect(s.x, s.y, s.s, s.s);
+        }
+        this.ctx.globalAlpha = 1.0;
+
+        this.ctx.fillStyle='#080d14'; 
+        this.ctx.fillRect(0,this.GROUND_Y,this.W,this.H-this.GROUND_Y);
+        this.ctx.fillStyle='#00f0ff'; 
+        this.ctx.fillRect(0,this.GROUND_Y-1,this.W,3); 
+
+        for(let o of this.activeObstacles){
+            if(!o.active) continue;
+            let ox = o.x-this.worldX; 
+            if(ox<-100||ox>this.W+100) continue;
+            
+            if(o.t==='gap'){
+                this.ctx.fillStyle='#000';
+                this.ctx.fillRect(ox,this.GROUND_Y,o.w,this.H-this.GROUND_Y);
+            }
+            else if(o.t==='spike'){ 
+                let baseY = o.onPlatY ? o.onPlatY : this.GROUND_Y; 
+                this.ctx.fillStyle='#ff3060';
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+19,baseY-38);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.lineTo(ox,baseY);
+                this.ctx.fill();
+            }
+            else if(o.t==='dspike'){ 
+                let baseY = o.onPlatY ? o.onPlatY : this.GROUND_Y; 
+                this.ctx.fillStyle='#ff3060';
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+19,baseY-38);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.lineTo(ox,baseY);
+                this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+57,baseY-38);
+                this.ctx.lineTo(ox+76,baseY);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.fill();
+            }
+            else if(o.t==='platform'){
+                this.ctx.fillStyle='#00ff88'; 
+                this.ctx.fillRect(ox,o.y,o.w,16); 
+                this.ctx.fillStyle='#0d1e2e'; 
+                this.ctx.fillRect(ox+2,o.y+2,o.w-4,12);
+            }
+            else if(o.t==='jpad'){
+                this.ctx.fillStyle='#ffd700'; 
+                this.ctx.fillRect(ox,this.GROUND_Y-16,38,16); 
+                this.ctx.fillStyle='#000'; 
+                this.ctx.fillRect(ox+4,this.GROUND_Y-12,30,8); 
+            }
+        }
+
+        // 🔥 DRAW GHOST TRAIL (Smooth Cyan Fade) 🔥
+        if(this.state !== 'DEAD') {
+            for(let t of this.trail) {
+                this.ctx.save();
+                this.ctx.translate(t.x+18, t.y+18);
+                this.ctx.rotate(t.rot * Math.PI / 180);
+                this.ctx.fillStyle = `rgba(0, 240, 255, ${t.life})`; 
+                this.ctx.fillRect(-18, -18, 36, 36);
+                this.ctx.restore();
+            }
+        }
+
+        for(let p of this.particlePool){ 
+            if(p.active){ 
+                this.ctx.fillStyle=p.c; 
+                this.ctx.globalAlpha=Math.max(0,p.life); 
+                this.ctx.fillRect(p.x-p.s/2, p.y-p.s/2, p.s, p.s); 
+            } 
+        }
+        this.ctx.globalAlpha=1.0;
+
+        // 🔥 NORMAL CUBE (No extreme glow) 🔥
+        if(this.state!=='DEAD'){
+            this.ctx.save();
+            this.ctx.translate(this.player.x+18, this.player.y+18);
+            this.ctx.rotate(this.player.rot*Math.PI/180);
+            
+            this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':'#00f0ff'; 
+            this.ctx.fillRect(-18,-18,36,36); 
+            
+            this.ctx.fillStyle='#05080f'; 
+            this.ctx.fillRect(-14,-14,28,28); 
+            
+            this.ctx.fillStyle='#00f0ff'; 
+            this.ctx.fillRect(-8,-6,4,4); 
+            this.ctx.fillRect(4,-6,4,4); 
+            this.ctx.fillRect(-8,6,16,4); 
+            this.ctx.restore();
+        }
+    }
+
+    loop(timestamp) {
+        if (!this.lastTime) this.lastTime = timestamp;
+        let deltaTime = timestamp - this.lastTime;
+        this.lastTime = timestamp;
+        
+        if (deltaTime > 60) deltaTime = 16.66;
+        let dtScale = deltaTime / 16.66;
+        if (dtScale < 0.1) dtScale = 0.1; 
+        if (dtScale > 2.0) dtScale = 2.0;
+        
+        this.update(dtScale);
+        this.draw();
+        this.reqId = requestAnimationFrame((ts) => this.loop(ts));
+    }
+}
+
+const ge = new GeoDashEngine('gameCanvas');
+ge.draw(); 
+window.baseScore = 0; 
+</script>
+
+<script>
+function closeModal() { 
+    document.getElementById('welcomeModal').style.display = 'none'; 
+}
+function scrollToSpin() { 
+    closeModal(); 
+    document.getElementById('slotMachineSection').scrollIntoView({ behavior: 'smooth' }); 
+}
+
+function handleOfficialDie(){
+    const ob=document.getElementById('officialRunBtn');
+    ob.disabled=false;
+    ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
+    ob.style.display='block';
+}
+
+function triggerWinUi(tries) {
+    lastClearedLevel = ge.currentLevel;
+    document.getElementById('overlayTitle').innerText=`✨ LEVEL ${ge.currentLevel} CLEAR! ✨`;
+    document.getElementById('overlayTitle').style.color='#00ff88';
+    
+    let isOfficial = ge.official;
+    let levelBonus = ge.currentLevel * 500;
+    let addScore = levelBonus + Math.floor(ge.currentLevel * 50);
+
+    window.baseScore += addScore;
+    document.getElementById('scoreUI').innerText=`Score: ${window.baseScore}`;
+
+    if(isOfficial){
+        document.getElementById('overlaySub').innerText=`Saving to blockchain...\nPlease confirm in your wallet ⏳`;
+        document.getElementById('overlayCastBtn').style.display='none';
+        document.getElementById('overlayBtn').style.display='none';
+        document.getElementById('overlay').style.display='flex';
+        
+        handleOfficialDie();
+        
+        const shareBtn = document.getElementById('overlayCastBtn');
+        shareBtn.onclick = () => {
+            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo in ${tries+1} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB bounty! 💸\n\nThink you can beat my attempts? 👇\n${GAME_URL}`;
+            openCast(text);
+        };
+
+        if(isConnected){
+            (async () => {
+                try {
+                    const methodName = "levelComplete";
+                    const args = [ge.currentLevel, addScore];
+                    const iface = new ethers.utils.Interface(ABI);
+                    const data = iface.encodeFunctionData(methodName, args);
+                    
+                    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+                    
+                    const txHash = await walletProvider.request({ 
+                        method: 'eth_sendTransaction', 
+                        params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
+                    });
+                    
+                    document.getElementById('overlaySub').innerText=`Mining on Arbitrum (5-10s)... ⏳`;
+                    
+                    let confirmed = false; 
+                    for(let i=0; i<15; i++){ 
+                        await new Promise(r=>setTimeout(r,2000)); 
+                        try { 
+                            const r = await publicProvider.getTransactionReceipt(txHash); 
+                            if(r && r.confirmations > 0){ confirmed=true; break; } 
+                        } catch(err){} 
+                    }
+                    
+                    if(confirmed) { 
+                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n✅ Saved on-chain!`; 
+                        fetchPersonalStats(); 
+                        fetchGlobalLeaderboard(); 
+                    } else { 
+                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Delayed`; 
+                    }
+                } catch(e) { 
+                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled!`; 
+                }
+                
+                document.getElementById('overlayCastBtn').style.display='block';
+                document.getElementById('overlayBtn').style.display='block';
+                document.getElementById('overlayBtn').innerText='Return to Menu';
+            })();
+        }
+    }else{
+        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n(Practice Mode)`;
+        document.getElementById('overlayCastBtn').style.display='none';
+        document.getElementById('overlayBtn').style.display='block';
+        document.getElementById('overlayBtn').innerText='Return to Menu';
+        document.getElementById('overlay').style.display='flex';
+    }
+}
+</script>
+
+<script>
+// CONTRACT ADDRESS UNTOUCHED
 const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
-
 const ABI = [
     "function startLevel(uint256 level) external",
     "function levelComplete(uint256 level, uint256 score) external",
@@ -217,612 +794,260 @@ const ABI = [
     "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
 ];
 
-let userAddress=null;
-let isConnected = false;
-let isFarcasterWallet = false;
-let walletProvider = null;
-let gameContract = null;
-let spinStatus = { hasFree: false, bonus: 0, timeLeft: 0 };
-let lastClearedLevel = 1;
-
+let userAddress = null; 
+let isConnected = false; 
+let isFarcasterWallet = false; 
+let walletProvider = null; 
+let gameContract = null; 
+let spinStatus = { hasFree: false, timeLeft: 0 };
 const GAME_URL = "https://farcaster.xyz/miniapps/vDZmdCj1pC8Z/geodash-by-tokiyo";
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
-function showToast(msg,color='var(--cyan)'){const t=document.getElementById('toast');t.innerText=msg;t.style.borderLeftColor=color;t.style.display='block';setTimeout(()=>t.style.display='none',3500);}
-function showWalletStatus(msg,isGood){const w=document.getElementById('walletStatus');w.innerText=msg;w.style.color=isGood?'#00ff88':'#ff3060';}
+function showToast(msg, color='var(--cyan)'){
+    const t=document.getElementById('toast');
+    t.innerText=msg;
+    t.style.borderLeftColor=color;
+    t.style.display='block';
+    setTimeout(()=>t.style.display='none',3500);
+}
 
-async function detectWallet() {
-    if (walletProvider) return true;
-    for(let i=0; i<10; i++) {
-        if (window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider) {
+function showWalletStatus(msg, isGood){
+    const w=document.getElementById('walletStatus');
+    w.innerText=msg;
+    w.style.color=isGood?'#00ff88':'#ff3060';
+}
+
+async function detectWallet(){
+    if(walletProvider) return true;
+    for(let i=0; i<10; i++){
+        if(window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider){
             walletProvider = window.fcSdk.wallet.ethProvider;
             isFarcasterWallet = true;
             return true;
         }
-        if (window.ethereum) {
+        if(window.ethereum){
             walletProvider = window.ethereum;
-            isFarcasterWallet = false;
             return true;
         }
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r=>setTimeout(r,100));
     }
     return false;
 }
 
-async function connectWallet(showErrors = true) {
-    if (!await detectWallet()) {
-        if(showErrors) showToast("No Web3 Wallet found!", "red");
+async function connectWallet(err=true){
+    if(!await detectWallet()){
+        if(err) showToast("No Web3 Wallet found!","red");
         return false;
     }
-
     try {
-        let accounts = await walletProvider.request({ method: 'eth_accounts' }).catch(() => []);
-        if(!accounts || accounts.length === 0) {
-            accounts = await walletProvider.request({ method: 'eth_requestAccounts' }).catch(() => []);
+        let acct = await walletProvider.request({method:'eth_accounts'}).catch(()=>[]);
+        if(!acct || acct.length==0) acct = await walletProvider.request({method:'eth_requestAccounts'}).catch(()=>[]);
+        if(!acct || acct.length==0) return false;
+        
+        userAddress = acct[0];
+        
+        if(!isFarcasterWallet){
+            try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){}
         }
         
-        if(!accounts || accounts.length === 0) throw new Error("No accounts connected");
-        userAddress = accounts[0];
-
-        if (!isFarcasterWallet) {
-            try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-        }
-        
-        const provider = new ethers.providers.Web3Provider(walletProvider, "any");
-        const signer = provider.getSigner();
-        gameContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
-
         isConnected = true;
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-        refreshSpinStatus(); 
-        fetchPersonalStats(); 
+        refreshSpinStatus();
+        fetchPersonalStats();
         return true;
     } catch(e) {
-        if(showErrors) showToast("Connection Cancelled or Wallet Blocked", "red");
         return false;
     }
 }
 
-async function sendRawTransaction(methodName, args) {
-    const iface = new ethers.utils.Interface(ABI);
-    const data = iface.encodeFunctionData(methodName, args);
-    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-    const txHash = await walletProvider.request({
-        method: 'eth_sendTransaction',
-        params: [{
-            to: CONTRACT_ADDRESS,
-            from: userAddress,
-            data: data,
-            chainId: '0xa4b1' 
-        }]
-    });
-    return txHash;
-}
-
-function openCast(text) {
+function openCast(text){
     const url = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`;
-    if (window.fcSdk && window.fcSdk.actions) {
+    if(window.fcSdk && window.fcSdk.actions){
         window.fcSdk.actions.openUrl(url);
     } else {
-        window.open(url, '_blank');
+        window.open(url,'_blank');
     }
 }
 
 window.addEventListener('load', () => {
-    document.getElementById('practiceBtn').addEventListener('click', () => startOrRestartGame(false));
+    document.getElementById('practiceBtn').addEventListener('click', () => { ge.start(false); });
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
-    
-    document.getElementById('overlayBtn').addEventListener('click', () => {
-        document.getElementById('overlay').style.display='none';
+    document.getElementById('overlayBtn').addEventListener('click', () => { 
+        document.getElementById('overlay').style.display='none'; 
+        ge.state='IDLE'; 
+        ge.draw(); 
     });
-    
-    document.getElementById('overlayCastBtn').addEventListener('click', () => {
-        let tries = attemptCount + 1; 
-        const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo in ${tries} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB reward! 💸\n\nThink you can beat my score? Try not to rage-quit: 👇\n${GAME_URL}`;
-        openCast(text);
-    });
-
-    document.getElementById('spinCastBtn').addEventListener('click', () => {
-        const text = `🎰 GeoDash Slot Machine Paid Out! 💸\n\nJust tested my luck on the most brutal Web3 game on Arbitrum by @tokiyo and won some $ARB!\n\nAre you fast enough to clear the levels, or will you just rely on the Free Hourly Spin? 🚨 TOO SCARED? 🚨 Try it: 👇\n${GAME_URL}`;
-        openCast(text);
-    });
-
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
-    buildLevelUI();
     
+    buildLevelUI(); 
     fetchGlobalLeaderboard();
-
-    setTimeout(async () => {
-        if (await detectWallet()) {
+    
+    setTimeout(async()=>{
+        if(await detectWallet()){
             try {
-                const accounts = await walletProvider.request({method: 'eth_accounts'});
-                if (accounts && accounts.length > 0) connectWallet(false);
-            } catch(e) {}
+                const ac=await walletProvider.request({method:'eth_accounts'});
+                if(ac && ac.length>0) connectWallet(false);
+            } catch(e){}
         }
-    }, 500);
+    },500);
 });
 
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
-    if(isOfficialRun) { showToast("Official Run already active!", "#ffd700"); return; }
-
-    btn.disabled = true;
-    btn.innerText = "⏳ WAITING...";
+    if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
+    if(!isConnected){ if(!await connectWallet(true)) return; }
     
-    if(!isConnected) {
-        if(!await connectWallet(true)) {
-            btn.disabled = false;
-            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-            return;
-        }
+    btn.disabled = true; 
+    btn.innerText = "⏳ CONFIRMING...";
+    
+    try {
+        const pProvider = new ethers.providers.Web3Provider(walletProvider, "any");
+        const signer = pProvider.getSigner(); 
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+        
+        await contract.startLevel(ge.currentLevel, { gasLimit: 150000 }); 
+        
+        showToast("✅ Run Started On-Chain! Good Luck.","#00ff88"); 
+        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+        ge.attempts = 0; 
+        document.getElementById('attemptUI').innerText=`Attempt: 0`; 
+        ge.start(true);
+    } catch(e) { 
+        btn.disabled = false; 
+        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN"; 
+        showToast(e.reason||"Tx Cancelled","red"); 
     }
-    
-    setTimeout(async () => {
-        try {
-            const tx = await gameContract.startLevel(currentLevel, { gasLimit: 150000 }); 
-            
-            showToast("✅ Run Started Instantly!", "#00ff88");
-            isOfficialRun = true;
-            btn.innerText = "💎 OFFICIAL RUN ACTIVE";
-            startOrRestartGame(true);
-            
-        } catch(e) {
-            btn.disabled = false;
-            btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-            let errStr = "Transaction Cancelled";
-            if (e.reason) errStr = e.reason;
-            showToast(errStr, "red");
-        }
-    }, 100);
 }
 
 async function executeSpin(){
     const btn = document.getElementById('spinBtn');
     document.getElementById('spinCastBtn').style.display = 'none'; 
-    
-    if(!isConnected) {
-        if(!await connectWallet(true)) return;
-    }
-
-    if (!spinStatus.hasFree && spinStatus.bonus <= 0) {
-        showToast("No spin available! Wait for cooldown.", "red");
-        return;
-    }
+    if(!isConnected) { if(!await connectWallet(true)) return; }
+    if (!spinStatus.hasFree && spinStatus.bonus <= 0) { showToast("No spin available! Wait for cooldown.", "red"); return; }
     
     try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-
+    
     btn.disabled=true;
-    document.getElementById('r1').className='reel-inner spinning';
-    document.getElementById('r2').className='reel-inner spinning';
+    document.getElementById('r1').className='reel-inner spinning'; 
+    document.getElementById('r2').className='reel-inner spinning'; 
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning... Calculating Reward!";
+    document.getElementById('spinResult').innerText = "Spinning... Calculating Reward!"; 
     document.getElementById('spinResult').style.color = "#ffd700";
 
     setTimeout(async () => {
         try{
-            document.getElementById('spinResult').innerText = "Please confirm the transaction in your wallet...";
+            document.getElementById('spinResult').innerText = "Please confirm the transaction..."; 
             document.getElementById('spinResult').style.color = "var(--cyan)";
-
-            const txHash = await sendRawTransaction("spin", []);
+            
+            const iface = new ethers.utils.Interface(ABI); 
+            const data = iface.encodeFunctionData("spin", []);
+            
+            const txHash = await walletProvider.request({ 
+                method: 'eth_sendTransaction', 
+                params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
+            });
             
             document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
             
             let isConfirmed = false;
-            for(let i=0; i<15; i++) {
+            for(let i=0; i<15; i++) { 
                 await new Promise(r => setTimeout(r, 2000)); 
-                try {
-                    const receipt = await publicProvider.getTransactionReceipt(txHash);
-                    if(receipt && receipt.confirmations > 0) {
-                        if(receipt.status === 1) isConfirmed = true;
-                        break;
-                    }
-                } catch(err){}
+                try { 
+                    const receipt = await publicProvider.getTransactionReceipt(txHash); 
+                    if(receipt && receipt.confirmations > 0) { isConfirmed = true; break; } 
+                } catch(err){} 
             }
             
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎';
-            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎';
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
             document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
             
-            if(isConfirmed) {
-                showToast("Spin Successful!", "#00ff88");
-                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉";
-                document.getElementById('spinResult').style.color = "#00ff88";
+            if(isConfirmed) { 
+                showToast("Spin Successful!", "#00ff88"); 
+                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; 
+                document.getElementById('spinResult').style.color = "#00ff88"; 
                 document.getElementById('spinCastBtn').style.display = 'inline-block'; 
-            } else {
-                document.getElementById('r1').innerText='❌';
-                document.getElementById('r2').innerText='❌';
-                document.getElementById('r3').innerText='❌';
-                showToast("Transaction Reverted or Delayed.", "#ff3060");
-                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas/Funds?";
-                document.getElementById('spinResult').style.color = "#ff3060";
+            } else { 
+                document.getElementById('r1').innerText='❌'; 
+                document.getElementById('r2').innerText='❌'; 
+                document.getElementById('r3').innerText='❌'; 
+                showToast("Transaction Delayed.", "#ff3060"); 
+                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas?"; 
+                document.getElementById('spinResult').style.color = "#ff3060"; 
             }
-
-            refreshSpinStatus();
+            refreshSpinStatus(); 
             fetchPersonalStats(); 
             fetchGlobalLeaderboard();
-            
         }catch(e){
             btn.disabled = false;
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌';
-            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌';
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
             document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
             
-            let errStr = "Spin Cancelled";
-            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!";
+            let errStr = "Spin Cancelled"; 
+            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!"; 
             else if (e.reason) errStr = e.reason;
             
-            showToast(errStr,"red");
-            document.getElementById('spinResult').innerText = errStr;
+            showToast(errStr,"red"); 
+            document.getElementById('spinResult').innerText = errStr; 
             document.getElementById('spinResult').style.color = "#ff3060";
         }
     }, 2500); 
 }
 
-let ac=null;
-function initAudio(){if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}
-function playJump(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(440,ac.currentTime);o.frequency.exponentialRampToValueAtTime(880,ac.currentTime+0.1);g.gain.setValueAtTime(0.15,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);o.start();o.stop(ac.currentTime+0.15);}
-function playDie(){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type='sawtooth';o.frequency.setValueAtTime(220,ac.currentTime);o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.3);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.3);o.start();o.stop(ac.currentTime+0.3);}
-function playWin(){if(!ac)return;[523,659,784,1047].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=f;g.gain.setValueAtTime(0.15,ac.currentTime+i*0.12);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+i*0.12+0.2);o.start(ac.currentTime+i*0.12);o.stop(ac.currentTime+i*0.12+0.25);});}
-
-const LVL_CONFIG=[
-    {id:1,speed:7.2,len:24000},
-    {id:2,speed:7.6,len:30000},
-    {id:3,speed:8.0,len:33000},
-    {id:4,speed:8.4,len:36000},
-    {id:5,speed:8.8,len:39000},
-    {id:6,speed:9.2,len:42000},
-    {id:7,speed:9.6,len:45000},
-    {id:8,speed:10.0,len:48000},
-    {id:9,speed:10.4,len:51000},
-    {id:10,speed:11.0,len:60000}
-];
-const PLAT_LOW=240,PLAT_MID=180,PLAT_MEDIUM=200;
-function pseudoRand(x,seed){let v=Math.sin(x*seed*0.00137+seed*31.7)*43758.5453;return v-Math.floor(v);}
-
-function buildLevelObstacles(levelNum){
-    let obs=[],curX=600,len=LVL_CONFIG[levelNum-1].len;
-    
-    if (levelNum === 1) {
-        let patterns = [
-            [{t:'spike', x:0}],
-            [{t:'platform', x:0, y:PLAT_LOW, w:150}],
-            [{t:'gap', x:0, w:120}],
-            [{t:'jpad', x:0}, {t:'platform', x:200, y:PLAT_MID, w:120}],
-            [{t:'dspike', x:0}],
-            [{t:'platform', x:0, y:PLAT_LOW, w:120}, {t:'spike', x:160}],
-            [{t:'gap', x:0, w:100}, {t:'platform', x:180, y:PLAT_LOW, w:120}]
-        ];
-
-        while(curX < len - 1000) {
-            let r = pseudoRand(curX, levelNum);
-            let patIdx = Math.floor(r * patterns.length);
-            let pat = patterns[patIdx];
-
-            for(let p of pat) {
-                obs.push({t: p.t, x: curX + p.x, y: p.y, w: p.w});
-            }
-            curX += 600; 
-        }
-    }
-    else {
-        while(curX<len-1000){
-            let r=pseudoRand(curX,levelNum),sec=Math.floor(r*6);
-            if(sec===0){obs.push({t:'spike',x:curX},{t:'dspike',x:curX+350});curX+=750;}
-            else if(sec===1){obs.push({t:'spike',x:curX},{t:'platform',x:curX-20,y:235,w:220},{t:'spike',x:curX+120,onPlatY:235});curX+=500;}
-            else if(sec===2){obs.push({t:'spike',x:curX},{t:'platform',x:curX+150,y:200,w:150},{t:'spike',x:curX+180,onPlatY:200});curX+=550;}
-            else if(sec===3){obs.push({t:'gap',x:curX,w:140},{t:'platform',x:curX+200,y:200,w:120});curX+=600;}
-            else if(sec===4){obs.push({t:'jpad',x:curX},{t:'spike',x:curX+300});curX+=650;}
-            else{obs.push({t:'dspike',x:curX},{t:'gap',x:curX+300,w:130});curX+=650;}
-        }
-    }
-    return obs;
-}
-
-const canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
-let reqAnimId;
-const GAME_W=800,GAME_H=400,GROUND_Y=320,CEILING_Y=10;
-
-const GRAVITY=1.51,JUMP_VEL=-21.0,MAX_VEL=26;
-
-let gameState='idle',currentLevel=1,attemptCount=0,totalScore=0;
-let scrollSpeed=7.2,levelLength=24000,worldX=0,frameCount=0;
-let player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
-let particles=[],obstacles=[];
-let unlockedLevels=new Set([1]),completedLevels=new Set(),localBonusSpins=0,levelStartTimestamp=0;
-
 function buildLevelUI(){
-    const grid=document.getElementById('levelGrid');
+    const grid = document.getElementById('levelGrid'); 
     grid.innerHTML='';
-    for(let i=1;i<=10;i++){
-        const btn=document.createElement('button');
-        if(completedLevels.has(i)){btn.className='lvl-btn done';btn.innerText='✓'+i;}
-        else if(unlockedLevels.has(i)){btn.className='lvl-btn unlocked'+(i===currentLevel?' active':'');btn.innerText=i;}
-        else{btn.className='lvl-btn';btn.innerText='🔒';btn.disabled=true;}
+    for(let i=1; i<=10; i++){
+        const btn = document.createElement('button');
+        if(window.completedLevels && window.completedLevels.has(i)){
+            btn.className='lvl-btn done';
+            btn.innerText='✓'+i;
+        }
+        else if(window.unlockedLevels && window.unlockedLevels.has(i)){
+            btn.className='lvl-btn unlocked'+(i===ge.currentLevel?' active':'');
+            btn.innerText=i;
+        }
+        else {
+            btn.className='lvl-btn';
+            btn.innerText='🔒';
+            btn.disabled=true;
+        }
         
         btn.addEventListener('click', () => { 
-            currentLevel=i; 
-            attemptCount = 0; 
+            ge.currentLevel = i; 
+            ge.attempts = 0; 
             document.getElementById('attemptUI').innerText=`Attempt: 0`;
             buildLevelUI(); 
             document.getElementById('progressText').innerText=`Level ${i}/10`; 
         }); 
-        
         grid.appendChild(btn);
     }
 }
 
-function resetGameState() {
-    initAudio(); 
-    cancelAnimationFrame(reqAnimId);
-    particles=[]; obstacles=[]; 
-    player={x:130,y:GROUND_Y-36,w:36,h:36,vy:0,rot:0,ground:true,prevY:GROUND_Y-36};
-    worldX=0; frameCount=0;
-}
-
-function jump(){
-    initAudio();
-    if(gameState==='dead'||gameState==='idle'){startOrRestartGame(isOfficialRun);return;}
-    if(gameState!=='playing')return;
-    if(player.ground){
-        player.vy=JUMP_VEL;
-        player.ground=false;
-        playJump();
-    }
-}
-
-document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();jump();}});
-canvas.addEventListener('mousedown',jump);
-canvas.addEventListener('touchstart',e=>{e.preventDefault();jump();},{passive:false});
-
-function startOrRestartGame(fromOfficial=false){
-    resetGameState(); 
-    let cfg=LVL_CONFIG[currentLevel-1];
-    scrollSpeed=cfg.speed;
-    levelLength=cfg.len;
-    obstacles=buildLevelObstacles(currentLevel);
-    
-    if(!fromOfficial) {
-        isOfficialRun = false;
-        levelStartTimestamp=Date.now();
-        showToast("Practice Mode Started","#ff3060");
-    } else {
-        levelStartTimestamp=Date.now();
-    }
-    
-    gameState='playing';
-    document.getElementById('overlay').style.display='none';
-    document.getElementById('progressBar').style.width='0%';
-    
-    lastTime = performance.now();
-    reqAnimId = requestAnimationFrame(loop);
-}
-
-function die(){
-    if(gameState==='dead')return;
-    gameState='dead';attemptCount++;
-    document.getElementById('attemptUI').innerText=`Attempt: ${attemptCount}`;
-    playDie();
-    for(let i=0;i<6;i++) {
-        particles.push({x:player.x+18,y:player.y+18,vx:(Math.random()-0.5)*15,vy:(Math.random()-0.5)*15,life:1.0,col:'#00f0ff',size:8});
-    }
-}
-
-function triggerWin(){
-    lastClearedLevel = currentLevel; 
-    
-    let timePlayed=(Date.now()-levelStartTimestamp);
-    let isWinValid=isOfficialRun&&(timePlayed>=10000); 
-    
-    gameState='clear';playWin();
-    completedLevels.add(currentLevel);
-    
-    let levelBonus=currentLevel*500;
-    let safeWorldX=Math.min(worldX,levelLength);
-    let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);
-    let addScore=levelBonus+progressBonus;
-    totalScore+=addScore;
-    document.getElementById('scoreUI').innerText=`Score: ${totalScore}`;
-    
-    document.getElementById('overlayTitle').innerText=`✨ LEVEL ${currentLevel} CLEAR! ✨`;
-    document.getElementById('overlayTitle').style.color='#00ff88';
-    
-    if(isWinValid){
-        document.getElementById('overlaySub').innerText=`Saving to blockchain...\nPlease confirm in your wallet ⏳`;
-        document.getElementById('overlayCastBtn').style.display='none';
-        document.getElementById('overlayBtn').style.display='none';
-        document.getElementById('overlay').style.display='flex';
-        
-        isOfficialRun=false;
-        const ob=document.getElementById('officialRunBtn');
-        ob.disabled=false;
-        ob.innerText="💎 OFFICIAL ON-CHAIN RUN";
-        
-        if(isConnected){
-            (async () => {
-                try {
-                    const txHash = await sendRawTransaction("levelComplete", [currentLevel, addScore]);
-                    document.getElementById('overlaySub').innerText=`Mining on Arbitrum (5-10s)... ⏳`;
-                    
-                    let isConfirmed = false;
-                    for(let i=0; i<15; i++) {
-                        await new Promise(r => setTimeout(r, 2000));
-                        try {
-                            const receipt = await publicProvider.getTransactionReceipt(txHash);
-                            if(receipt && receipt.confirmations > 0) {
-                                if(receipt.status === 1) isConfirmed = true;
-                                break;
-                            }
-                        } catch(err){}
-                    }
-                    
-                    if(isConfirmed) {
-                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n✅ Saved on-chain!`;
-                        if(currentLevel<10) unlockedLevels.add(currentLevel+1);
-                        fetchPersonalStats(); 
-                        fetchGlobalLeaderboard(); 
-                    } else {
-                        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Failed / Delayed`;
-                    }
-                } catch(e) {
-                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled! Data not saved.`;
-                }
-                
-                document.getElementById('overlayCastBtn').style.display='block';
-                document.getElementById('overlayBtn').style.display='block';
-                document.getElementById('overlayBtn').innerText='Return to Menu';
-            })();
-        }
-    }else{
-        let reason=isOfficialRun?"(Need 10s min)":"(Practice Mode)";
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n${reason}`;
-        document.getElementById('overlayCastBtn').style.display='none';
-        document.getElementById('overlayBtn').style.display='block';
-        document.getElementById('overlayBtn').innerText='Return to Menu';
-        document.getElementById('overlay').style.display='flex';
-        
-        if(currentLevel<10) unlockedLevels.add(currentLevel+1);
-        fetchPersonalStats(); 
-    }
-}
-
-function AABB(x1,y1,w1,h1,x2,y2,w2,h2){return x1<x2+w2&&x1+w1>x2&&y1<y2+h2&&y1+h1>y2;}
-
-function update(dtScale){
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx*dtScale;p.y+=p.vy*dtScale;p.vy+=((gameState==='clear')?0.2:0.6)*dtScale;p.life-=((gameState==='clear')?0.01:0.04)*dtScale;if(p.life<=0||p.y>GAME_H+20)particles.splice(i,1);}
-    if(gameState!=='playing')return;
-
-    frameCount += dtScale;
-    worldX += scrollSpeed * dtScale;
-    
-    if(Math.floor(frameCount)%30===0){let safeWorldX=Math.min(worldX,levelLength);let progressBonus=Math.floor((safeWorldX/levelLength)*currentLevel*50);document.getElementById('scoreUI').innerText=`Score: ${totalScore+progressBonus}`;}
-    
-    let prog=Math.min(100,(worldX/levelLength)*100);
-    document.getElementById('progressBar').style.width=prog+'%';
-    if(worldX>=levelLength){triggerWin();return;}
-
-    player.prevY=player.y;
-    player.vy+=GRAVITY*dtScale;if(player.vy>MAX_VEL)player.vy=MAX_VEL;if(player.vy<-MAX_VEL)player.vy=-MAX_VEL;
-    player.y+=player.vy*dtScale;
-    
-    if(!player.ground)player.rot+=18*dtScale;
-
-    let px=player.x+6,py=player.y+6,pw=24,ph=24,onPlatform=false,overGap=false;
-
-    for(let o of obstacles){
-        let ox=o.x-worldX;if(ox<-200||ox>GAME_W+100)continue;
-        
-        let oy = o.y;
-        if(o.t==='gap'){if(player.x+18>ox&&player.x+18<ox+o.w)overGap=true;continue;}
-        
-        let oHX,oHY,oHW,oHH;
-        if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y;oHX=ox+6;oHY=baseY-32;oHW=26;oHH=32;}
-        else if(o.t==='dspike'){oHX=ox+6;oHY=GROUND_Y-32;oHW=64;oHH=32;}
-        else if(o.t==='platform'){oHX=ox;oHY=oy-8;oHW=o.w;oHH=32;}
-        else if(o.t==='jpad'){oHX=ox;oHY=GROUND_Y-16;oHW=38;oHH=16;} 
-        else continue;
-
-        if(AABB(px,py,pw,ph,oHX,oHY,oHW,oHH)){
-            if(o.t==='spike'||o.t==='dspike'){die();return;}
-            if(o.t==='jpad'){player.vy=JUMP_VEL*1.2;player.ground=false;o.used=true;} 
-            
-            if(o.t==='platform'){
-                if(player.prevY+player.h<=oy+24&&player.vy>=0){player.y=oy-player.h;player.vy=0;player.ground=true;onPlatform=true;player.rot=Math.round(player.rot/90)*90;}
-                else{die();}
-            }
-        }
-    }
-
-    if(player.y+player.h>=GROUND_Y&&!overGap){player.y=GROUND_Y-player.h;player.vy=0;player.ground=true;player.rot=Math.round(player.rot/90)*90;}
-    else if(player.y>GAME_H)die();
-    else if(!onPlatform){if(player.y+player.h<GROUND_Y)player.ground=false;}
-}
-
-function draw(){
-    ctx.clearRect(0,0,GAME_W,GAME_H);
-    ctx.fillStyle='#05080f';ctx.fillRect(0,0,GAME_W,GAME_H);
-    ctx.fillStyle='#080d14';ctx.fillRect(0,GROUND_Y,GAME_W,GAME_H-GROUND_Y);
-    ctx.fillStyle='#00f0ff';ctx.fillRect(0,GROUND_Y-1,GAME_W,3);
-
-    for(let o of obstacles){
-        let ox = o.x-worldX; if(ox<-100||ox>GAME_W+100)continue;
-        
-        if(o.t==='gap'){ctx.fillStyle='#000';ctx.fillRect(ox,GROUND_Y,o.w,GAME_H-GROUND_Y);}
-        else if(o.t==='spike'){let baseY=(o.onPlatY!==undefined)?o.onPlatY:GROUND_Y; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,baseY-38);ctx.lineTo(ox+38,baseY);ctx.lineTo(ox,baseY);ctx.closePath();ctx.fill();}
-        else if(o.t==='dspike'){let gy=GROUND_Y; ctx.fillStyle='#ff3060';ctx.beginPath();ctx.moveTo(ox+19,gy-38);ctx.lineTo(ox+38,gy);ctx.lineTo(ox,gy);ctx.closePath();ctx.fill();ctx.beginPath();ctx.moveTo(ox+57,gy-38);ctx.lineTo(ox+76,gy);ctx.lineTo(ox+38,gy);ctx.closePath();ctx.fill();}
-        else if(o.t==='platform'){
-            ctx.fillStyle='#00ff88'; ctx.fillRect(ox,o.y,o.w,16); 
-            ctx.fillStyle='#0d1e2e'; ctx.fillRect(ox+2,o.y+2,o.w-4,12); 
-        }
-        else if(o.t==='jpad'){
-            ctx.fillStyle='#ffd700'; ctx.fillRect(ox,GROUND_Y-16,38,16);
-            ctx.fillStyle='#000'; ctx.fillRect(ox+4,GROUND_Y-12,30,8);
-        }
-    }
-    
-    if(gameState!=='dead'){
-        ctx.save();
-        ctx.translate(player.x+18, player.y+18);
-        ctx.rotate(player.rot*Math.PI/180);
-        
-        ctx.fillStyle='#00f0ff'; ctx.fillRect(-18,-18,36,36); 
-        ctx.fillStyle='#05080f'; ctx.fillRect(-14,-14,28,28); 
-        ctx.fillStyle='#00f0ff'; ctx.fillRect(-8,-6,4,4); ctx.fillRect(4,-6,4,4); ctx.fillRect(-8,6,16,4); 
-        ctx.restore();
-    }
-
-    ctx.fillStyle='#00f0ff';
-    for(let i=particles.length-1;i>=0;i--){
-        let p=particles[i];
-        ctx.globalAlpha=Math.max(0,p.life);
-        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
-    }
-    ctx.globalAlpha = 1.0;
-}
-
-let lastTime = 0;
-function loop(timestamp) {
-    if (!lastTime) lastTime = timestamp;
-    let deltaTime = timestamp - lastTime;
-    lastTime = timestamp;
-    if (deltaTime > 60) deltaTime = 16.666;
-    let dtScale = deltaTime / 16.666;
-    if (dtScale < 0.1) dtScale = 0.1;
-    if (dtScale > 2.0) dtScale = 2.0;
-    
-    update(dtScale);
-    draw();
-    reqAnimId = requestAnimationFrame(loop);
-}
-
-draw();
-
-let timerInt=null;
+let timerInt = null;
 function updateSpinUI() {
-    const btn = document.getElementById('spinBtn');
-    const info = document.getElementById('spinInfo');
+    const btn = document.getElementById('spinBtn'); 
+    const info = document.getElementById('spinInfo'); 
     clearInterval(timerInt);
     
-    if(spinStatus.hasFree){
-        btn.disabled = false;
-        btn.innerText = '⏰ FREE HOURLY SPIN!';
-        btn.style.background = '#ffd700';
-        info.innerText = 'Free spin ready!';
-        return;
+    if(spinStatus.hasFree){ 
+        btn.disabled = false; 
+        btn.innerText = '⏰ FREE HOURLY SPIN!'; 
+        btn.style.background = '#ffd700'; 
+        info.innerText = 'Free spin ready!'; 
+        return; 
     }
     
-    btn.disabled = true;
-    btn.style.background = '#555';
-    btn.style.color = '#222';
+    btn.disabled = true; 
+    btn.style.background = '#333'; 
+    btn.style.color = '#666'; 
     let tl = spinStatus.timeLeft;
     
     timerInt = setInterval(() => {
-        if(tl <= 0){
-            refreshSpinStatus();
-            clearInterval(timerInt);
-            return;
-        }
+        if(tl <= 0){ refreshSpinStatus(); clearInterval(timerInt); return; } 
         tl--;
         let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
         btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
@@ -832,65 +1057,57 @@ function updateSpinUI() {
 
 async function refreshSpinStatus(){
     if(!userAddress) return;
-    try{
-        const res = await readContract.getSpinStatus(userAddress);
-        spinStatus.bonus = res[1].toNumber();
-        spinStatus.hasFree = res[2];
-        spinStatus.timeLeft = res[3].toNumber();
-        updateSpinUI();
+    try{ 
+        const res = await readContract.getSpinStatus(userAddress); 
+        spinStatus.bonus = res[1].toNumber(); 
+        spinStatus.hasFree = res[2]; 
+        spinStatus.timeLeft = res[3].toNumber(); 
+        updateSpinUI(); 
     }catch(e){}
 }
 
 const fcUsernameCache={};
-async function getFarcasterUsername(address){
-    if(!address||address==='0x0000000000000000000000000000000000000000')return null;
-    if(fcUsernameCache[address])return fcUsernameCache[address];
-    try{
-        // Dummy catch
-    }catch(e){}
-    return address.slice(0,6)+'...'+address.slice(-4);
-}
-
 async function fetchGlobalLeaderboard(){
     try{
         const [addrs, scores, lvls] = await readContract.getLeaderboard();
         let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000");
-        
         let nameMap = {};
+        
         if(validAddrs.length > 0) {
             try {
                 const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${validAddrs.join(',')}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
-                if(res.ok) {
-                    const data = await res.json();
-                    for (let addr of validAddrs) {
-                        let lowerAddr = addr.toLowerCase();
-                        if(data[lowerAddr] && data[lowerAddr].length > 0) {
-                            nameMap[lowerAddr] = '@' + data[lowerAddr][0].username;
-                        }
-                    }
+                if(res.ok) { 
+                    const data = await res.json(); 
+                    for (let addr of validAddrs) { 
+                        let lowerAddr = addr.toLowerCase(); 
+                        if(data[lowerAddr] && data[lowerAddr].length > 0) { 
+                            nameMap[lowerAddr] = '@' + data[lowerAddr][0].username; 
+                        } 
+                    } 
                 }
             } catch(e) {}
         }
-
-        let html = '';
+        
+        let html = ''; 
         let hasScores = false;
+        
         for(let i=0; i<10; i++) {
             if(addrs[i] === "0x0000000000000000000000000000000000000000" || scores[i].toNumber() === 0) continue;
-            hasScores = true;
-            let addrLower = addrs[i].toLowerCase();
+            hasScores = true; 
+            let addrLower = addrs[i].toLowerCase(); 
             let name = nameMap[addrLower] || (addrs[i].slice(0,6) + "..." + addrs[i].slice(-4));
-            let score = scores[i].toNumber();
-            let lvl = lvls[i].toNumber();
+            let score = scores[i].toNumber(); 
+            let lvl = lvls[i].toNumber(); 
             let medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="display:inline-block;width:20px;text-align:center;color:#888;">${i+1}.</span>`;
             
-            html += `<div class="lb-row" style="margin-bottom:4px; background:rgba(0,240,255,0.02); padding:6px 10px; border-radius:4px; border-left: 2px solid ${i<3?'var(--gold)':'#222'};">
+            html += `<div class="lb-row">
                 <span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
-                <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Lv${lvl}</span></span>
+                <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Lv${lvl}</span></span>
             </div>`;
         }
         document.getElementById('globalLbContent').innerHTML = hasScores ? html : '<div style="text-align:center;color:#888;font-size:12px;">No scores yet. Be the first!</div>';
-    }catch(e){
-        document.getElementById('globalLbContent').innerHTML = '<div style="text-align:center;color:#ff3060;font-size:12px;">Failed to load leaderboard</div>';
+    }catch(e){ 
+        document.getElementById('globalLbContent').innerHTML = '<div style="text-align:center;color:#ff3060;font-size:12px;">Failed to load leaderboard</div>'; 
     }
 }
 
@@ -900,38 +1117,42 @@ async function fetchPersonalStats(){
         const p = await readContract.players(userAddress);
         const score = p[2].toNumber(); 
         const lvl = p[3].toNumber();   
-
+        
         if(score > 0 || lvl > 0) {
-            completedLevels = new Set();
-            unlockedLevels = new Set([1]);
-            for(let i=1; i<=lvl; i++) {
-                completedLevels.add(i);
-                if(i < 10) unlockedLevels.add(i + 1);
+            window.completedLevels = new Set(); 
+            window.unlockedLevels = new Set([1]);
+            
+            for(let i=1; i<=lvl; i++) { 
+                window.completedLevels.add(i); 
+                if(i < 10) window.unlockedLevels.add(i + 1); 
             }
-            let maxUnlocked = Math.max(...Array.from(unlockedLevels));
-            currentLevel = maxUnlocked;
-            buildLevelUI();
-            document.getElementById('progressText').innerText=`Level ${currentLevel}/10`;
+            
+            ge.currentLevel = Math.max(...Array.from(window.unlockedLevels));
+            window.baseScore = score; 
+            document.getElementById('scoreUI').innerText=`Score: ${score}`;
+            
+            buildLevelUI(); 
+            document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
         }
-
-        if(score === 0){
-            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats!</div>';
-            return;
+        
+        if(score === 0){ 
+            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats!</div>'; 
+            return; 
         }
         
         let name = "You";
-        try{
-            const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${userAddress}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
-            if(res.ok){
-                const data=await res.json();
-                let addrL = userAddress.toLowerCase();
-                if(data[addrL] && data[addrL].length > 0) name = '@' + data[addrL][0].username;
-            }
+        try{ 
+            const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${userAddress}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}}); 
+            if(res.ok){ 
+                const data=await res.json(); 
+                let addrL = userAddress.toLowerCase(); 
+                if(data[addrL] && data[addrL].length > 0) name = '@' + data[addrL][0].username; 
+            } 
         }catch(e){}
-
-        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); padding:10px; border-radius:6px; border: 1px solid rgba(0,240,255,0.3);">
+        
+        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.3);">
             <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
-            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#555;font-size:11px"> pts · Max Lv${lvl}</span></span>
+            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Max Lv${lvl}</span></span>
         </div>`;
     }catch(e){}
 }
