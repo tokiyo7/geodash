@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
-    <meta property="og:title" content="GeoDash — Shape Shifter Update">
-    <meta property="og:description" content="Geometry Dash on Arbitrum! Try the new Flappy Bird Mode and Zero-Lag Engine! Season 1 live now!">
+    <meta property="og:title" content="GeoDash — The Hunter Update">
+    <meta property="og:description" content="Geometry Dash on Arbitrum! Try the new Flappy Bird Mode and survive the Robo-Hunter! Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
     <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
@@ -45,7 +45,6 @@
         .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; box-shadow: 0 0 10px rgba(0,240,255,0.5); border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
 
-        /* 🔥 UI COLOR CODING 🔥 */
         .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .lvl-btn { flex: 1; min-width: 45px; padding: 12px 0; text-align: center; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(10,15,24,0.6); color: #4a5a6a; cursor: not-allowed; transition: all 0.2s; }
         
@@ -116,8 +115,8 @@
 <div id="welcomeModal">
     <div class="modal-content">
         <div class="modal-title">Welcome to GeoDash! ⚡</div>
-        <div class="modal-text">🚀 **THE SHAPE SHIFTER UPDATE:** We built our own Custom Engine! Survive the new **Flappy Bird Mode Portals**, Buzzsaws, and moving obstacles!</div>
-        <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is unlocked for Practice! Spin the slot machine to unlock higher levels for practice.</div>
+        <div class="modal-text">🚀 **THE SNIPER UPDATE:** Dodging the Blue Portal? Beware of the Airborne Robo-Hunter! 🎯</div>
+        <div class="modal-text">🎁 **PRACTICE PROGRESSION:** Pass a level in practice mode to automatically unlock the next one! (Or spin to unlock).</div>
         <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience.</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
@@ -272,6 +271,7 @@ class GeoDashEngine {
         this.frameCount = 0;
         this.lastTime = 0;
         this.reqId = null;
+        this.dieReason = ''; 
         
         this.currentLevel = 1;
         this.SPEED = 7.2;
@@ -284,6 +284,9 @@ class GeoDashEngine {
         this.playerMode = 'cube'; 
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY: 0, ground: true };
         this.jumpBuffer = 0; 
+        
+        // 🔥 ROBO-HUNTER STATE 🔥
+        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0 };
         
         this.obstaclePool = []; 
         this.activeObstacles = [];
@@ -317,7 +320,7 @@ class GeoDashEngine {
         let lvlCfg = [
             {s: 7.2, len: 26000, gap: 500}, // L1
             {s: 7.4, len: 28000, gap: 480}, // L2
-            {s: 7.6, len: 32000, gap: 450}, // L3 
+            {s: 7.6, len: 32000, gap: 450}, // L3
             {s: 7.8, len: 36000, gap: 420}, // L4
             {s: 8.0, len: 40000, gap: 400}, // L5
             {s: 8.2, len: 44000, gap: 380}, {s: 8.5, len: 48000, gap: 360}, {s: 8.8, len: 52000, gap: 350}, {s: 9.0, len: 56000, gap: 340}, {s: 9.5, len: 60000, gap: 330}
@@ -330,23 +333,21 @@ class GeoDashEngine {
 
         let chunks = [];
 
-        // 🔥 LEVEL 1: THE BAIT (Now has Flappy Mode to hook them!) 🔥
         if(this.currentLevel === 1) {
             chunks = [
                 [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
                 [{t:'gap', x:0, w:120}, {t:'platform', x:180, y:240, w:120}],
                 [{t:'glass', x:0, h:80}],
-                // Flappy mode chunk (Easy path)
                 [
                     {t:'portal_flappy', x:0},
-                    {t:'saw', x: 400, y: 350}, // Very low saw, easy to fly over
-                    {t:'saw', x: 800, y: 50},  // Very high saw, easy to fly under
+                    {t:'saw', x: 400, y: 350}, 
+                    {t:'saw', x: 800, y: 50},  
                     {t:'saw', x: 1200, y: 350}, 
-                    {t:'portal_cube', x: 1700}
+                    // 🔥 DODGEABLE PORTAL (h=100) 🔥
+                    {t:'portal_cube', x: 1700} 
                 ]
             ];
         }
-        // 🔥 LEVEL 2 & 3: THE TRAP (Anti-Flappy Spikes on Ceiling!) 🔥
         else {
             chunks = [
                 [{t:'spike', x:0}],
@@ -356,12 +357,10 @@ class GeoDashEngine {
                 [{t:'saw', x:0, y:this.GROUND_Y - 40}], 
                 [{t:'jpad', x:0}, {t:'wall', x:280, h:85}], 
                 [{t:'platform', x:0, y:200, w:100}, {t:'saw', x:180, y:180}, {t:'platform', x:280, y:200, w:100}],
-                // Flappy mode chunk (HARD TRAP!)
                 [
                     {t:'portal_flappy', x:0},
-                    // CEILING SPIKES (If they fly too high, they die!)
                     {t:'ceiling_spike', x: 400}, {t:'ceiling_spike', x: 450}, {t:'ceiling_spike', x: 500},
-                    {t:'saw', x: 400, y: 280}, // Must fly between ceiling spike and low saw
+                    {t:'saw', x: 400, y: 280}, 
                     {t:'ceiling_spike', x: 800}, {t:'ceiling_spike', x: 850},
                     {t:'saw', x: 800, y: 220}, 
                     {t:'saw', x: 1200, y: 180}, {t:'saw', x: 1200, y: 350}, 
@@ -371,14 +370,22 @@ class GeoDashEngine {
         }
         
         let curX = 900;
-        while(curX < this.levelLength) {
+        // Extend length to fix empty end bug
+        while(curX < this.levelLength + 1200) {
             let r = Math.sin(curX * 0.01) * 10000;
             let idx = Math.floor((r - Math.floor(r)) * chunks.length);
             let chunk = chunks[idx];
             
             for(let p of chunk) {
-                let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass'||p.t==='portal_flappy'||p.t==='portal_cube')?80:16;
+                // Height 100 for portals so players can dodge them to trigger Hunter
+                let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass')?80:(p.t==='portal_flappy'||p.t==='portal_cube')?100:16;
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
+                
+                // If it's a portal, adjust Y so it sits on the ground but doesn't reach ceiling
+                if(p.t==='portal_flappy' || p.t==='portal_cube') {
+                    finalY = this.GROUND_Y - 100;
+                }
+                
                 this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
             }
             
@@ -428,7 +435,7 @@ class GeoDashEngine {
         }
     }
 
-    spawnDeathExplosion() {
+    spawnDeathExplosion(isHunter = false) {
         for(let i=0; i<40; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
@@ -439,7 +446,7 @@ class GeoDashEngine {
                 p.vy=(Math.random()-0.5)*18;
                 p.life=1.0; 
                 p.s=5+Math.random()*5; 
-                p.c=this.themeColor;
+                p.c = isHunter ? '#ff3060' : this.themeColor;
             }
         }
     }
@@ -456,6 +463,10 @@ class GeoDashEngine {
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
         this.jumpBuffer = 0;
         this.trail = [];
+        this.dieReason = '';
+        
+        // Reset Hunter
+        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0 };
         
         this.activeObstacles.forEach(o=>o.active=false); 
         this.activeObstacles=[];
@@ -505,13 +516,14 @@ class GeoDashEngine {
         }
     }
 
-    die() {
+    die(reason = "", isHunter = false) {
         if(this.state==='DEAD') return;
         this.state = 'DEAD'; 
         this.attempts++;
+        this.dieReason = reason;
         document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
         playDie();
-        this.spawnDeathExplosion();
+        this.spawnDeathExplosion(isHunter);
         if(this.official) handleOfficialDie();
     }
 
@@ -539,6 +551,63 @@ class GeoDashEngine {
         
         this.frameCount += dt; 
         this.worldX += this.SPEED*dt;
+
+        // 🔥 HUNTER LOGIC 🔥
+        if (this.playerMode === 'flappy') {
+            this.hunter.timer += dt;
+            // 350 frames ~ 5.5 seconds of flying
+            if (this.hunter.timer > 350 && !this.hunter.active) { 
+                this.hunter.warning = true;
+            }
+            // 480 frames ~ 8 seconds of flying -> Attack
+            if (this.hunter.timer > 480 && !this.hunter.active) {
+                this.hunter.active = true;
+                this.hunter.warning = false;
+                this.hunter.y = this.player.y;
+            }
+        } else {
+            this.hunter.timer = 0;
+            this.hunter.warning = false;
+            this.hunter.active = false;
+            this.hunter.bullets = [];
+            this.hunter.shotsFired = 0;
+        }
+
+        if (this.hunter.active) {
+            // Drone smoothly follows player's Y
+            this.hunter.y += (this.player.y - this.hunter.y) * 0.05 * dt;
+
+            // Fire bullets every ~60 frames
+            if (Math.floor(this.frameCount) % 60 === 0) {
+                this.hunter.shotsFired++;
+                let isHoming = this.hunter.shotsFired >= 6; // 6th shot is the kill shot
+                this.hunter.bullets.push({
+                    x: this.W - 50,
+                    y: this.hunter.y + 10,
+                    vx: isHoming ? 18 : 14,
+                    homing: isHoming
+                });
+            }
+
+            // Update Bullets
+            for (let i = this.hunter.bullets.length - 1; i >= 0; i--) {
+                let b = this.hunter.bullets[i];
+                b.x -= b.vx * dt;
+                
+                if (b.homing) {
+                    b.y += (this.player.y + 18 - b.y) * 0.15 * dt; // Golden missile aggressively tracks
+                }
+
+                // Check hit
+                let px = this.player.x+6, py = this.player.y+6, pw = 24, ph = 24;
+                if (b.x < px+pw && b.x+20 > px && b.y < py+ph && b.y+6 > py) {
+                    this.die("TARGET ELIMINATED BY HUNTER 🎯", true);
+                    return;
+                }
+                if (b.x < -50) this.hunter.bullets.splice(i, 1);
+            }
+        }
+
 
         if(this.playerMode === 'cube' && this.jumpBuffer > 0) {
             this.jumpBuffer -= dt;
@@ -581,7 +650,7 @@ class GeoDashEngine {
         this.player.y += this.player.vy*dt;
 
         if(this.playerMode === 'flappy') {
-            if(this.player.y < 0) { this.player.y = 0; this.player.vy = 0; }
+            if(this.player.y < 0) { this.player.y = 0; this.player.vy = 0; } // Ceiling bump
             if(this.player.y + this.player.h > this.GROUND_Y) { this.player.y = this.GROUND_Y - this.player.h; this.player.vy = 0; }
         }
 
@@ -601,11 +670,9 @@ class GeoDashEngine {
             let oHX=ox, oHY=o.y, oHW=o.w, oHH=o.h;
             if(o.t==='spike'){ oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; }
             else if(o.t==='dspike'){oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;}
-            // 🔥 HITBOX FIX FOR CEILING SPIKE 🔥
             else if(o.t==='ceiling_spike'){ oHX=ox+6; oHY=0; oHW=26; oHH=32; } 
             else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-16; oHW=38; oHH=16;}
             else if(o.t==='platform'){oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;}
-            // 🔥 HITBOX FIX FOR SAW (Much more precise) 🔥
             else if(o.t==='saw'){ oHX=ox-12; oHY=o.y-12; oHW=24; oHH=24; }
             else if(o.t==='wall'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='glass'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
@@ -678,6 +745,19 @@ class GeoDashEngine {
         this.ctx.fillStyle='#05080f'; 
         this.ctx.fillRect(0,0,this.W,this.H); 
         
+        // 🔴 HUNTER SIREN BACKGROUND 🔴
+        if ((this.hunter.warning || this.hunter.active) && Math.floor(this.frameCount) % 20 < 10) {
+            this.ctx.fillStyle = 'rgba(255, 48, 96, 0.15)';
+            this.ctx.fillRect(0, 0, this.W, this.H);
+        }
+        
+        if (!this.official) {
+            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.4)';
+            this.ctx.font = 'bold 16px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("▶ PRACTICE MODE - NO EARNINGS", this.W / 2, 30);
+        }
+
         this.ctx.fillStyle = '#ffffff';
         for(let s of this.stars) {
             this.ctx.globalAlpha = Math.random() * 0.5 + 0.2; 
@@ -689,6 +769,27 @@ class GeoDashEngine {
         this.ctx.fillRect(0,this.GROUND_Y,this.W,this.H-this.GROUND_Y);
         this.ctx.fillStyle = this.themeColor; 
         this.ctx.fillRect(0,this.GROUND_Y-1,this.W,3); 
+
+        // 🔴 DRAW HUNTER DRONE AND BULLETS 🔴
+        if (this.hunter.active && this.state !== 'DEAD') {
+            this.ctx.fillStyle = '#ff3060';
+            this.ctx.fillRect(this.W - 60, this.hunter.y, 40, 20); // Drone Body
+            this.ctx.fillStyle = '#fff';
+            this.ctx.fillRect(this.W - 55, this.hunter.y + 5, 10, 10); // Drone Eye
+            
+            for (let b of this.hunter.bullets) {
+                if (b.homing) {
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#ffd700';
+                    this.ctx.fillStyle = '#ffd700';
+                    this.ctx.fillRect(b.x, b.y, 25, 8);
+                    this.ctx.shadowBlur = 0;
+                } else {
+                    this.ctx.fillStyle = '#ff3060';
+                    this.ctx.fillRect(b.x, b.y, 20, 6);
+                }
+            }
+        }
 
         for(let o of this.activeObstacles){
             if(!o.active) continue;
@@ -722,7 +823,6 @@ class GeoDashEngine {
                 this.ctx.lineTo(ox+38,baseY);
                 this.ctx.fill();
             }
-            // 🔥 CEILING SPIKE 🔥
             else if(o.t==='ceiling_spike'){ 
                 this.ctx.fillStyle='#ff3060';
                 this.ctx.beginPath();
@@ -778,16 +878,31 @@ class GeoDashEngine {
                 this.ctx.strokeStyle = '#ffd700'; 
                 this.ctx.lineWidth = 4;
                 this.ctx.beginPath();
-                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 50, 0, 0, Math.PI*2);
                 this.ctx.stroke();
             }
             else if(o.t==='portal_cube'){
                 this.ctx.strokeStyle = this.themeColor; 
                 this.ctx.lineWidth = 4;
                 this.ctx.beginPath();
-                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 50, 0, 0, Math.PI*2);
                 this.ctx.stroke();
             }
+        }
+
+        // 🔴 WARNING TEXT 🔴
+        if (this.hunter.warning || this.hunter.active) {
+            this.ctx.fillStyle = '#ff3060';
+            this.ctx.font = 'bold 18px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("⚠️ UNAUTHORIZED FLIGHT DETECTED: HUNTER INBOUND ⚠️", this.W / 2, 60);
+        }
+
+        if(this.state==='DEAD' && this.dieReason){
+            this.ctx.fillStyle = '#ff3060';
+            this.ctx.font = 'bold 20px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(this.dieReason, this.W / 2, this.H / 2 - 40);
         }
 
         if(this.state !== 'DEAD') {
@@ -873,6 +988,7 @@ window.baseScore = 0;
 
 <script>
 let localSpins = parseInt(localStorage.getItem('geodash_spins') || '0');
+let practiceUnlocks = parseInt(localStorage.getItem('geodash_prac_unlocks') || '1');
 
 function closeModal() { 
     document.getElementById('welcomeModal').style.display = 'none'; 
@@ -963,7 +1079,15 @@ function triggerWinUi(tries) {
             })();
         }
     }else{
-        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n(Practice Mode)`;
+        // 🔥 PRACTICE WIN UNLOCKS NEXT LEVEL 🔥
+        if (ge.currentLevel >= practiceUnlocks && ge.currentLevel < 10) {
+            practiceUnlocks = ge.currentLevel + 1;
+            localStorage.setItem('geodash_prac_unlocks', practiceUnlocks);
+            showToast(`🎉 Level ${practiceUnlocks} Unlocked for Practice!`, "#00ff88");
+            buildLevelUI();
+        }
+        
+        document.getElementById('overlaySub').innerText=`+${addScore} PTS\n(Practice Mode - No Earnings)`;
         document.getElementById('overlayCastBtn').style.display='none';
         document.getElementById('overlayBtn').style.display='block';
         document.getElementById('overlayBtn').innerText='Return to Menu';
@@ -973,7 +1097,6 @@ function triggerWinUi(tries) {
 </script>
 
 <script>
-// CONTRACT ADDRESS UNTOUCHED
 const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
 const ABI = [
     "function startLevel(uint256 level) external",
@@ -1219,10 +1342,9 @@ function buildLevelUI(){
     grid.innerHTML='';
     
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
-    let spinBonusLevels = Math.floor(localSpins / 5); // Level 2 at 5 spins, Level 3 at 10.
+    let spinBonusLevels = Math.floor(localSpins / 5);
     
-    // Only practice level 1 is unlocked by default now.
-    let maxPractice = Math.min(10, Math.max(1, maxOnchain + spinBonusLevels)); 
+    let maxPractice = Math.min(10, Math.max(1, maxOnchain + spinBonusLevels, practiceUnlocks)); 
 
     for(let i=1; i<=10; i++){
         const btn = document.createElement('button');
@@ -1256,9 +1378,9 @@ function buildLevelUI(){
     }
     
     let spinProgressText = document.getElementById('spinProgressText');
-    let nextUnlock = (Math.max(0, maxPractice - maxOnchain) + 1) * 5;
+    let nextUnlock = (Math.floor(localSpins/5) + 1) * 5;
     if(maxPractice < 10) {
-        spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | Next Practice Level Unlocks at ${nextUnlock} Spins!`;
+        spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | Next Practice Unlock at ${nextUnlock} Spins!`;
     } else {
         spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | All Practice Levels Unlocked!`;
     }
