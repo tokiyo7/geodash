@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
-    <meta property="og:title" content="GeoDash — Custom Engine Update">
-    <meta property="og:description" content="Geometry Dash on Arbitrum! New dynamic obstacles, glass walls, and zero-lag engine! Season 1 live now!">
+    <meta property="og:title" content="GeoDash — Shape Shifter Update">
+    <meta property="og:description" content="Geometry Dash on Arbitrum! Try the new Flappy Bird Mode and Zero-Lag Engine! Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
     <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
@@ -110,7 +110,7 @@
 <div id="welcomeModal">
     <div class="modal-content">
         <div class="modal-title">Welcome to GeoDash! ⚡</div>
-        <div class="modal-text">🚀 **OUR CUSTOM ENGINE:** We don't rely on bloated, slow 3rd-party software. We built our own lightweight Game Engine from scratch to give you the ultimate, zero-lag Web3 gaming experience!</div>
+        <div class="modal-text">🚀 **THE SHAPE SHIFTER UPDATE:** We built our own Custom Engine! Reach Level 3 to unlock the new **Flappy Bird Mode Portals** and moving obstacles!</div>
         <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience for God-tier reflexes.</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
@@ -265,13 +265,14 @@ class GeoDashEngine {
         this.lastTime = 0;
         this.reqId = null;
         
-        // Dynamic Scaling
         this.currentLevel = 1;
         this.SPEED = 7.2;
         this.levelLength = 26000;
         this.official = false;
         this.attempts = 0;
 
+        // 🔥 MODE SYSTEM ('cube' or 'flappy') 🔥
+        this.playerMode = 'cube'; 
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY: 0, ground: true };
         this.jumpBuffer = 0; 
         
@@ -318,19 +319,17 @@ class GeoDashEngine {
         this.levelLength = lvlCfg[cIdx].len;
         let baseGap = lvlCfg[cIdx].gap;
 
-        // Base Chunks
+        // 🔥 SAFE BASE CHUNKS (No impossible jumps) 🔥
         let chunks = [
             [{t:'spike', x:0}],
             [{t:'gap', x:0, w:120}, {t:'platform', x:180, y:240, w:120}],
             [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
-            [{t:'dspike', x:0}, {t:'gap', x:250, w:100}], 
+            [{t:'dspike', x:0}], 
             [{t:'platform', x:0, y:220, w:280}, {t:'spike', x:120, onPlatY:220}], 
-            [{t:'spike', x:0}, {t:'spike', x:250}],
-            [{t:'glass', x:0, h:80}], // 🔥 NEW: THE GLASS WALL 🔥
-            [{t:'glass', x:0, h:50}, {t:'spike', x:100}] // Glass before spike
+            [{t:'spike', x:0}, {t:'spike', x:280}],
+            [{t:'glass', x:0, h:80}] 
         ];
 
-        // Medium
         if(this.currentLevel >= 2) {
             chunks.push(
                 [{t:'platform', x:0, y:260, w:80}, {t:'platform', x:160, y:200, w:80}, {t:'platform', x:320, y:140, w:80}], 
@@ -338,13 +337,21 @@ class GeoDashEngine {
             );
         }
 
-        // HARD (Level 3+)
+        // 🔥 FLAPPY MODE & SAWS (Level 3+) 🔥
         if(this.currentLevel >= 3) {
             chunks.push(
                 [{t:'saw', x:0, y:this.GROUND_Y - 40}], 
                 [{t:'jpad', x:0}, {t:'wall', x:280, h:85}], 
                 [{t:'platform', x:0, y:200, w:100}, {t:'saw', x:180, y:180}, {t:'platform', x:280, y:200, w:100}], 
-                [{t:'saw', x:0, y:this.GROUND_Y - 30}, {t:'saw', x:250, y:this.GROUND_Y - 30}]
+                
+                // FLAPPY BIRD CHUNK SEQUENCE
+                [
+                    {t:'portal_flappy', x:0}, // Turn into ship
+                    {t:'saw', x: 400, y: 100}, {t:'saw', x: 400, y: 280}, // Gate 1
+                    {t:'saw', x: 800, y: 50}, {t:'saw', x: 800, y: 220}, // Gate 2
+                    {t:'saw', x: 1200, y: 180}, {t:'saw', x: 1200, y: 350}, // Gate 3
+                    {t:'portal_cube', x: 1700} // Turn back to cube
+                ]
             );
         }
         
@@ -355,11 +362,14 @@ class GeoDashEngine {
             let chunk = chunks[idx];
             
             for(let p of chunk) {
-                let h = (p.t==='spike'||p.t==='dspike')?32:(p.t==='wall'||p.t==='glass')?p.h:16;
+                let h = (p.t==='spike'||p.t==='dspike')?32:(p.t==='wall'||p.t==='glass'||p.t==='portal_flappy'||p.t==='portal_cube')?80:16;
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
                 this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
             }
-            curX += baseGap + ((r - Math.floor(r)) * 120); 
+            
+            // If we spawned a flappy chunk (length ~1700), we need a bigger gap before next obstacle
+            let chunkGap = (chunk.length > 3 && chunk[0].t === 'portal_flappy') ? 2200 : baseGap;
+            curX += chunkGap + ((r - Math.floor(r)) * 100); 
         }
     }
 
@@ -387,7 +397,6 @@ class GeoDashEngine {
         }
     }
 
-    // 🔥 GLASS SHATTER EFFECT 🔥
     spawnGlassShatter(x, y, h) {
         for(let i=0; i<25; i++) {
             let p = this.particlePool.find(obj => !obj.active);
@@ -399,7 +408,7 @@ class GeoDashEngine {
                 p.vy = (Math.random() - 0.5) * 15;
                 p.life = 1.0; 
                 p.s = 3 + Math.random() * 6; 
-                p.c = 'rgba(0, 240, 255, 0.8)'; // Shard color
+                p.c = 'rgba(0, 240, 255, 0.8)'; 
             }
         }
     }
@@ -428,6 +437,7 @@ class GeoDashEngine {
         
         this.worldX = 0; 
         this.frameCount = 0;
+        this.playerMode = 'cube';
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
         this.jumpBuffer = 0;
         this.trail = [];
@@ -461,7 +471,16 @@ class GeoDashEngine {
         } 
         if(this.state!=='PLAYING') return;
         
-        this.jumpBuffer = 10; 
+        // 🔥 FLAPPY MODE JUMP (Thrust) 🔥
+        if(this.playerMode === 'flappy') {
+            this.player.vy = -10.0; // Upward thrust
+            this.spawnJumpDust();
+            playJump();
+        } 
+        // NORMAL CUBE JUMP
+        else {
+            this.jumpBuffer = 10; 
+        }
     }
 
     die() {
@@ -499,7 +518,7 @@ class GeoDashEngine {
         this.frameCount += dt; 
         this.worldX += this.SPEED*dt;
 
-        if(this.jumpBuffer > 0) {
+        if(this.playerMode === 'cube' && this.jumpBuffer > 0) {
             this.jumpBuffer -= dt;
             if(this.player.ground) {
                 this.player.vy = this.JUMP_VEL; 
@@ -511,7 +530,7 @@ class GeoDashEngine {
         }
 
         if(Math.floor(this.frameCount) % 2 === 0) {
-            this.trail.push({x: this.player.x, y: this.player.y, rot: this.player.rot, life: 0.7});
+            this.trail.push({x: this.player.x, y: this.player.y, rot: this.player.rot, life: 0.7, mode: this.playerMode});
         }
         for(let t of this.trail) t.life -= 0.04 * dt; 
         this.trail = this.trail.filter(t => t.life > 0);
@@ -526,10 +545,25 @@ class GeoDashEngine {
         if(this.worldX>=this.levelLength){ this.win(); return; }
 
         this.player.prevY = this.player.y;
-        this.player.vy += this.GRAVITY*dt;
-        if(this.player.vy>26) this.player.vy=26; 
+        
+        // PHYSICS MODE SWITCH
+        if(this.playerMode === 'flappy') {
+            this.player.vy += (this.GRAVITY * 0.4) * dt; // Lower gravity for flying
+            if(this.player.vy > 15) this.player.vy = 15;
+            this.player.rot = this.player.vy * 3; // Tilt ship based on velocity
+        } else {
+            this.player.vy += this.GRAVITY*dt;
+            if(this.player.vy>26) this.player.vy=26; 
+            if(!this.player.ground) this.player.rot += 15*dt;
+        }
+        
         this.player.y += this.player.vy*dt;
-        if(!this.player.ground) this.player.rot += 15*dt;
+
+        // FLAPPY CEILING/FLOOR COLLISION
+        if(this.playerMode === 'flappy') {
+            if(this.player.y < 0) { this.player.y = 0; this.player.vy = 0; }
+            if(this.player.y + this.player.h > this.GROUND_Y) { this.player.y = this.GROUND_Y - this.player.h; this.player.vy = 0; }
+        }
 
         let px=this.player.x+6, py=this.player.y+6, pw=24, ph=24;
         let overGap=false, onPlatform=false;
@@ -552,14 +586,28 @@ class GeoDashEngine {
             else if(o.t==='saw'){ oHX=ox-15; oHY=o.y-15; oHW=30; oHH=30; }
             else if(o.t==='wall'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='glass'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
+            else if(o.t==='portal_flappy' || o.t==='portal_cube'){ oHX=ox; oHY=this.GROUND_Y-100; oHW=20; oHH=100; }
 
             let landTolerance = 25; 
 
             if(px<oHX+oHW && px+pw>oHX && py<oHY+oHH && py+ph>oHY){
-                // 🔥 GLASS SHATTER LOGIC 🔥
+                
+                // 🔥 PORTAL LOGIC 🔥
+                if(o.t === 'portal_flappy'){
+                    this.playerMode = 'flappy';
+                    o.active = false;
+                    continue;
+                }
+                if(o.t === 'portal_cube'){
+                    this.playerMode = 'cube';
+                    this.player.rot = Math.round(this.player.rot/90)*90;
+                    o.active = false;
+                    continue;
+                }
+
                 if(o.t === 'glass'){
                     this.spawnGlassShatter(ox, this.GROUND_Y, o.h);
-                    o.active = false; // Destroys the glass, doesn't kill player
+                    o.active = false; 
                     continue;
                 }
 
@@ -574,7 +622,7 @@ class GeoDashEngine {
                     playJump(); 
                 }
                 if(o.t==='platform'){
-                    if(this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
+                    if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
                         this.player.y=o.y-this.player.h; 
                         this.player.vy=0; 
                         this.player.ground=true; 
@@ -588,17 +636,19 @@ class GeoDashEngine {
             }
         }
 
-        if(this.player.y+this.player.h>=this.GROUND_Y && !overGap){ 
-            this.player.y=this.GROUND_Y-this.player.h; 
-            this.player.vy=0; 
-            this.player.ground=true; 
-            this.player.rot=Math.round(this.player.rot/90)*90; 
-        }
-        else if(this.player.y>400) {
-            this.die(); 
-        }
-        else if(!onPlatform){
-            if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false;
+        if(this.playerMode === 'cube') {
+            if(this.player.y+this.player.h>=this.GROUND_Y && !overGap){ 
+                this.player.y=this.GROUND_Y-this.player.h; 
+                this.player.vy=0; 
+                this.player.ground=true; 
+                this.player.rot=Math.round(this.player.rot/90)*90; 
+            }
+            else if(this.player.y>400) {
+                this.die(); 
+            }
+            else if(!onPlatform){
+                if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false;
+            }
         }
     }
 
@@ -680,29 +730,49 @@ class GeoDashEngine {
                 this.ctx.fillStyle = '#080d14';
                 this.ctx.fillRect(ox+2, this.GROUND_Y - o.h + 2, 26, o.h-4);
             }
-            // 🔥 DRAW GLASS WALL 🔥
             else if(o.t==='glass'){
                 this.ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
                 this.ctx.fillRect(ox, this.GROUND_Y - o.h, 30, o.h);
                 this.ctx.strokeStyle = '#00f0ff';
                 this.ctx.lineWidth = 2;
                 this.ctx.strokeRect(ox, this.GROUND_Y - o.h, 30, o.h);
-                // Glass reflection lines
                 this.ctx.beginPath();
                 this.ctx.moveTo(ox + 5, this.GROUND_Y - o.h + 5);
                 this.ctx.lineTo(ox + 25, this.GROUND_Y - o.h + 25);
                 this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
                 this.ctx.stroke();
             }
+            // 🔥 DRAW PORTALS 🔥
+            else if(o.t==='portal_flappy'){
+                this.ctx.strokeStyle = '#ffd700'; // Yellow for ship
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.stroke();
+            }
+            else if(o.t==='portal_cube'){
+                this.ctx.strokeStyle = '#00f0ff'; // Blue for cube
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.stroke();
+            }
         }
 
+        // Draw Ghost Trail
         if(this.state !== 'DEAD') {
             for(let t of this.trail) {
                 this.ctx.save();
                 this.ctx.translate(t.x+18, t.y+18);
                 this.ctx.rotate(t.rot * Math.PI / 180);
-                this.ctx.fillStyle = `rgba(0, 240, 255, ${t.life})`; 
-                this.ctx.fillRect(-18, -18, 36, 36);
+                this.ctx.fillStyle = (t.mode === 'flappy') ? `rgba(255, 215, 0, ${t.life})` : `rgba(0, 240, 255, ${t.life})`; 
+                if(t.mode === 'flappy') {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(18, 0); this.ctx.lineTo(-18, 15); this.ctx.lineTo(-18, -15);
+                    this.ctx.fill();
+                } else {
+                    this.ctx.fillRect(-18, -18, 36, 36);
+                }
                 this.ctx.restore();
             }
         }
@@ -716,21 +786,33 @@ class GeoDashEngine {
         }
         this.ctx.globalAlpha=1.0;
 
+        // 🔥 DRAW PLAYER (CUBE OR SHIP) 🔥
         if(this.state!=='DEAD'){
             this.ctx.save();
             this.ctx.translate(this.player.x+18, this.player.y+18);
             this.ctx.rotate(this.player.rot*Math.PI/180);
             
-            this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':'#00f0ff'; 
-            this.ctx.fillRect(-18,-18,36,36); 
-            
-            this.ctx.fillStyle='#05080f'; 
-            this.ctx.fillRect(-14,-14,28,28); 
-            
-            this.ctx.fillStyle='#00f0ff'; 
-            this.ctx.fillRect(-8,-6,4,4); 
-            this.ctx.fillRect(4,-6,4,4); 
-            this.ctx.fillRect(-8,6,16,4); 
+            if(this.playerMode === 'flappy') {
+                // Draw Rocket/Ship
+                this.ctx.fillStyle = '#ffd700';
+                this.ctx.beginPath();
+                this.ctx.moveTo(18, 0); // Nose
+                this.ctx.lineTo(-18, 15); // Bottom wing
+                this.ctx.lineTo(-18, -15); // Top wing
+                this.ctx.fill();
+                this.ctx.fillStyle = '#05080f';
+                this.ctx.fillRect(-10, -5, 10, 10); // Window
+            } else {
+                // Draw Cube
+                this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':'#00f0ff'; 
+                this.ctx.fillRect(-18,-18,36,36); 
+                this.ctx.fillStyle='#05080f'; 
+                this.ctx.fillRect(-14,-14,28,28); 
+                this.ctx.fillStyle='#00f0ff'; 
+                this.ctx.fillRect(-8,-6,4,4); 
+                this.ctx.fillRect(4,-6,4,4); 
+                this.ctx.fillRect(-8,6,16,4); 
+            }
             this.ctx.restore();
         }
     }
@@ -806,7 +888,6 @@ function triggerWinUi(tries) {
                     const iface = new ethers.utils.Interface(ABI);
                     const data = iface.encodeFunctionData(methodName, args);
                     
-                    // Force switch to Arbitrum just in case
                     try { 
                         await Promise.race([
                             walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
@@ -814,7 +895,6 @@ function triggerWinUi(tries) {
                         ]);
                     } catch(e) { console.log("Proceeding to tx..."); }
                     
-                    // Force send on Arbitrum One (0xa4b1)
                     const txHash = await walletProvider.request({ 
                         method: 'eth_sendTransaction', 
                         params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
@@ -922,7 +1002,6 @@ async function connectWallet(err=true){
         
         userAddress = acct[0];
         
-        // Non-blocking switch attempt
         if(!isFarcasterWallet){
             try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){}
         }
@@ -969,7 +1048,6 @@ window.addEventListener('load', () => {
     },500);
 });
 
-// 🔥 THE WAITING/BASE BUG FIX IS HERE 🔥
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
@@ -982,7 +1060,6 @@ async function startOfficialRun(){
         const iface = new ethers.utils.Interface(ABI);
         const data = iface.encodeFunctionData("startLevel", [ge.currentLevel]);
         
-        // Fast non-blocking switch
         try { 
             await Promise.race([
                 walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
@@ -990,7 +1067,6 @@ async function startOfficialRun(){
             ]);
         } catch(e) { console.log("Proceeding to tx..."); }
 
-        // Force Arbitrum (0xa4b1)
         await walletProvider.request({
             method: 'eth_sendTransaction',
             params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }]
