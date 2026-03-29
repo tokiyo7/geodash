@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>GeoDash — Play & Earn ARB</title>
-    <meta property="og:title" content="GeoDash 3.0 — The Story Mode">
-    <meta property="og:description" content="Shoot back! Survive the Robo-Hunters and the Fire Dragon in the new GeoDash Story Mode!">
+    <meta property="og:title" content="GeoDash — The Boss Fight Update">
+    <meta property="og:description" content="Geometry Dash on Arbitrum! Survive the 3-Phase Robo-Hunter Boss Fight! Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 3.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
     <meta name="theme-color" content="#05080f">
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
@@ -20,19 +20,18 @@
         @keyframes titlePulse { 0% { text-shadow: 0 0 8px #00f0ff; } 100% { text-shadow: 0 0 15px #00f0ff, 0 0 8px #00f0ff; } }
         @keyframes btnPulse { 0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } }
 
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 12px 18px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.05)); border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 12px 18px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.05)); border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 2px; animation: titlePulse 2s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
-        /* MODAL CSS */
         #welcomeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: linear-gradient(180deg, #0a0f18, #05080f); border: 1px solid var(--cyan); border-radius: 16px; padding: 30px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,240,255,0.15); }
         .modal-title { color: #00f0ff; font-size: 26px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.3); }
         .modal-text { font-size: 14px; color: #d0d0d0; line-height: 1.7; margin-bottom: 15px; text-align: left; }
+        .highlight { color: var(--gold); font-weight: bold; }
         .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; animation: btnPulse 1.5s infinite alternate; transition: transform 0.2s; }
         .modal-btn-spin:active { transform: scale(0.95); }
 
-        /* GAME CANVAS */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); box-shadow: 0 8px 30px rgba(0,0,0,0.8); transition: border-color 0.3s ease; }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -42,29 +41,20 @@
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 10px; }
         .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
-        /* 🔥 NEW DEDICATED SEPARATE GAME CONTROLS (OUTSIDE CANVAS) 🔥 */
-        .controls-container { width: 100%; max-width: 800px; display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
-        .action-btn { flex: 1; padding: 20px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; touch-action: manipulation; transition: all 0.1s; letter-spacing: 1px; }
-        .action-btn:active { transform: scale(0.95); }
-        #btnJump { background: rgba(0, 240, 255, 0.1); border: 2px solid var(--cyan); color: var(--cyan); box-shadow: inset 0 0 10px rgba(0,240,255,0.2); }
-        #btnJump:active { background: rgba(0, 240, 255, 0.3); }
-        #btnShoot { background: rgba(255, 48, 96, 0.1); border: 2px solid var(--red); color: var(--red); box-shadow: inset 0 0 10px rgba(255,48,96,0.2); display: none; }
-        #btnShoot:active { background: rgba(255, 48, 96, 0.3); }
-
-        /* UI ELEMENTS */
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 15px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
-        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
+        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; box-shadow: 0 0 10px rgba(0,240,255,0.5); border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
 
         .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .lvl-btn { flex: 1; min-width: 45px; padding: 12px 0; text-align: center; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(10,15,24,0.6); color: #4a5a6a; cursor: not-allowed; transition: all 0.2s; }
+        
         .lvl-btn.done { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.4); color: #00ff88; cursor: pointer; }
         .lvl-btn.onchain { background: rgba(255,215,0,0.05); border-color: rgba(255,215,0,0.4); color: var(--gold); cursor: pointer; }
         .lvl-btn.onchain.active { background: var(--gold); color: #000; border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
         .lvl-btn.practice { background: rgba(0,240,255,0.05); border-color: rgba(0,240,255,0.3); color: #00f0ff; cursor: pointer; }
         .lvl-btn.practice.active { background: #00f0ff; color: #000; border-color: #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
 
-        #spinProgressText { width: 100%; text-align: center; font-size: 12px; color: var(--gold); margin-bottom: 15px; font-weight: bold; }
+        #spinProgressText { width: 100%; text-align: center; font-size: 12px; color: var(--gold); margin-bottom: 20px; font-weight: bold; letter-spacing: 0.5px; text-shadow: 0 0 5px rgba(255,215,0,0.3); }
 
         .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 8px; display: flex; gap: 12px; }
         .play-btn { flex: 1; padding: 16px; background: rgba(0,240,255,0.05); border: 1px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 8px; font-family: 'Courier New', monospace; transition: all 0.2s; }
@@ -72,35 +62,51 @@
         .play-btn-gold { background: rgba(255,215,0,0.05); border-color: var(--gold); color: var(--gold); animation: btnPulse 2s infinite alternate; } 
         .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
         .play-btn-gold:disabled { border-color: #444; color: #666; background: transparent; cursor: not-allowed; animation: none; }
-        
+        .btn-note { font-size: 11px; color: #777; text-align: center; width: 100%; margin-bottom: 25px; line-height: 1.4; }
+
         .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(255,215,0,0.02); }
-        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; }
+        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 8px; text-align: center; text-transform: uppercase; }
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
-        .prize-table th { color: #555; font-size: 10px; padding: 4px 8px; border-bottom: 1px solid #222; text-align: left; }
+        .prize-table th { color: #555; font-size: 10px; letter-spacing: 1px; padding: 4px 8px; border-bottom: 1px solid #222; text-align: left; }
         .prize-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        
-        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; }
-        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; }
+        .prize-table tr.t-rare td { color: var(--cyan); }
+        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
+
+        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; letter-spacing: 1px; }
         .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 22px; }
-        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: inset 0 0 15px rgba(255,255,255,0.1); }
         .reel-inner { position: absolute; transition: top 0.1s; }
         .spinning { filter: blur(2px); animation: fastSpin 0.1s infinite; }
         @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
-        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
-        
-        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); }
+        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 4px 10px rgba(255,215,0,0.2); }
+        .spin-btn:disabled { background: #333 !important; color: #666 !important; box-shadow: none; cursor: not-allowed; }
+        .slot-info { font-size: 13px; color: #aaa; margin-top: 8px; }
+        .cast-btn-small { background: linear-gradient(90deg, #8a2be2, #4a00e0); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 12px; display:none; }
+
+        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); box-shadow: inset 0 0 20px rgba(0,240,255,0.02); }
         .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 18px; font-size: 18px; letter-spacing: 1px; }
         .lb-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; border-radius: 6px; margin-bottom: 4px; }
-        #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; }
+        #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
         
-        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; border-radius: 4px; font-size: 14px; }
+        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border-radius: 4px; font-size: 14px; backdrop-filter: blur(5px); }
     </style>
     
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         window.fcSdk = sdk; 
-        try { sdk.actions.ready(); } catch(e) {}
+        
+        try {
+            sdk.actions.ready();
+            sdk.context.then(context => {
+                if (context && context.user) {
+                    window.fcUsername = context.user.username || null;
+                    const titleEl = document.getElementById('mainTitle');
+                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+                }
+            }).catch(()=>{});
+        } catch(e) {}
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
@@ -108,10 +114,10 @@
 
 <div id="welcomeModal">
     <div class="modal-content">
-        <div class="modal-title">GeoDash 3.0: Story Mode ⚡</div>
-        <div class="modal-text">🚀 **THE ARCADE SHOOTER UPDATE:** The Robo-Hunters are back, and this time... you can shoot back! Dedicated thumb controls activated.</div>
-        <div class="modal-text">🐉 **THE DRAGON'S LAIR:** Reach Level 4 to face the legendary Fire Dragon. Do you have the skills to survive?</div>
-        <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is free. Pass practice levels OR spin the slot machine to unlock higher levels!</div>
+        <div class="modal-title">Welcome to GeoDash! ⚡</div>
+        <div class="modal-text">🚀 **THE BOSS FIGHT UPDATE:** Think you can just fly over everything? Survive 50 shots from the Robo-Hunter in Flappy Mode! 🎯</div>
+        <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is free to Practice. Pass a practice level OR spin the slot machine to unlock higher levels!</div>
+        <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience.</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
 </div>
@@ -119,7 +125,7 @@
 <div class="toast" id="toast">Message</div>
 
 <div class="header">
-    <div class="title" id="mainTitle">GEODASH 3.0</div>
+    <div class="title" id="mainTitle">GEODASH</div>
     <div class="stats">
         <div id="attemptUI">Attempt: 0</div>
         <div id="scoreUI" style="color:var(--gold);">Score: 0</div>
@@ -128,18 +134,12 @@
 
 <div class="game-container" id="gameBox">
     <canvas id="gameCanvas" width="800" height="400"></canvas>
-    
     <div id="overlay">
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
         <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
         <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px; background: #222; color: #fff;">Return to Menu</button>
     </div>
-</div>
-
-<div class="controls-container">
-    <button class="action-btn" id="btnJump">🔼 JUMP</button>
-    <button class="action-btn" id="btnShoot">🎯 FIRE</button>
 </div>
 
 <div class="progress-bar-wrap">
@@ -154,10 +154,19 @@
     <button class="play-btn" id="practiceBtn">▶ PRACTICE RUN</button>
     <button class="play-btn play-btn-gold" id="officialRunBtn">💎 OFFICIAL ON-CHAIN RUN</button>
 </div>
+<div class="btn-note">
+    *Official Run requires a transaction to prevent hacking. Practice is free.
+</div>
 
 <div class="prize-chart">
-    <div class="prize-chart-title">🎰 REWARDS & INFO</div>
-    <div style="text-align:center; color:#ccc; font-size:12px; margin-bottom: 10px;">Play Official Runs to earn $ARB on-chain! Official runs require 1 TX per attempt.</div>
+    <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
+    <table class="prize-table">
+        <tr><th>Chance</th><th>Prize Range</th></tr>
+        <tr class="t-rare"><td>(Common)</td><td>0.001 — 0.05 ARB</td></tr>
+        <tr class="t-legend"><td>(Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
+    </table>
+    <div style="text-align:center; color:#333; font-size:11px; margin:10px 0;">————————————</div>
+    <div class="prize-section-label">🏆 LEVEL CLEAR REWARDS (Manual Claim)</div>
     <table class="prize-table">
         <tr><th>Level</th><th>Prize Amount</th></tr>
         <tr><td>Level 1 Clear</td><td>1.0 ARB</td></tr>
@@ -165,6 +174,7 @@
         <tr><td>Level 3 Clear</td><td>3.0 ARB</td></tr>
         <tr><td>Level 4 Clear</td><td>4.0 ARB</td></tr>
         <tr><td>Level 5 Clear</td><td>5.0 ARB</td></tr>
+        <tr style="color:var(--cyan);"><td>Bug Bounty</td><td>1.0 ARB (DM @tokiyo)</td></tr>
     </table>
 </div>
 
@@ -176,6 +186,7 @@
         <div class="reel"><div class="reel-inner" id="r3">💎</div></div>
     </div>
     <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
+    <button class="cast-btn-small" id="spinCastBtn">📢 SHARE YOUR SPIN WIN!</button>
     <div class="slot-info" id="spinInfo">Loading status...</div>
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
@@ -183,22 +194,18 @@
 <div class="leaderboard">
     <div class="lb-title">🌍 GLOBAL TOP 10</div>
     <div id="globalLbContent" style="margin-bottom:20px;">Loading...</div>
+    
     <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:12px;">👤 YOUR ON-CHAIN STATS</div>
     <div id="lbContent">Connect wallet to load...</div>
 </div>
 
 <div id="walletStatus">Ready to Play!</div>
 
-
 <script>
 let ac = null;
 function initAudio() {
-    if (!ac) {
-        ac = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (ac.state === 'suspended') {
-        ac.resume();
-    }
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
 }
 
 function playJump() {
@@ -270,60 +277,33 @@ class GeoDashEngine {
         this.levelLength = 26000;
         this.official = false;
         this.attempts = 0;
+        
         this.themeColor = '#00f0ff';
 
         this.playerMode = 'cube'; 
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY: 0, ground: true };
         this.jumpBuffer = 0; 
         
-        // 🔥 SHOOTING MECHANICS 🔥
-        this.playerBullets = [];
-        this.ammo = 0;
-        this.hasGun = false;
-        
-        // 🔥 STORY MODE ENEMIES 🔥
-        this.enemies = []; 
-        this.enemyBullets = [];
-        this.bossPhase = 0;
-        this.bossText = "";
-        this.bossTimer = 0;
+        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0, phaseText: "", phaseTimer: 0 };
         
         this.obstaclePool = []; 
         this.activeObstacles = [];
         this.particlePool = []; 
+        
         this.trail = []; 
         this.stars = []; 
         
         this.initPools();
         this.initStars();
 
-        // CONTROLS (Keyboard & Screen touch)
-        window.addEventListener('keydown', (e) => { 
-            if(e.code === 'Space') this.jump(); 
-            if(e.code === 'KeyF') this.shoot(); 
-        });
-        
+        window.addEventListener('keydown', (e) => { if(e.code === 'Space') this.jump(); });
         this.canvas.addEventListener('mousedown', () => this.jump());
         this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
-
-        // 🔥 SEPARATE MOBILE CONTROLS 🔥
-        const btnJump = document.getElementById('btnJump');
-        const btnShoot = document.getElementById('btnShoot');
-        
-        btnJump.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
-        btnJump.addEventListener('mousedown', (e) => { e.preventDefault(); this.jump(); });
-        
-        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); this.shoot(); }, {passive: false});
-        btnShoot.addEventListener('mousedown', (e) => { e.preventDefault(); this.shoot(); });
     }
 
     initPools() {
-        for(let i=0; i<150; i++) {
-            this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor });
-        }
-        for(let i=0; i<100; i++) {
-            this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
-        }
+        for(let i=0; i<150; i++) this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor });
+        for(let i=0; i<100; i++) this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
     }
 
     initStars() {
@@ -332,61 +312,64 @@ class GeoDashEngine {
         }
     }
 
-    // STORY MODE GENERATOR
     initPatterns() {
         this.geometryPatterns = [];
-        let baseGap = 500;
         
-        // Setup Level Specifics
-        if(this.currentLevel === 1) {
-            this.SPEED = 7.2; 
-            this.levelLength = 26000;
-            this.bossPhase = 1; // Hunter runs away at end
-            this.hasGun = false;
-        } else if (this.currentLevel === 2) {
-            this.SPEED = 7.4; 
-            this.levelLength = 28000;
-            this.bossPhase = 2; // Kill 1 Hunter
-            this.hasGun = true; 
-            this.ammo = 10;
-        } else if (this.currentLevel === 3) {
-            this.SPEED = 7.6; 
-            this.levelLength = 32000;
-            this.bossPhase = 3; // Kill 2 Hunters
-            this.hasGun = true; 
-            this.ammo = 15;
-        } else if (this.currentLevel === 4) {
-            this.SPEED = 7.8; 
-            this.levelLength = 36000;
-            this.bossPhase = 4; // Kill Dragon
-            this.hasGun = true; 
-            this.ammo = 20;
-        } else {
-            this.SPEED = 8.0 + (this.currentLevel * 0.1); 
-            this.levelLength = 40000;
-            this.bossPhase = 0; // Standard Hard GeoDash
-            this.hasGun = false;
-        }
-
-        // Show/Hide Shoot Button based on Gun
-        document.getElementById('btnShoot').style.display = this.hasGun ? 'block' : 'none';
-
-        let chunks = [
-            [{t:'jpad', x:0}, {t:'wall', x: 130, h: 120}], 
-            [{t:'gap', x:0, w:120}, {t:'platform', x:180, y:240, w:120}],
-            [{t:'glass', x:0, h:80}],
-            [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}]
+        let lvlCfg = [
+            {s: 7.2, len: 32000, gap: 500}, 
+            {s: 7.4, len: 32000, gap: 480}, 
+            {s: 7.6, len: 35000, gap: 450}, 
+            {s: 7.8, len: 38000, gap: 420}, 
+            {s: 8.0, len: 42000, gap: 400}, 
+            {s: 8.2, len: 44000, gap: 380}, {s: 8.5, len: 48000, gap: 360}, {s: 8.8, len: 52000, gap: 350}, {s: 9.0, len: 56000, gap: 340}, {s: 9.5, len: 60000, gap: 330}
         ];
         
-        // Add Flappy Portal section for levels 1-4
-        if(this.currentLevel <= 4) {
-            chunks.push([
-                {t:'portal_flappy', x:0},
-                {t:'saw', x: 500, y: 250}, {t:'saw', x: 1000, y: 80},  
-                {t:'saw', x: 1500, y: 250}, {t:'saw', x: 2000, y: 150},
-                {t:'saw', x: 2500, y: 200}, {t:'saw', x: 3000, y: 100},
-                {t:'portal_cube', x: 6000} // Long flappy mode for boss fights
-            ]);
+        let cIdx = Math.min(this.currentLevel - 1, 9);
+        this.SPEED = lvlCfg[cIdx].s;
+        this.levelLength = lvlCfg[cIdx].len;
+        let baseGap = lvlCfg[cIdx].gap;
+
+        let chunks = [];
+
+        if(this.currentLevel === 1) {
+            chunks = [
+                [{t:'jpad', x:0}, {t:'wall', x: 130, h: 120}], 
+                [{t:'gap', x:0, w:120}, {t:'platform', x:180, y:240, w:120}],
+                [{t:'glass', x:0, h:80}],
+                [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
+                [
+                    {t:'portal_flappy', x:0},
+                    {t:'saw', x: 500, y: 250}, {t:'saw', x: 1000, y: 80},  
+                    {t:'saw', x: 1500, y: 250}, {t:'saw', x: 2000, y: 150},
+                    {t:'saw', x: 2500, y: 200}, {t:'saw', x: 3000, y: 100},
+                    {t:'saw', x: 3500, y: 280}, {t:'saw', x: 4000, y: 120},
+                    {t:'saw', x: 4500, y: 280}, {t:'saw', x: 5000, y: 90},
+                    {t:'saw', x: 5500, y: 250}, {t:'saw', x: 6000, y: 180},
+                    {t:'saw', x: 6500, y: 250}, {t:'saw', x: 7000, y: 100},
+                    {t:'portal_cube', x: 7500} 
+                ]
+            ];
+        }
+        else {
+            chunks = [
+                [{t:'spike', x:0}],
+                [{t:'platform', x:0, y:260, w:80}, {t:'platform', x:160, y:200, w:80}, {t:'platform', x:320, y:140, w:80}], 
+                [{t:'jpad', x:0}, {t:'wall', x:130, h:130}], 
+                [{t:'dspike', x:0}], 
+                [{t:'saw', x:0, y:this.GROUND_Y - 40}], 
+                [{t:'jpad', x:0}, {t:'wall', x:280, h:85}], 
+                [{t:'platform', x:0, y:200, w:100}, {t:'saw', x:180, y:180}, {t:'platform', x:280, y:200, w:100}],
+                [
+                    {t:'portal_flappy', x:0},
+                    {t:'ceiling_spike', x: 400}, {t:'ceiling_spike', x: 450}, {t:'ceiling_spike', x: 500},
+                    {t:'saw', x: 400, y: 280}, 
+                    {t:'ceiling_spike', x: 800}, {t:'ceiling_spike', x: 850},
+                    {t:'saw', x: 800, y: 220}, 
+                    {t:'saw', x: 1200, y: 180}, {t:'saw', x: 1200, y: 350}, 
+                    {t:'saw', x: 1600, y: 150}, {t:'saw', x: 1600, y: 250},
+                    {t:'portal_cube', x: 2200}
+                ]
+            ];
         }
         
         let curX = 900;
@@ -396,14 +379,17 @@ class GeoDashEngine {
             let chunk = chunks[idx];
             
             for(let p of chunk) {
-                let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass')?80:(p.t==='portal_flappy'||p.t==='portal_cube')?100:(p.t==='jpad')?20:16;
+                let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass')?p.h:(p.t==='portal_flappy'||p.t==='portal_cube')?100:(p.t==='jpad')?20:16;
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
-                if(p.t==='portal_flappy' || p.t==='portal_cube') { finalY = this.GROUND_Y - 100; }
+                
+                if(p.t==='portal_flappy' || p.t==='portal_cube') {
+                    finalY = this.GROUND_Y - 100;
+                }
                 
                 this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
             }
             
-            let chunkGap = (chunk.length > 3 && chunk[0].t === 'portal_flappy') ? 6500 : baseGap;
+            let chunkGap = (chunk.length > 3 && chunk[0].t === 'portal_flappy') ? 8000 : baseGap;
             curX += chunkGap + ((r - Math.floor(r)) * 100); 
         }
     }
@@ -417,38 +403,56 @@ class GeoDashEngine {
     }
 
     spawnJumpDust() {
-        for(let i=0; i<6; i++) {
+        for(let i=0; i<8; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
                 p.active=true; 
                 p.x = this.player.x + 18; 
                 p.y = this.player.y + 36; 
-                p.vx = (Math.random() - 0.5) * 8; 
-                p.vy = -(Math.random() * 3);
+                p.vx = (Math.random() - 0.5) * 10; 
+                p.vy = -(Math.random() * 3 + 1);
                 p.life = 1.0; 
-                p.s = 3 + Math.random() * 3; 
+                p.s = 4 + Math.random() * 4; 
                 p.c = '#e0e0e0'; 
             }
         }
     }
 
-    spawnDeathExplosion(x, y, color) {
-        for(let i=0; i<30; i++) {
+    spawnGlassShatter(x, y, h) {
+        let shatterColor = this.official ? 'rgba(255, 215, 0, 0.8)' : 'rgba(0, 240, 255, 0.8)';
+        for(let i=0; i<25; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
                 p.active=true; 
-                p.x=x; 
-                p.y=y; 
-                p.vx=(Math.random()-0.5)*15; 
-                p.vy=(Math.random()-0.5)*15;
+                p.x = x + 15; 
+                p.y = y - Math.random() * h; 
+                p.vx = (Math.random() - 0.5) * 15; 
+                p.vy = (Math.random() - 0.5) * 15;
+                p.life = 1.0; 
+                p.s = 3 + Math.random() * 6; 
+                p.c = shatterColor; 
+            }
+        }
+    }
+
+    spawnDeathExplosion(isHunter = false) {
+        for(let i=0; i<40; i++) {
+            let p = this.particlePool.find(obj => !obj.active);
+            if(p) {
+                p.active=true; 
+                p.x=this.player.x+18; 
+                p.y=this.player.y+18;
+                p.vx=(Math.random()-0.5)*18; 
+                p.vy=(Math.random()-0.5)*18;
                 p.life=1.0; 
-                p.s=4+Math.random()*4; 
-                p.c=color;
+                p.s=5+Math.random()*5; 
+                p.c = isHunter ? '#ff3060' : this.themeColor;
             }
         }
     }
 
     reset() {
+        initAudio();
         cancelAnimationFrame(this.reqId);
         this.ctx.fillStyle='#05080f'; 
         this.ctx.fillRect(0,0,this.W,this.H); 
@@ -457,23 +461,19 @@ class GeoDashEngine {
         this.frameCount = 0;
         this.playerMode = 'cube';
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
-        this.jumpBuffer = 0; 
-        this.trail = []; 
+        this.jumpBuffer = 0;
+        this.trail = [];
         this.dieReason = '';
         
-        this.playerBullets = [];
-        this.enemies = [];
-        this.enemyBullets = [];
-        this.bossTimer = 0;
-        this.bossText = "";
+        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0, phaseText: "", phaseTimer: 0 };
         
         this.activeObstacles.forEach(o=>o.active=false); 
         this.activeObstacles=[];
         this.particlePool.forEach(p=>p.active=false); 
 
         this.initPatterns();
-        this.geometryPatterns.forEach(p=> { 
-            this.spawnObstacle(p.t, p.x, p.y, p.w, p.h, p.onPlatY); 
+        this.geometryPatterns.forEach(p=> {
+            this.spawnObstacle(p.t, p.x, p.y, p.w, p.h, p.onPlatY);
         });
     }
 
@@ -485,12 +485,13 @@ class GeoDashEngine {
         
         this.reset();
         
-        // Tap to start state
+        // 🔥 TAP TO START LOGIC 🔥
         this.state = 'READY'; 
         
         let pBar = document.getElementById('progressBar');
         pBar.style.width = '0%';
         pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
+        pBar.style.boxShadow = isOfficial ? '0 0 10px rgba(255,215,0,0.5)' : '0 0 10px rgba(0,240,255,0.5)';
         
         document.getElementById('gameBox').style.borderColor = this.themeColor;
         
@@ -499,59 +500,45 @@ class GeoDashEngine {
     }
 
     jump() {
+        initAudio();
+        
         if(this.state === 'READY') {
-            initAudio();
             this.state = 'PLAYING';
             this.player.vy = this.JUMP_VEL; 
             this.player.ground = false; 
             this.spawnJumpDust();
+            playJump();
             return;
         }
 
         if(this.state==='DEAD'||this.state==='IDLE'||this.state==='CLEAR'){ 
+            this.start(this.official); 
             return; 
         } 
-        
         if(this.state!=='PLAYING') return;
-        
-        initAudio();
         
         if(this.playerMode === 'flappy') {
             this.player.vy = -10.0; 
             this.spawnJumpDust();
-        } else {
+            playJump();
+        } 
+        else {
             this.jumpBuffer = 10; 
         }
-    }
-    
-    // 🔥 NEW: SHOOT FUNCTION 🔥
-    shoot() {
-        if(this.state !== 'PLAYING' || !this.hasGun || this.ammo <= 0) return;
-        
-        // Cooldown check (prevent spam)
-        if(this.playerBullets.length > 0 && this.playerBullets[this.playerBullets.length-1].x < this.player.x + 100) {
-            return;
-        }
-
-        this.ammo--;
-        this.playerBullets.push({ x: this.player.x + 30, y: this.player.y + 18, vx: 20 });
     }
 
     die(reason = "", isHunter = false) {
         if(this.state==='DEAD') return;
-        
         this.state = 'DEAD'; 
-        this.attempts++; 
+        this.attempts++;
         this.dieReason = reason;
-        
         document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
-        
         playDie();
-        this.spawnDeathExplosion(this.player.x+18, this.player.y+18, isHunter ? '#ff3060' : this.themeColor);
+        this.spawnDeathExplosion(isHunter);
         
-        if(this.official) { 
-            this.official = false; 
-            handleOfficialDie(); 
+        if(this.official) {
+            this.official = false;
+            handleOfficialDie();
         }
     }
 
@@ -565,10 +552,7 @@ class GeoDashEngine {
     update(dt) {
         for(let p of this.particlePool){ 
             if(p.active){ 
-                p.x+=p.vx*dt; 
-                p.y+=p.vy*dt; 
-                p.vy+=0.6*dt; 
-                p.life-=0.03*dt; 
+                p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=0.6*dt; p.life-=0.03*dt; 
                 if(p.life<=0) p.active=false; 
             } 
         }
@@ -584,116 +568,72 @@ class GeoDashEngine {
         this.frameCount += dt; 
         this.worldX += this.SPEED*dt;
 
-        // 🔥 STORY MODE ENEMY SPAWNER 🔥
-        if (this.playerMode === 'flappy' && this.bossPhase > 0) {
-            this.bossTimer += dt;
-            
-            if(this.bossTimer > 200 && this.bossTimer < 300) { 
-                this.bossText = "⚠️ WARNING: HOSTILES INBOUND ⚠️"; 
+        if (this.playerMode === 'flappy') {
+            this.hunter.timer += dt;
+            if (this.hunter.timer > 300 && !this.hunter.active && this.hunter.shotsFired < 50) { 
+                this.hunter.warning = true;
             }
-            
-            if(this.bossTimer > 300 && this.enemies.length === 0) {
-                this.bossText = "";
-                
-                if(this.bossPhase === 1) {
-                    this.enemies.push({ type: 'hunter', hp: 999, y: 150, targetY: 150, timer: 0 });
-                } 
-                else if(this.bossPhase === 2) {
-                    this.enemies.push({ type: 'hunter', hp: 3, y: 150, targetY: 150, timer: 0 });
-                } 
-                else if(this.bossPhase === 3) {
-                    this.enemies.push({ type: 'hunter', hp: 3, y: 80, targetY: 80, timer: 0 });
-                    this.enemies.push({ type: 'hunter', hp: 3, y: 250, targetY: 250, timer: 0 });
-                } 
-                else if(this.bossPhase === 4) {
-                    this.bossText = "🐉 THE FIRE DRAGON AWAKENS!";
-                    this.enemies.push({ type: 'dragon', hp: 15, y: 150, targetY: 150, timer: 0, dir: 1 });
-                }
+            if (this.hunter.timer > 420 && !this.hunter.active && this.hunter.shotsFired < 50) {
+                this.hunter.active = true;
+                this.hunter.warning = false;
+                this.hunter.y = this.player.y;
             }
+        } else {
+            this.hunter.timer = 0;
+            this.hunter.warning = false;
+            this.hunter.active = false;
+            this.hunter.bullets = [];
+            this.hunter.shotsFired = 0;
+            this.hunter.phaseText = "";
         }
 
-        // 🔥 ENEMY LOGIC & ATTACKS 🔥
-        for (let i = this.enemies.length - 1; i >= 0; i--) {
-            let e = this.enemies[i];
-            e.timer += dt;
-            
-            // Movement
-            if(e.type === 'hunter') {
-                e.targetY = this.player.y; // Follow player
-                e.y += (e.targetY - e.y) * 0.05 * dt;
-            } else if (e.type === 'dragon') {
-                e.y += e.dir * 2 * dt; // Move up and down
-                if(e.y < 50) e.dir = 1;
-                if(e.y > 250) e.dir = -1;
+        if (this.hunter.active) {
+            this.hunter.y += (this.player.y - this.hunter.y) * 0.05 * dt;
+
+            let fireRate = 60;
+            let bulletVx = 14;
+            let homing = false;
+
+            if (this.hunter.shotsFired >= 10 && this.hunter.shotsFired < 20) {
+                fireRate = 40; 
+                bulletVx = 18;
+            } else if (this.hunter.shotsFired >= 20 && this.hunter.shotsFired < 50) {
+                fireRate = 50; 
+                bulletVx = 12;
+                homing = true;
             }
 
-            // Attacking
-            let fireRate = (e.type === 'dragon') ? 40 : 60;
             if (Math.floor(this.frameCount) % fireRate === 0) {
-                this.enemyBullets.push({ 
-                    x: this.W - 80, 
-                    y: e.y + 10, 
-                    vx: (e.type === 'dragon') ? 10 : 14, 
-                    type: (e.type === 'dragon') ? 'fire' : 'laser' 
-                });
-            }
-
-            // Level 1: Hunter runs away and drops gun
-            if(this.bossPhase === 1 && e.timer > 400) {
-                this.bossText = "📦 WEAPON CRATE DROPPED! GRAB IT!";
-                this.spawnObstacle('gun_drop', this.worldX + this.W + 200, 200, 30, 30);
-                this.enemies.splice(i, 1);
-                this.bossPhase = 0; // End boss logic
-            }
-        }
-
-        // 🔥 BULLETS UPDATE & COLLISIONS 🔥
-        
-        // Enemy Bullets
-        for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
-            let b = this.enemyBullets[i];
-            b.x -= b.vx * dt;
-            
-            let px = this.player.x+6, py = this.player.y+6, pw = 24, ph = 24;
-            if (b.x < px+pw && b.x+15 > px && b.y < py+ph && b.y+10 > py) {
-                this.die("KILLED IN ACTION 💥", true);
-                return;
-            }
-            if (b.x < -50) this.enemyBullets.splice(i, 1);
-        }
-
-        // Player Bullets
-        for (let i = this.playerBullets.length - 1; i >= 0; i--) {
-            let pb = this.playerBullets[i];
-            pb.x += pb.vx * dt;
-            let hit = false;
-
-            for (let j = this.enemies.length - 1; j >= 0; j--) {
-                let e = this.enemies[j];
-                let ew = (e.type==='dragon') ? 80 : 40;
-                let eh = (e.type==='dragon') ? 80 : 20;
-                let ex = this.W - 60;
+                this.hunter.shotsFired++;
                 
-                if (pb.x+15 > ex && pb.x < ex+ew && pb.y > e.y && pb.y < e.y+eh) {
-                    e.hp--;
-                    this.spawnDeathExplosion(ex, e.y, '#ffd700'); // Hit spark
-                    hit = true;
-                    
-                    if (e.hp <= 0) {
-                        this.spawnDeathExplosion(ex, e.y, '#ff3060');
-                        this.enemies.splice(j, 1);
-                        if(this.enemies.length === 0) {
-                            this.bossText = "✅ TARGETS DESTROYED!";
-                        }
-                    }
-                    break;
+                if(this.hunter.shotsFired === 11) { this.hunter.phaseText = "⚠️ WEAPON CHANGE: RAPID FIRE ⚠️"; this.hunter.phaseTimer = 120; }
+                if(this.hunter.shotsFired === 21) { this.hunter.phaseText = "⚠️ WEAPON CHANGE: TRACKING MISSILES ⚠️"; this.hunter.phaseTimer = 120; }
+
+                if(this.hunter.shotsFired >= 50) {
+                    this.hunter.active = false;
+                    this.hunter.warning = false;
+                    this.hunter.phaseText = "✅ HUNTER RETREATING. GOOD JOB.";
+                    this.hunter.phaseTimer = 150;
+                } else {
+                    this.hunter.bullets.push({ x: this.W - 60, y: this.hunter.y + 5, vx: bulletVx, homing: homing });
                 }
             }
-            
-            if(hit || pb.x > this.W) {
-                this.playerBullets.splice(i, 1);
+
+            for (let i = this.hunter.bullets.length - 1; i >= 0; i--) {
+                let b = this.hunter.bullets[i];
+                b.x -= b.vx * dt;
+                if (b.homing) b.y += (this.player.y + 18 - b.y) * 0.08 * dt; 
+                
+                let px = this.player.x+6, py = this.player.y+6, pw = 24, ph = 24;
+                if (b.x < px+pw && b.x+20 > px && b.y < py+ph && b.y+6 > py) {
+                    this.die("SNIPED BY HUNTER 🎯", true);
+                    return;
+                }
+                if (b.x < -50) this.hunter.bullets.splice(i, 1);
             }
         }
+        if(this.hunter.phaseTimer > 0) this.hunter.phaseTimer -= dt;
+
 
         if(this.playerMode === 'cube' && this.jumpBuffer > 0) {
             this.jumpBuffer -= dt;
@@ -702,6 +642,7 @@ class GeoDashEngine {
                 this.player.ground = false; 
                 this.jumpBuffer = 0;
                 this.spawnJumpDust(); 
+                playJump();
             }
         }
 
@@ -753,17 +694,15 @@ class GeoDashEngine {
             }
             
             let oHX=ox, oHY=o.y, oHW=o.w, oHH=o.h;
-            
             if(o.t==='spike'){ oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; }
             else if(o.t==='dspike'){oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;}
             else if(o.t==='ceiling_spike'){ oHX=ox+6; oHY=0; oHW=26; oHH=32; } 
-            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-20; oHW=48; oHH=20;} 
+            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-20; oHW=48; oHH=20;} // Bigger Jpad
             else if(o.t==='platform'){oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;}
             else if(o.t==='saw'){ oHX=ox-12; oHY=o.y-12; oHW=24; oHH=24; }
             else if(o.t==='wall'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='glass'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='portal_flappy' || o.t==='portal_cube'){ oHX=ox; oHY=this.GROUND_Y-100; oHW=20; oHH=100; }
-            else if(o.t==='gun_drop'){ oHX=ox; oHY=o.y; oHW=30; oHH=30; }
 
             let landTolerance = 25; 
 
@@ -782,17 +721,8 @@ class GeoDashEngine {
                 }
 
                 if(o.t === 'glass'){
-                    // Glass doesn't kill
+                    this.spawnGlassShatter(ox, this.GROUND_Y, o.h);
                     o.active = false; 
-                    continue;
-                }
-                
-                if(o.t === 'gun_drop'){
-                    this.hasGun = true;
-                    this.ammo = 10;
-                    document.getElementById('btnShoot').style.display = 'block';
-                    this.bossText = "GUN ACQUIRED! AMMO REFILLED!";
-                    o.active = false;
                     continue;
                 }
 
@@ -800,13 +730,12 @@ class GeoDashEngine {
                     this.die(); 
                     return; 
                 }
-                
                 if(o.t==='jpad'){ 
                     this.player.vy=this.JUMP_VEL*1.3; 
                     this.player.ground=false; 
                     this.spawnJumpDust(); 
+                    playJump(); 
                 }
-                
                 if(o.t==='platform'){
                     if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
                         this.player.y=o.y-this.player.h; 
@@ -842,11 +771,16 @@ class GeoDashEngine {
         this.ctx.fillStyle='#05080f'; 
         this.ctx.fillRect(0,0,this.W,this.H); 
         
+        if ((this.hunter.warning || this.hunter.active) && Math.floor(this.frameCount) % 20 < 10) {
+            this.ctx.fillStyle = 'rgba(255, 48, 96, 0.15)';
+            this.ctx.fillRect(0, 0, this.W, this.H);
+        }
+        
         if (!this.official) {
-            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
-            this.ctx.font = 'bold 24px Courier New';
+            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.4)';
+            this.ctx.font = 'bold 16px Courier New';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText("PRACTICE MODE", this.W / 2, 40);
+            this.ctx.fillText("▶ PRACTICE MODE - NO EARNINGS", this.W / 2, 30);
         }
 
         if (this.state === 'READY') {
@@ -854,20 +788,6 @@ class GeoDashEngine {
             this.ctx.font = 'bold 28px Courier New';
             this.ctx.textAlign = 'center';
             this.ctx.fillText("TAP TO START", this.W / 2, this.H / 2);
-        }
-
-        if (this.bossText) {
-            this.ctx.fillStyle = '#ff3060';
-            this.ctx.font = 'bold 18px Courier New';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(this.bossText, this.W / 2, 80);
-        }
-        
-        if (this.hasGun && this.state === 'PLAYING') {
-            this.ctx.fillStyle = '#ffd700';
-            this.ctx.font = 'bold 16px Courier New';
-            this.ctx.textAlign = 'left';
-            this.ctx.fillText(`AMMO: ${this.ammo}`, 20, 30);
         }
 
         this.ctx.fillStyle = '#ffffff';
@@ -882,44 +802,28 @@ class GeoDashEngine {
         this.ctx.fillStyle = this.themeColor; 
         this.ctx.fillRect(0,this.GROUND_Y-1,this.W,3); 
 
-        // 🔥 DRAW ENEMIES 🔥
-        for(let e of this.enemies) {
-            if(e.type === 'hunter') {
-                this.ctx.fillStyle = '#ff3060';
-                this.ctx.beginPath(); 
-                this.ctx.ellipse(this.W - 60, e.y, 35, 15, 0, 0, Math.PI*2); 
-                this.ctx.fill();
-                this.ctx.fillStyle = '#05080f'; 
-                this.ctx.fillRect(this.W - 65, e.y - 5, 10, 10);
-            } else if (e.type === 'dragon') {
-                this.ctx.fillStyle = '#00ff88'; 
-                this.ctx.fillRect(this.W - 80, e.y, 60, 60);
-                this.ctx.fillStyle = '#ff3060'; 
-                this.ctx.fillRect(this.W - 60, e.y + 10, 15, 15);
-                this.ctx.fillStyle = '#ffd700'; 
-                this.ctx.beginPath(); 
-                this.ctx.moveTo(this.W - 40, e.y); 
-                this.ctx.lineTo(this.W - 20, e.y-20); 
-                this.ctx.lineTo(this.W - 20, e.y); 
-                this.ctx.fill();
+        // 🔥 PREMIUM UFO HUNTER 🔥
+        if (this.hunter.active && this.state !== 'DEAD') {
+            this.ctx.fillStyle = '#222';
+            this.ctx.beginPath(); this.ctx.ellipse(this.W - 60, this.hunter.y, 35, 15, 0, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.strokeStyle = '#ff3060'; this.ctx.lineWidth = 3; this.ctx.stroke();
+            this.ctx.fillStyle = 'rgba(255, 48, 96, 0.6)';
+            this.ctx.beginPath(); this.ctx.arc(this.W - 60, this.hunter.y - 5, 18, 0, Math.PI, true); this.ctx.fill();
+            this.ctx.fillStyle = '#fff';
+            this.ctx.beginPath(); this.ctx.arc(this.W - 60, this.hunter.y + 5, 5, 0, Math.PI*2); this.ctx.fill();
+            
+            for (let b of this.hunter.bullets) {
+                if (b.homing) {
+                    this.ctx.shadowBlur = 10;
+                    this.ctx.shadowColor = '#ffd700';
+                    this.ctx.fillStyle = '#ffd700';
+                    this.ctx.fillRect(b.x, b.y, 25, 8);
+                    this.ctx.shadowBlur = 0;
+                } else {
+                    this.ctx.fillStyle = '#ff3060';
+                    this.ctx.fillRect(b.x, b.y, 20, 6);
+                }
             }
-        }
-
-        // 🔥 DRAW BULLETS 🔥
-        for (let b of this.enemyBullets) {
-            if(b.type === 'fire') {
-                this.ctx.fillStyle = '#ff8c00';
-                this.ctx.beginPath(); 
-                this.ctx.arc(b.x, b.y, 10, 0, Math.PI*2); 
-                this.ctx.fill();
-            } else {
-                this.ctx.fillStyle = '#ff3060';
-                this.ctx.fillRect(b.x, b.y, 20, 6);
-            }
-        }
-        for (let pb of this.playerBullets) {
-            this.ctx.fillStyle = '#00f0ff';
-            this.ctx.fillRect(pb.x, pb.y, 15, 4);
         }
 
         for(let o of this.activeObstacles){
@@ -948,7 +852,6 @@ class GeoDashEngine {
                 this.ctx.lineTo(ox+38,baseY);
                 this.ctx.lineTo(ox,baseY);
                 this.ctx.fill();
-                
                 this.ctx.beginPath();
                 this.ctx.moveTo(ox+57,baseY-38);
                 this.ctx.lineTo(ox+76,baseY);
@@ -986,9 +889,7 @@ class GeoDashEngine {
                 this.ctx.rotate(Math.PI / 4);
                 this.ctx.fillRect(-15, -15, 30, 30);
                 this.ctx.fillStyle = '#05080f';
-                this.ctx.beginPath(); 
-                this.ctx.arc(0,0, 8, 0, Math.PI*2); 
-                this.ctx.fill();
+                this.ctx.beginPath(); this.ctx.arc(0,0, 8, 0, Math.PI*2); this.ctx.fill();
                 this.ctx.restore();
             }
             else if(o.t==='wall'){
@@ -1004,6 +905,11 @@ class GeoDashEngine {
                 this.ctx.strokeStyle = this.themeColor;
                 this.ctx.lineWidth = 2;
                 this.ctx.strokeRect(ox, this.GROUND_Y - o.h, 30, o.h);
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox + 5, this.GROUND_Y - o.h + 5);
+                this.ctx.lineTo(ox + 25, this.GROUND_Y - o.h + 25);
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                this.ctx.stroke();
             }
             else if(o.t==='portal_flappy'){
                 this.ctx.strokeStyle = '#ffd700'; 
@@ -1019,12 +925,19 @@ class GeoDashEngine {
                 this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
                 this.ctx.stroke();
             }
-            else if(o.t==='gun_drop'){
-                this.ctx.fillStyle = '#ffd700'; 
-                this.ctx.fillRect(ox, o.y, 30, 30);
-                this.ctx.fillStyle = '#000'; 
-                this.ctx.fillRect(ox+5, o.y+10, 20, 10);
-            }
+        }
+
+        if (this.hunter.warning) {
+            this.ctx.fillStyle = '#ff3060';
+            this.ctx.font = 'bold 18px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText("⚠️ UNAUTHORIZED FLIGHT DETECTED: HUNTER INBOUND ⚠️", this.W / 2, 60);
+        }
+        if (this.hunter.phaseTimer > 0 && this.hunter.phaseText) {
+            this.ctx.fillStyle = (this.hunter.shotsFired >= 50) ? '#00ff88' : '#ffd700';
+            this.ctx.font = 'bold 18px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(this.hunter.phaseText, this.W / 2, 80);
         }
 
         if(this.state==='DEAD' && this.dieReason){
@@ -1048,9 +961,7 @@ class GeoDashEngine {
                 this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${t.life})`; 
                 if(t.mode === 'flappy') {
                     this.ctx.beginPath();
-                    this.ctx.moveTo(18, 0); 
-                    this.ctx.lineTo(-18, 15); 
-                    this.ctx.lineTo(-18, -15);
+                    this.ctx.moveTo(18, 0); this.ctx.lineTo(-18, 15); this.ctx.lineTo(-18, -15);
                     this.ctx.fill();
                 } else {
                     this.ctx.fillRect(-18, -18, 36, 36);
@@ -1073,38 +984,20 @@ class GeoDashEngine {
             this.ctx.translate(this.player.x+18, this.player.y+18);
             this.ctx.rotate(this.player.rot*Math.PI/180);
             
+            // 🔥 PREMIUM SHIP DESIGN 🔥
             if(this.playerMode === 'flappy') {
                 this.ctx.fillStyle = '#111';
-                this.ctx.beginPath(); 
-                this.ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); 
-                this.ctx.fill();
-                this.ctx.strokeStyle = '#ffd700'; 
-                this.ctx.lineWidth = 2; 
-                this.ctx.stroke();
-                
+                this.ctx.beginPath(); this.ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); this.ctx.fill();
+                this.ctx.strokeStyle = '#ffd700'; this.ctx.lineWidth = 2; this.ctx.stroke();
                 this.ctx.fillStyle = '#00f0ff'; 
-                this.ctx.beginPath(); 
-                this.ctx.arc(5, -4, 6, 0, Math.PI, true); 
-                this.ctx.fill();
-                
+                this.ctx.beginPath(); this.ctx.arc(5, -4, 6, 0, Math.PI, true); this.ctx.fill();
                 this.ctx.fillStyle = '#ff3060';
-                this.ctx.beginPath(); 
-                this.ctx.moveTo(-20, -5); 
-                this.ctx.lineTo(-35, 0); 
-                this.ctx.lineTo(-20, 5); 
-                this.ctx.fill();
-                
-                if(this.hasGun) { 
-                    this.ctx.fillStyle = '#00f0ff'; 
-                    this.ctx.fillRect(0, -12, 15, 6); 
-                }
+                this.ctx.beginPath(); this.ctx.moveTo(-20, -5); this.ctx.lineTo(-35, 0); this.ctx.lineTo(-20, 5); this.ctx.fill();
             } else {
                 this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':this.themeColor; 
                 this.ctx.fillRect(-18,-18,36,36); 
-                
                 this.ctx.fillStyle='#05080f'; 
                 this.ctx.fillRect(-14,-14,28,28); 
-                
                 this.ctx.fillStyle=this.themeColor; 
                 this.ctx.fillRect(-8,-6,4,4); 
                 this.ctx.fillRect(4,-6,4,4); 
@@ -1139,8 +1032,13 @@ window.baseScore = 0;
 let localSpins = parseInt(localStorage.getItem('geodash_spins') || '0');
 let practiceUnlocks = parseInt(localStorage.getItem('geodash_prac_unlocks') || '1');
 
-function closeModal() { document.getElementById('welcomeModal').style.display = 'none'; }
-function scrollToSpin() { closeModal(); document.getElementById('slotMachineSection').scrollIntoView({ behavior: 'smooth' }); }
+function closeModal() { 
+    document.getElementById('welcomeModal').style.display = 'none'; 
+}
+function scrollToSpin() { 
+    closeModal(); 
+    document.getElementById('slotMachineSection').scrollIntoView({ behavior: 'smooth' }); 
+}
 
 function handleOfficialDie(){
     const ob=document.getElementById('officialRunBtn');
@@ -1183,12 +1081,7 @@ function triggerWinUi(tries) {
                     const iface = new ethers.utils.Interface(ABI);
                     const data = iface.encodeFunctionData(methodName, args);
                     
-                    try { 
-                        await Promise.race([
-                            walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
-                        ]);
-                    } catch(e) { }
+                    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
                     
                     const txHash = await walletProvider.request({ 
                         method: 'eth_sendTransaction', 
@@ -1208,11 +1101,14 @@ function triggerWinUi(tries) {
                     
                     if(confirmed) { 
                         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n✅ Saved on-chain!`; 
-                        fetchPersonalStats(); fetchGlobalLeaderboard(); 
+                        fetchPersonalStats(); 
+                        fetchGlobalLeaderboard(); 
                     } else { 
                         document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Save Delayed`; 
                     }
-                } catch(e) { document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled!`; }
+                } catch(e) { 
+                    document.getElementById('overlaySub').innerText=`+${addScore} PTS\n❌ Tx Cancelled!`; 
+                }
                 
                 document.getElementById('overlayCastBtn').style.display='block';
                 document.getElementById('overlayBtn').style.display='block';
@@ -1238,9 +1134,20 @@ function triggerWinUi(tries) {
 
 <script>
 const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
-const ABI = ["function startLevel(uint256 level) external","function levelComplete(uint256 level, uint256 score) external","function spin() external","function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)","function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)","function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"];
+const ABI = [
+    "function startLevel(uint256 level) external",
+    "function levelComplete(uint256 level, uint256 score) external",
+    "function spin() external",
+    "function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)",
+    "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)",
+    "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
+];
 
-let userAddress = null; let isConnected = false; let isFarcasterWallet = false; let walletProvider = null; let spinStatus = { hasFree: false, timeLeft: 0 };
+let userAddress = null; 
+let isConnected = false; 
+let isFarcasterWallet = false; 
+let walletProvider = null; 
+let spinStatus = { hasFree: false, timeLeft: 0 };
 const GAME_URL = "https://farcaster.xyz/miniapps/vDZmdCj1pC8Z/geodash-by-tokiyo";
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
@@ -1248,29 +1155,40 @@ const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 function showToast(msg, color='var(--cyan)'){
     const t=document.getElementById('toast');
-    t.innerText=msg; t.style.borderLeftColor=color; t.style.display='block';
+    t.innerText=msg;
+    t.style.borderLeftColor=color;
+    t.style.display='block';
     setTimeout(()=>t.style.display='none',3500);
 }
 
 function showWalletStatus(msg, isGood){
     const w=document.getElementById('walletStatus');
-    w.innerText=msg; w.style.color=isGood?'#00ff88':'#ff3060';
+    w.innerText=msg;
+    w.style.color=isGood?'#00ff88':'#ff3060';
 }
 
 async function detectWallet(){
     if(walletProvider) return true;
     for(let i=0; i<10; i++){
         if(window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider){
-            walletProvider = window.fcSdk.wallet.ethProvider; isFarcasterWallet = true; return true;
+            walletProvider = window.fcSdk.wallet.ethProvider;
+            isFarcasterWallet = true;
+            return true;
         }
-        if(window.ethereum){ walletProvider = window.ethereum; return true; }
+        if(window.ethereum){
+            walletProvider = window.ethereum;
+            return true;
+        }
         await new Promise(r=>setTimeout(r,100));
     }
     return false;
 }
 
 async function connectWallet(err=true){
-    if(!await detectWallet()){ if(err) showToast("No Web3 Wallet found!","red"); return false; }
+    if(!await detectWallet()){
+        if(err) showToast("No Web3 Wallet found!","red");
+        return false;
+    }
     try {
         let acct = await walletProvider.request({method:'eth_accounts'}).catch(()=>[]);
         if(!acct || acct.length==0) acct = await walletProvider.request({method:'eth_requestAccounts'}).catch(()=>[]);
@@ -1278,25 +1196,41 @@ async function connectWallet(err=true){
         
         userAddress = acct[0];
         
-        if(!isFarcasterWallet){ try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){} }
+        if(!isFarcasterWallet){
+            try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){}
+        }
         
-        isConnected = true; showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-        refreshSpinStatus(); fetchPersonalStats(); return true;
-    } catch(e) { return false; }
+        isConnected = true;
+        showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
+        refreshSpinStatus();
+        fetchPersonalStats();
+        return true;
+    } catch(e) {
+        return false;
+    }
 }
 
 function openCast(text){
     const url = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`;
-    if(window.fcSdk && window.fcSdk.actions){ window.fcSdk.actions.openUrl(url); } else { window.open(url,'_blank'); }
+    if(window.fcSdk && window.fcSdk.actions){
+        window.fcSdk.actions.openUrl(url);
+    } else {
+        window.open(url,'_blank');
+    }
 }
 
 window.addEventListener('load', () => {
     document.getElementById('practiceBtn').addEventListener('click', () => { ge.start(false); });
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
-    document.getElementById('overlayBtn').addEventListener('click', () => { document.getElementById('overlay').style.display='none'; ge.state='IDLE'; ge.draw(); });
+    document.getElementById('overlayBtn').addEventListener('click', () => { 
+        document.getElementById('overlay').style.display='none'; 
+        ge.state='IDLE'; 
+        ge.draw(); 
+    });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    buildLevelUI(); fetchGlobalLeaderboard();
+    buildLevelUI(); 
+    fetchGlobalLeaderboard();
     
     setTimeout(async()=>{
         if(await detectWallet()){
@@ -1308,114 +1242,204 @@ window.addEventListener('load', () => {
     },500);
 });
 
+// 🔥 INSTANT TX START UPGRADE 🔥
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     if(ge.currentLevel > maxOnchain) {
-        ge.currentLevel = maxOnchain; buildLevelUI(); document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
+        ge.currentLevel = maxOnchain; 
+        buildLevelUI();
+        document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
         showToast(`Auto-switched to Level ${maxOnchain} for Official Run!`, "#ffd700");
     }
     
     if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
     if(!isConnected){ if(!await connectWallet(true)) return; }
     
-    btn.disabled = true; btn.innerText = "⏳ CONFIRMING...";
+    btn.disabled = true; 
+    btn.innerText = "⏳ CONFIRMING...";
     
     try {
         const iface = new ethers.utils.Interface(ABI);
         const data = iface.encodeFunctionData("startLevel", [ge.currentLevel]);
         
-        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) { }
+        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
 
-        const txPromise = walletProvider.request({ method: 'eth_sendTransaction', params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] });
+        const txPromise = walletProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }]
+        });
         
         showToast("Tx Initiated! Click the screen to dash.", "#00ff88"); 
-        btn.innerText = "💎 OFFICIAL RUN ACTIVE"; ge.attempts = 0; document.getElementById('attemptUI').innerText=`Attempt: 0`; 
+        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+        ge.attempts = 0; 
+        document.getElementById('attemptUI').innerText=`Attempt: 0`; 
         ge.start(true); 
         
         txPromise.catch(e => {
-            if(ge.official && (ge.state === 'PLAYING' || ge.state === 'READY')) { ge.die("TX CANCELLED! STOPPING RUN.", false); showToast("Transaction was cancelled.", "red"); }
+            if(ge.official && (ge.state === 'PLAYING' || ge.state === 'READY')) {
+                ge.die("TX CANCELLED! STOPPING RUN.", false);
+                showToast("Transaction was cancelled.", "red");
+            }
         });
 
-    } catch(e) { btn.disabled = false; btn.innerText = "💎 OFFICIAL ON-CHAIN RUN"; showToast(e.message || "Tx Cancelled","red"); }
+    } catch(e) { 
+        btn.disabled = false; 
+        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN"; 
+        showToast(e.message || "Tx Cancelled","red"); 
+    }
 }
 
 async function executeSpin(){
-    const btn = document.getElementById('spinBtn'); document.getElementById('spinCastBtn').style.display = 'none'; 
+    const btn = document.getElementById('spinBtn');
+    document.getElementById('spinCastBtn').style.display = 'none'; 
     if(!isConnected) { if(!await connectWallet(true)) return; }
     if (!spinStatus.hasFree && spinStatus.bonus <= 0) { showToast("No spin available! Wait for cooldown.", "red"); return; }
     
     try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
     
     btn.disabled=true;
-    document.getElementById('r1').className='reel-inner spinning'; document.getElementById('r2').className='reel-inner spinning'; document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning... Please confirm TX!"; document.getElementById('spinResult').style.color = "#ffd700";
+    document.getElementById('r1').className='reel-inner spinning'; 
+    document.getElementById('r2').className='reel-inner spinning'; 
+    document.getElementById('r3').className='reel-inner spinning';
+    document.getElementById('spinResult').innerText = "Spinning... Please confirm TX!"; 
+    document.getElementById('spinResult').style.color = "#ffd700";
 
     setTimeout(async () => {
         try{
-            const iface = new ethers.utils.Interface(ABI); const data = iface.encodeFunctionData("spin", []);
-            const txHash = await walletProvider.request({ method: 'eth_sendTransaction', params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] });
+            const iface = new ethers.utils.Interface(ABI); 
+            const data = iface.encodeFunctionData("spin", []);
+            
+            const txHash = await walletProvider.request({ 
+                method: 'eth_sendTransaction', 
+                params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
+            });
             
             document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
             
             let isConfirmed = false;
             for(let i=0; i<15; i++) { 
                 await new Promise(r => setTimeout(r, 2000)); 
-                try { const receipt = await publicProvider.getTransactionReceipt(txHash); if(receipt && receipt.confirmations > 0) { isConfirmed = true; break; } } catch(err){} 
+                try { 
+                    const receipt = await publicProvider.getTransactionReceipt(txHash); 
+                    if(receipt && receipt.confirmations > 0) { isConfirmed = true; break; } 
+                } catch(err){} 
             }
             
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
             
             if(isConfirmed) { 
                 showToast("Spin Successful!", "#00ff88"); 
-                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; document.getElementById('spinResult').style.color = "#00ff88"; document.getElementById('spinCastBtn').style.display = 'inline-block'; 
-                localSpins++; localStorage.setItem('geodash_spins', localSpins); buildLevelUI(); 
+                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; 
+                document.getElementById('spinResult').style.color = "#00ff88"; 
+                document.getElementById('spinCastBtn').style.display = 'inline-block'; 
+                
+                localSpins++;
+                localStorage.setItem('geodash_spins', localSpins);
+                buildLevelUI(); 
+                
             } else { 
-                document.getElementById('r1').innerText='❌'; document.getElementById('r2').innerText='❌'; document.getElementById('r3').innerText='❌'; 
-                showToast("Transaction Delayed.", "#ff3060"); document.getElementById('spinResult').innerText="Tx Failed. Out of Gas?"; document.getElementById('spinResult').style.color = "#ff3060"; 
+                document.getElementById('r1').innerText='❌'; 
+                document.getElementById('r2').innerText='❌'; 
+                document.getElementById('r3').innerText='❌'; 
+                showToast("Transaction Delayed.", "#ff3060"); 
+                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas?"; 
+                document.getElementById('spinResult').style.color = "#ff3060"; 
             }
-            refreshSpinStatus(); fetchPersonalStats(); fetchGlobalLeaderboard();
+            refreshSpinStatus(); 
+            fetchPersonalStats(); 
+            fetchGlobalLeaderboard();
         }catch(e){
-            btn.disabled = false; document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-            showToast(e.message.includes("No state changes") ? "Spin Not Ready!" : "Tx Cancelled","red"); document.getElementById('spinResult').innerText = "Spin Cancelled"; document.getElementById('spinResult').style.color = "#ff3060";
+            btn.disabled = false;
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+            
+            let errStr = "Spin Cancelled"; 
+            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!"; 
+            else if (e.message) errStr = "Tx Cancelled";
+            
+            showToast(errStr,"red"); 
+            document.getElementById('spinResult').innerText = errStr; 
+            document.getElementById('spinResult').style.color = "#ff3060";
         }
     }, 100); 
 }
 
 function buildLevelUI(){
-    const grid = document.getElementById('levelGrid'); grid.innerHTML='';
+    const grid = document.getElementById('levelGrid'); 
+    grid.innerHTML='';
+    
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     let spinBonusLevels = Math.floor(localSpins / 5); 
+    
     let maxPractice = Math.min(10, Math.max(1, maxOnchain + spinBonusLevels, practiceUnlocks)); 
 
     for(let i=1; i<=10; i++){
         const btn = document.createElement('button');
-        if(window.completedLevels && window.completedLevels.has(i)){ btn.className='lvl-btn done'; btn.innerText='✓'+i; }
-        else if(i <= maxOnchain){ btn.className='lvl-btn onchain'+(i===ge.currentLevel?' active':''); btn.innerText=i; }
-        else if (i <= maxPractice) { btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':''); btn.innerText=i + ' 🔓'; }
-        else { btn.className='lvl-btn'; btn.innerText='🔒'; btn.disabled=true; }
+        
+        if(window.completedLevels && window.completedLevels.has(i)){
+            btn.className='lvl-btn done';
+            btn.innerText='✓'+i;
+        }
+        else if(i <= maxOnchain){
+            btn.className='lvl-btn onchain'+(i===ge.currentLevel?' active':'');
+            btn.innerText=i;
+        }
+        else if (i <= maxPractice) {
+            btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':'');
+            btn.innerText=i + ' 🔓'; 
+        }
+        else {
+            btn.className='lvl-btn';
+            btn.innerText='🔒';
+            btn.disabled=true;
+        }
         
         btn.addEventListener('click', () => { 
-            ge.currentLevel = i; ge.attempts = 0; document.getElementById('attemptUI').innerText=`Attempt: 0`;
-            buildLevelUI(); document.getElementById('progressText').innerText=`Level ${i}/10`; 
+            ge.currentLevel = i; 
+            ge.attempts = 0; 
+            document.getElementById('attemptUI').innerText=`Attempt: 0`;
+            buildLevelUI(); 
+            document.getElementById('progressText').innerText=`Level ${i}/10`; 
         }); 
         grid.appendChild(btn);
     }
     
     let spinProgressText = document.getElementById('spinProgressText');
     let nextUnlock = (Math.floor(localSpins/5) + 1) * 5;
-    if(maxPractice < 10) spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | Next Practice Unlock at ${nextUnlock} Spins!`;
-    else spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | All Practice Levels Unlocked!`;
+    if(maxPractice < 10) {
+        spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | Next Practice Unlock at ${nextUnlock} Spins!`;
+    } else {
+        spinProgressText.innerText = `🎰 Total Spins: ${localSpins} | All Practice Levels Unlocked!`;
+    }
 }
 
 let timerInt = null;
 function updateSpinUI() {
-    const btn = document.getElementById('spinBtn'); const info = document.getElementById('spinInfo'); clearInterval(timerInt);
-    if(spinStatus.hasFree){ btn.disabled = false; btn.innerText = '⏰ FREE HOURLY SPIN!'; btn.style.background = '#ffd700'; info.innerText = 'Free spin ready!'; return; }
-    btn.disabled = true; btn.style.background = '#333'; btn.style.color = '#666'; let tl = spinStatus.timeLeft;
+    const btn = document.getElementById('spinBtn'); 
+    const info = document.getElementById('spinInfo'); 
+    clearInterval(timerInt);
+    
+    if(spinStatus.hasFree){ 
+        btn.disabled = false; 
+        btn.innerText = '⏰ FREE HOURLY SPIN!'; 
+        btn.style.background = '#ffd700'; 
+        info.innerText = 'Free spin ready!'; 
+        return; 
+    }
+    
+    btn.disabled = true; 
+    btn.style.background = '#333'; 
+    btn.style.color = '#666'; 
+    let tl = spinStatus.timeLeft;
+    
     timerInt = setInterval(() => {
-        if(tl <= 0){ refreshSpinStatus(); clearInterval(timerInt); return; } tl--;
+        if(tl <= 0){ refreshSpinStatus(); clearInterval(timerInt); return; } 
+        tl--;
         let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
         btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
         info.innerText = `Next free spin in ${h}h ${m}m`;
@@ -1424,48 +1448,103 @@ function updateSpinUI() {
 
 async function refreshSpinStatus(){
     if(!userAddress) return;
-    try{ const res = await readContract.getSpinStatus(userAddress); spinStatus.bonus = res[1].toNumber(); spinStatus.hasFree = res[2]; spinStatus.timeLeft = res[3].toNumber(); updateSpinUI(); }catch(e){}
+    try{ 
+        const res = await readContract.getSpinStatus(userAddress); 
+        spinStatus.bonus = res[1].toNumber(); 
+        spinStatus.hasFree = res[2]; 
+        spinStatus.timeLeft = res[3].toNumber(); 
+        updateSpinUI(); 
+    }catch(e){}
 }
 
 const fcUsernameCache={};
 async function fetchGlobalLeaderboard(){
     try{
         const [addrs, scores, lvls] = await readContract.getLeaderboard();
-        let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000"); let nameMap = {};
+        let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000");
+        let nameMap = {};
+        
         if(validAddrs.length > 0) {
             try {
                 const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${validAddrs.join(',')}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
-                if(res.ok) { const data = await res.json(); for (let addr of validAddrs) { let lowerAddr = addr.toLowerCase(); if(data[lowerAddr] && data[lowerAddr].length > 0) { nameMap[lowerAddr] = '@' + data[lowerAddr][0].username; } } }
+                if(res.ok) { 
+                    const data = await res.json(); 
+                    for (let addr of validAddrs) { 
+                        let lowerAddr = addr.toLowerCase(); 
+                        if(data[lowerAddr] && data[lowerAddr].length > 0) { 
+                            nameMap[lowerAddr] = '@' + data[lowerAddr][0].username; 
+                        } 
+                    } 
+                }
             } catch(e) {}
         }
-        let html = ''; let hasScores = false;
+        
+        let html = ''; 
+        let hasScores = false;
+        
         for(let i=0; i<10; i++) {
             if(addrs[i] === "0x0000000000000000000000000000000000000000" || scores[i].toNumber() === 0) continue;
-            hasScores = true; let addrLower = addrs[i].toLowerCase(); let name = nameMap[addrLower] || (addrs[i].slice(0,6) + "..." + addrs[i].slice(-4));
-            let score = scores[i].toNumber(); let lvl = lvls[i].toNumber(); let medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="display:inline-block;width:20px;text-align:center;color:#888;">${i+1}.</span>`;
-            html += `<div class="lb-row"><span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span><span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Lv${lvl}</span></span></div>`;
+            hasScores = true; 
+            let addrLower = addrs[i].toLowerCase(); 
+            let name = nameMap[addrLower] || (addrs[i].slice(0,6) + "..." + addrs[i].slice(-4));
+            let score = scores[i].toNumber(); 
+            let lvl = lvls[i].toNumber(); 
+            let medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="display:inline-block;width:20px;text-align:center;color:#888;">${i+1}.</span>`;
+            
+            html += `<div class="lb-row">
+                <span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
+                <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Lv${lvl}</span></span>
+            </div>`;
         }
         document.getElementById('globalLbContent').innerHTML = hasScores ? html : '<div style="text-align:center;color:#888;font-size:12px;">No scores yet. Be the first!</div>';
-    }catch(e){ document.getElementById('globalLbContent').innerHTML = '<div style="text-align:center;color:#ff3060;font-size:12px;">Failed to load leaderboard</div>'; }
+    }catch(e){ 
+        document.getElementById('globalLbContent').innerHTML = '<div style="text-align:center;color:#ff3060;font-size:12px;">Failed to load leaderboard</div>'; 
+    }
 }
 
 async function fetchPersonalStats(){
     if(!userAddress) return;
     try{
         const p = await readContract.players(userAddress);
-        const score = p[2].toNumber(); const lvl = p[3].toNumber();   
+        const score = p[2].toNumber(); 
+        const lvl = p[3].toNumber();   
+        
         if(score > 0 || lvl > 0) {
-            window.completedLevels = new Set(); window.unlockedLevels = new Set([1]);
-            for(let i=1; i<=lvl; i++) { window.completedLevels.add(i); if(i < 10) window.unlockedLevels.add(i + 1); }
-            ge.currentLevel = Math.max(...Array.from(window.unlockedLevels)); window.baseScore = score; document.getElementById('scoreUI').innerText=`Score: ${score}`;
-            buildLevelUI(); document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
+            window.completedLevels = new Set(); 
+            window.unlockedLevels = new Set([1]);
+            
+            for(let i=1; i<=lvl; i++) { 
+                window.completedLevels.add(i); 
+                if(i < 10) window.unlockedLevels.add(i + 1); 
+            }
+            
+            ge.currentLevel = Math.max(...Array.from(window.unlockedLevels));
+            window.baseScore = score; 
+            document.getElementById('scoreUI').innerText=`Score: ${score}`;
+            
+            buildLevelUI(); 
+            document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
         }
-        if(score === 0){ document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats!</div>'; return; }
+        
+        if(score === 0){ 
+            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats!</div>'; 
+            return; 
+        }
         
         let name = "You";
-        try{ const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${userAddress}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}}); if(res.ok){ const data=await res.json(); let addrL = userAddress.toLowerCase(); if(data[addrL] && data[addrL].length > 0) name = '@' + data[addrL][0].username; } }catch(e){}
+        try{ 
+            const res=await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${userAddress}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}}); 
+            if(res.ok){ 
+                const data=await res.json(); 
+                let addrL = userAddress.toLowerCase(); 
+                if(data[addrL] && data[addrL].length > 0) name = '@' + data[addrL][0].username; 
+            } 
+        }catch(e){}
         
-        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.3);"><span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span><span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Max Lv${lvl}</span></span></div>`;
+        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.3);">
+            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
+            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Max Lv${lvl}</span></span>
+        </div>`;
     }catch(e){}
 }
 </script>
