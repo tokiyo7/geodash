@@ -15,7 +15,7 @@
     <style>
         :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
-        body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 12px; overflow-x: hidden; scroll-behavior: smooth; touch-action: none; }
+        body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 12px; overflow-x: hidden; scroll-behavior: smooth; }
         
         @keyframes titlePulse { 0% { text-shadow: 0 0 8px #00f0ff; } 100% { text-shadow: 0 0 15px #00f0ff, 0 0 8px #00f0ff; } }
         @keyframes btnPulse { 0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } }
@@ -24,14 +24,15 @@
         .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 2px; animation: titlePulse 2s infinite alternate; }
         .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
 
+        /* MODAL CSS */
         #welcomeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-content { background: linear-gradient(180deg, #0a0f18, #05080f); border: 1px solid var(--cyan); border-radius: 16px; padding: 30px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,240,255,0.15); }
         .modal-title { color: #00f0ff; font-size: 26px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.3); }
         .modal-text { font-size: 14px; color: #d0d0d0; line-height: 1.7; margin-bottom: 15px; text-align: left; }
-        .highlight { color: var(--gold); font-weight: bold; }
         .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; animation: btnPulse 1.5s infinite alternate; transition: transform 0.2s; }
         .modal-btn-spin:active { transform: scale(0.95); }
 
+        /* GAME CANVAS */
         .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); box-shadow: 0 8px 30px rgba(0,0,0,0.8); transition: border-color 0.3s ease; }
         canvas { display: block; width: 100%; height: 100%; }
         
@@ -39,15 +40,19 @@
         #overlay h1 { font-size: 32px; margin-bottom: 10px; text-shadow: 0 0 15px currentColor; animation: pulse 0.6s ease infinite alternate; }
         #overlay p { font-size: 15px; margin-bottom: 20px; color: #ffd700; white-space: pre-line; line-height: 1.5; }
         .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 10px; }
-        
-        /* 🔥 NEW MOBILE CONTROLS 🔥 */
-        #mobileControls { position: absolute; bottom: 10px; left: 0; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; z-index: 5; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
-        .game-btn { background: rgba(0, 240, 255, 0.15); border: 2px solid rgba(0, 240, 255, 0.4); color: #fff; font-weight: bold; font-size: 16px; width: 80px; height: 80px; border-radius: 50%; backdrop-filter: blur(4px); user-select: none; touch-action: none; box-shadow: 0 0 15px rgba(0,240,255,0.2); }
-        .game-btn:active { background: rgba(0, 240, 255, 0.4); transform: scale(0.95); }
-        #btnShoot { border-color: rgba(255, 48, 96, 0.5); background: rgba(255, 48, 96, 0.15); box-shadow: 0 0 15px rgba(255,48,96,0.2); }
-        #btnShoot:active { background: rgba(255, 48, 96, 0.4); }
+        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
-        .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 10px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
+        /* 🔥 NEW DEDICATED SEPARATE GAME CONTROLS (OUTSIDE CANVAS) 🔥 */
+        .controls-container { width: 100%; max-width: 800px; display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
+        .action-btn { flex: 1; padding: 20px; font-size: 18px; font-weight: bold; border-radius: 8px; cursor: pointer; touch-action: manipulation; transition: all 0.1s; letter-spacing: 1px; }
+        .action-btn:active { transform: scale(0.95); }
+        #btnJump { background: rgba(0, 240, 255, 0.1); border: 2px solid var(--cyan); color: var(--cyan); box-shadow: inset 0 0 10px rgba(0,240,255,0.2); }
+        #btnJump:active { background: rgba(0, 240, 255, 0.3); }
+        #btnShoot { background: rgba(255, 48, 96, 0.1); border: 2px solid var(--red); color: var(--red); box-shadow: inset 0 0 10px rgba(255,48,96,0.2); display: none; }
+        #btnShoot:active { background: rgba(255, 48, 96, 0.3); }
+
+        /* UI ELEMENTS */
+        .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 15px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
         .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
 
@@ -66,11 +71,28 @@
         .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
         .play-btn-gold { background: rgba(255,215,0,0.05); border-color: var(--gold); color: var(--gold); animation: btnPulse 2s infinite alternate; } 
         .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
-
+        .play-btn-gold:disabled { border-color: #444; color: #666; background: transparent; cursor: not-allowed; animation: none; }
+        
         .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(255,215,0,0.02); }
+        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; }
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
         .prize-table th { color: #555; font-size: 10px; padding: 4px 8px; border-bottom: 1px solid #222; text-align: left; }
         .prize-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        
+        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; }
+        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; }
+        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 22px; }
+        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .reel-inner { position: absolute; transition: top 0.1s; }
+        .spinning { filter: blur(2px); animation: fastSpin 0.1s infinite; }
+        @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
+        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; }
+        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
+        
+        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); }
+        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 18px; font-size: 18px; letter-spacing: 1px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; border-radius: 6px; margin-bottom: 4px; }
+        #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; }
         
         .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; border-radius: 4px; font-size: 14px; }
     </style>
@@ -87,7 +109,7 @@
 <div id="welcomeModal">
     <div class="modal-content">
         <div class="modal-title">GeoDash 3.0: Story Mode ⚡</div>
-        <div class="modal-text">🚀 **THE ARCADE SHOOTER UPDATE:** The Robo-Hunters are back, and this time... you can shoot back! Dual-thumb controls activated.</div>
+        <div class="modal-text">🚀 **THE ARCADE SHOOTER UPDATE:** The Robo-Hunters are back, and this time... you can shoot back! Dedicated thumb controls activated.</div>
         <div class="modal-text">🐉 **THE DRAGON'S LAIR:** Reach Level 4 to face the legendary Fire Dragon. Do you have the skills to survive?</div>
         <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is free. Pass practice levels OR spin the slot machine to unlock higher levels!</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
@@ -107,16 +129,17 @@
 <div class="game-container" id="gameBox">
     <canvas id="gameCanvas" width="800" height="400"></canvas>
     
-    <div id="mobileControls">
-        <button class="game-btn" id="btnJump">🔼 JUMP</button>
-        <button class="game-btn" id="btnShoot" style="display:none;">🎯 FIRE</button>
-    </div>
-
     <div id="overlay">
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
+        <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
         <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px; background: #222; color: #fff;">Return to Menu</button>
     </div>
+</div>
+
+<div class="controls-container">
+    <button class="action-btn" id="btnJump">🔼 JUMP</button>
+    <button class="action-btn" id="btnShoot">🎯 FIRE</button>
 </div>
 
 <div class="progress-bar-wrap">
@@ -134,7 +157,15 @@
 
 <div class="prize-chart">
     <div class="prize-chart-title">🎰 REWARDS & INFO</div>
-    <div style="text-align:center; color:#ccc; font-size:12px; margin-bottom: 10px;">Play Official Runs to earn $ARB on-chain! Practice mode is free. Official runs require 1 TX per attempt to prevent cheating.</div>
+    <div style="text-align:center; color:#ccc; font-size:12px; margin-bottom: 10px;">Play Official Runs to earn $ARB on-chain! Official runs require 1 TX per attempt.</div>
+    <table class="prize-table">
+        <tr><th>Level</th><th>Prize Amount</th></tr>
+        <tr><td>Level 1 Clear</td><td>1.0 ARB</td></tr>
+        <tr><td>Level 2 Clear</td><td>2.0 ARB</td></tr>
+        <tr><td>Level 3 Clear</td><td>3.0 ARB</td></tr>
+        <tr><td>Level 4 Clear</td><td>4.0 ARB</td></tr>
+        <tr><td>Level 5 Clear</td><td>5.0 ARB</td></tr>
+    </table>
 </div>
 
 <div class="slot-machine" id="slotMachineSection">
@@ -149,8 +180,71 @@
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
+<div class="leaderboard">
+    <div class="lb-title">🌍 GLOBAL TOP 10</div>
+    <div id="globalLbContent" style="margin-bottom:20px;">Loading...</div>
+    <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:12px;">👤 YOUR ON-CHAIN STATS</div>
+    <div id="lbContent">Connect wallet to load...</div>
+</div>
+
 <div id="walletStatus">Ready to Play!</div>
 
+
+<script>
+let ac = null;
+function initAudio() {
+    if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (ac.state === 'suspended') {
+        ac.resume();
+    }
+}
+
+function playJump() {
+    if (!ac) return;
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g);
+    g.connect(ac.destination);
+    o.frequency.setValueAtTime(440, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(880, ac.currentTime + 0.1);
+    g.gain.setValueAtTime(0.15, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.15);
+    o.start();
+    o.stop(ac.currentTime + 0.15);
+}
+
+function playDie() {
+    if (!ac) return;
+    const o = ac.createOscillator();
+    const g = ac.createGain();
+    o.connect(g);
+    g.connect(ac.destination);
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(220, ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(55, ac.currentTime + 0.3);
+    g.gain.setValueAtTime(0.2, ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.3);
+    o.start();
+    o.stop(ac.currentTime + 0.3);
+}
+
+function playWin() {
+    if (!ac) return;
+    [523, 659, 784, 1047].forEach((f, i) => {
+        const o = ac.createOscillator();
+        const g = ac.createGain();
+        o.connect(g);
+        g.connect(ac.destination);
+        o.frequency.value = f;
+        g.gain.setValueAtTime(0.15, ac.currentTime + i * 0.12);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i * 0.12 + 0.2);
+        o.start(ac.currentTime + i * 0.12);
+        o.stop(ac.currentTime + i * 0.12 + 0.25);
+    });
+}
+</script>
 
 <script>
 class GeoDashEngine {
@@ -188,7 +282,7 @@ class GeoDashEngine {
         this.hasGun = false;
         
         // 🔥 STORY MODE ENEMIES 🔥
-        this.enemies = []; // Array to hold multiple UFOs or Dragon
+        this.enemies = []; 
         this.enemyBullets = [];
         this.bossPhase = 0;
         this.bossText = "";
@@ -203,26 +297,33 @@ class GeoDashEngine {
         this.initPools();
         this.initStars();
 
-        // CONTROLS
+        // CONTROLS (Keyboard & Screen touch)
         window.addEventListener('keydown', (e) => { 
             if(e.code === 'Space') this.jump(); 
             if(e.code === 'KeyF') this.shoot(); 
         });
         
-        // Tap on Canvas (Fallback to jump)
         this.canvas.addEventListener('mousedown', () => this.jump());
         this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
 
-        // Dedicated Mobile Buttons
-        document.getElementById('btnJump').addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
-        document.getElementById('btnJump').addEventListener('mousedown', (e) => { e.preventDefault(); this.jump(); });
-        document.getElementById('btnShoot').addEventListener('touchstart', (e) => { e.preventDefault(); this.shoot(); }, {passive: false});
-        document.getElementById('btnShoot').addEventListener('mousedown', (e) => { e.preventDefault(); this.shoot(); });
+        // 🔥 SEPARATE MOBILE CONTROLS 🔥
+        const btnJump = document.getElementById('btnJump');
+        const btnShoot = document.getElementById('btnShoot');
+        
+        btnJump.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
+        btnJump.addEventListener('mousedown', (e) => { e.preventDefault(); this.jump(); });
+        
+        btnShoot.addEventListener('touchstart', (e) => { e.preventDefault(); this.shoot(); }, {passive: false});
+        btnShoot.addEventListener('mousedown', (e) => { e.preventDefault(); this.shoot(); });
     }
 
     initPools() {
-        for(let i=0; i<150; i++) this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor });
-        for(let i=0; i<100; i++) this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
+        for(let i=0; i<150; i++) {
+            this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor });
+        }
+        for(let i=0; i<100; i++) {
+            this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
+        }
     }
 
     initStars() {
@@ -238,22 +339,30 @@ class GeoDashEngine {
         
         // Setup Level Specifics
         if(this.currentLevel === 1) {
-            this.SPEED = 7.2; this.levelLength = 26000;
+            this.SPEED = 7.2; 
+            this.levelLength = 26000;
             this.bossPhase = 1; // Hunter runs away at end
+            this.hasGun = false;
         } else if (this.currentLevel === 2) {
-            this.SPEED = 7.4; this.levelLength = 28000;
+            this.SPEED = 7.4; 
+            this.levelLength = 28000;
             this.bossPhase = 2; // Kill 1 Hunter
-            this.hasGun = true; this.ammo = 10;
+            this.hasGun = true; 
+            this.ammo = 10;
         } else if (this.currentLevel === 3) {
-            this.SPEED = 7.6; this.levelLength = 32000;
+            this.SPEED = 7.6; 
+            this.levelLength = 32000;
             this.bossPhase = 3; // Kill 2 Hunters
-            this.hasGun = true; this.ammo = 15;
+            this.hasGun = true; 
+            this.ammo = 15;
         } else if (this.currentLevel === 4) {
-            this.SPEED = 7.8; this.levelLength = 36000;
+            this.SPEED = 7.8; 
+            this.levelLength = 36000;
             this.bossPhase = 4; // Kill Dragon
-            this.hasGun = true; this.ammo = 20;
+            this.hasGun = true; 
+            this.ammo = 20;
         } else {
-            this.SPEED = 8.0 + (this.currentLevel*0.1); 
+            this.SPEED = 8.0 + (this.currentLevel * 0.1); 
             this.levelLength = 40000;
             this.bossPhase = 0; // Standard Hard GeoDash
             this.hasGun = false;
@@ -290,6 +399,7 @@ class GeoDashEngine {
                 let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass')?80:(p.t==='portal_flappy'||p.t==='portal_cube')?100:(p.t==='jpad')?20:16;
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
                 if(p.t==='portal_flappy' || p.t==='portal_cube') { finalY = this.GROUND_Y - 100; }
+                
                 this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
             }
             
@@ -310,9 +420,14 @@ class GeoDashEngine {
         for(let i=0; i<6; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
-                p.active=true; p.x = this.player.x + 18; p.y = this.player.y + 36; 
-                p.vx = (Math.random() - 0.5) * 8; p.vy = -(Math.random() * 3);
-                p.life = 1.0; p.s = 3 + Math.random() * 3; p.c = '#e0e0e0'; 
+                p.active=true; 
+                p.x = this.player.x + 18; 
+                p.y = this.player.y + 36; 
+                p.vx = (Math.random() - 0.5) * 8; 
+                p.vy = -(Math.random() * 3);
+                p.life = 1.0; 
+                p.s = 3 + Math.random() * 3; 
+                p.c = '#e0e0e0'; 
             }
         }
     }
@@ -321,20 +436,30 @@ class GeoDashEngine {
         for(let i=0; i<30; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
-                p.active=true; p.x=x; p.y=y; p.vx=(Math.random()-0.5)*15; p.vy=(Math.random()-0.5)*15;
-                p.life=1.0; p.s=4+Math.random()*4; p.c=color;
+                p.active=true; 
+                p.x=x; 
+                p.y=y; 
+                p.vx=(Math.random()-0.5)*15; 
+                p.vy=(Math.random()-0.5)*15;
+                p.life=1.0; 
+                p.s=4+Math.random()*4; 
+                p.c=color;
             }
         }
     }
 
     reset() {
         cancelAnimationFrame(this.reqId);
-        this.ctx.fillStyle='#05080f'; this.ctx.fillRect(0,0,this.W,this.H); 
+        this.ctx.fillStyle='#05080f'; 
+        this.ctx.fillRect(0,0,this.W,this.H); 
         
-        this.worldX = 0; this.frameCount = 0;
+        this.worldX = 0; 
+        this.frameCount = 0;
         this.playerMode = 'cube';
         this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
-        this.jumpBuffer = 0; this.trail = []; this.dieReason = '';
+        this.jumpBuffer = 0; 
+        this.trail = []; 
+        this.dieReason = '';
         
         this.playerBullets = [];
         this.enemies = [];
@@ -342,22 +467,25 @@ class GeoDashEngine {
         this.bossTimer = 0;
         this.bossText = "";
         
-        this.activeObstacles.forEach(o=>o.active=false); this.activeObstacles=[];
+        this.activeObstacles.forEach(o=>o.active=false); 
+        this.activeObstacles=[];
         this.particlePool.forEach(p=>p.active=false); 
 
         this.initPatterns();
-        this.geometryPatterns.forEach(p=> { this.spawnObstacle(p.t, p.x, p.y, p.w, p.h, p.onPlatY); });
-        
-        // UI Controls hide/show
-        document.getElementById('mobileControls').style.opacity = '0';
-        document.getElementById('mobileControls').style.pointerEvents = 'none';
+        this.geometryPatterns.forEach(p=> { 
+            this.spawnObstacle(p.t, p.x, p.y, p.w, p.h, p.onPlatY); 
+        });
     }
 
     start(isOfficial) {
         if(this.state === 'PLAYING') return;
+        
         this.official = isOfficial;
         this.themeColor = isOfficial ? '#ffd700' : '#00f0ff';
+        
         this.reset();
+        
+        // Tap to start state
         this.state = 'READY'; 
         
         let pBar = document.getElementById('progressBar');
@@ -365,25 +493,28 @@ class GeoDashEngine {
         pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
         
         document.getElementById('gameBox').style.borderColor = this.themeColor;
+        
         this.lastTime = performance.now();
         this.loop(this.lastTime);
     }
 
     jump() {
         if(this.state === 'READY') {
+            initAudio();
             this.state = 'PLAYING';
             this.player.vy = this.JUMP_VEL; 
             this.player.ground = false; 
             this.spawnJumpDust();
-            
-            // Show mobile controls
-            document.getElementById('mobileControls').style.opacity = '1';
-            document.getElementById('mobileControls').style.pointerEvents = 'auto';
             return;
         }
 
-        if(this.state==='DEAD'||this.state==='IDLE'||this.state==='CLEAR'){ return; } 
+        if(this.state==='DEAD'||this.state==='IDLE'||this.state==='CLEAR'){ 
+            return; 
+        } 
+        
         if(this.state!=='PLAYING') return;
+        
+        initAudio();
         
         if(this.playerMode === 'flappy') {
             this.player.vy = -10.0; 
@@ -398,7 +529,9 @@ class GeoDashEngine {
         if(this.state !== 'PLAYING' || !this.hasGun || this.ammo <= 0) return;
         
         // Cooldown check (prevent spam)
-        if(this.playerBullets.length > 0 && this.playerBullets[this.playerBullets.length-1].x < this.player.x + 100) return;
+        if(this.playerBullets.length > 0 && this.playerBullets[this.playerBullets.length-1].x < this.player.x + 100) {
+            return;
+        }
 
         this.ammo--;
         this.playerBullets.push({ x: this.player.x + 30, y: this.player.y + 18, vx: 20 });
@@ -406,26 +539,38 @@ class GeoDashEngine {
 
     die(reason = "", isHunter = false) {
         if(this.state==='DEAD') return;
-        this.state = 'DEAD'; this.attempts++; this.dieReason = reason;
-        document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
-        this.spawnDeathExplosion(this.player.x+18, this.player.y+18, isHunter ? '#ff3060' : this.themeColor);
-        document.getElementById('mobileControls').style.opacity = '0';
-        document.getElementById('mobileControls').style.pointerEvents = 'none';
         
-        if(this.official) { this.official = false; handleOfficialDie(); }
+        this.state = 'DEAD'; 
+        this.attempts++; 
+        this.dieReason = reason;
+        
+        document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
+        
+        playDie();
+        this.spawnDeathExplosion(this.player.x+18, this.player.y+18, isHunter ? '#ff3060' : this.themeColor);
+        
+        if(this.official) { 
+            this.official = false; 
+            handleOfficialDie(); 
+        }
     }
 
     win() {
         if(this.state==='CLEAR') return;
         this.state = 'CLEAR'; 
-        document.getElementById('mobileControls').style.opacity = '0';
-        document.getElementById('mobileControls').style.pointerEvents = 'none';
+        playWin();
         triggerWinUi(this.attempts); 
     }
 
     update(dt) {
         for(let p of this.particlePool){ 
-            if(p.active){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=0.6*dt; p.life-=0.03*dt; if(p.life<=0) p.active=false; } 
+            if(p.active){ 
+                p.x+=p.vx*dt; 
+                p.y+=p.vy*dt; 
+                p.vy+=0.6*dt; 
+                p.life-=0.03*dt; 
+                if(p.life<=0) p.active=false; 
+            } 
         }
 
         for(let s of this.stars) {
@@ -443,18 +588,24 @@ class GeoDashEngine {
         if (this.playerMode === 'flappy' && this.bossPhase > 0) {
             this.bossTimer += dt;
             
-            if(this.bossTimer === 200) { this.bossText = "⚠️ WARNING: HOSTILES INBOUND ⚠️"; }
+            if(this.bossTimer > 200 && this.bossTimer < 300) { 
+                this.bossText = "⚠️ WARNING: HOSTILES INBOUND ⚠️"; 
+            }
             
             if(this.bossTimer > 300 && this.enemies.length === 0) {
                 this.bossText = "";
+                
                 if(this.bossPhase === 1) {
                     this.enemies.push({ type: 'hunter', hp: 999, y: 150, targetY: 150, timer: 0 });
-                } else if(this.bossPhase === 2) {
+                } 
+                else if(this.bossPhase === 2) {
                     this.enemies.push({ type: 'hunter', hp: 3, y: 150, targetY: 150, timer: 0 });
-                } else if(this.bossPhase === 3) {
+                } 
+                else if(this.bossPhase === 3) {
                     this.enemies.push({ type: 'hunter', hp: 3, y: 80, targetY: 80, timer: 0 });
                     this.enemies.push({ type: 'hunter', hp: 3, y: 250, targetY: 250, timer: 0 });
-                } else if(this.bossPhase === 4) {
+                } 
+                else if(this.bossPhase === 4) {
                     this.bossText = "🐉 THE FIRE DRAGON AWAKENS!";
                     this.enemies.push({ type: 'dragon', hp: 15, y: 150, targetY: 150, timer: 0, dir: 1 });
                 }
@@ -480,7 +631,8 @@ class GeoDashEngine {
             let fireRate = (e.type === 'dragon') ? 40 : 60;
             if (Math.floor(this.frameCount) % fireRate === 0) {
                 this.enemyBullets.push({ 
-                    x: this.W - 80, y: e.y + 10, 
+                    x: this.W - 80, 
+                    y: e.y + 10, 
                     vx: (e.type === 'dragon') ? 10 : 14, 
                     type: (e.type === 'dragon') ? 'fire' : 'laser' 
                 });
@@ -537,9 +689,11 @@ class GeoDashEngine {
                     break;
                 }
             }
-            if(hit || pb.x > this.W) this.playerBullets.splice(i, 1);
+            
+            if(hit || pb.x > this.W) {
+                this.playerBullets.splice(i, 1);
+            }
         }
-
 
         if(this.playerMode === 'cube' && this.jumpBuffer > 0) {
             this.jumpBuffer -= dt;
@@ -599,16 +753,16 @@ class GeoDashEngine {
             }
             
             let oHX=ox, oHY=o.y, oHW=o.w, oHH=o.h;
+            
             if(o.t==='spike'){ oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; }
             else if(o.t==='dspike'){oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;}
             else if(o.t==='ceiling_spike'){ oHX=ox+6; oHY=0; oHW=26; oHH=32; } 
-            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-20; oHW=48; oHH=20;}
+            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-20; oHW=48; oHH=20;} 
             else if(o.t==='platform'){oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;}
             else if(o.t==='saw'){ oHX=ox-12; oHY=o.y-12; oHW=24; oHH=24; }
             else if(o.t==='wall'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='glass'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
             else if(o.t==='portal_flappy' || o.t==='portal_cube'){ oHX=ox; oHY=this.GROUND_Y-100; oHW=20; oHH=100; }
-            // 🔥 ITEM DROPS 🔥
             else if(o.t==='gun_drop'){ oHX=ox; oHY=o.y; oHW=30; oHH=30; }
 
             let landTolerance = 25; 
@@ -616,33 +770,53 @@ class GeoDashEngine {
             if(px<oHX+oHW && px+pw>oHX && py<oHY+oHH && py+ph>oHY){
                 
                 if(o.t === 'portal_flappy'){
-                    this.playerMode = 'flappy'; o.active = false; continue;
+                    this.playerMode = 'flappy';
+                    o.active = false;
+                    continue;
                 }
                 if(o.t === 'portal_cube'){
-                    this.playerMode = 'cube'; this.player.rot = Math.round(this.player.rot/90)*90; o.active = false; continue;
+                    this.playerMode = 'cube';
+                    this.player.rot = Math.round(this.player.rot/90)*90;
+                    o.active = false;
+                    continue;
                 }
+
                 if(o.t === 'glass'){
-                    this.spawnGlassShatter(ox, this.GROUND_Y, o.h); o.active = false; continue;
+                    // Glass doesn't kill
+                    o.active = false; 
+                    continue;
                 }
+                
                 if(o.t === 'gun_drop'){
                     this.hasGun = true;
+                    this.ammo = 10;
                     document.getElementById('btnShoot').style.display = 'block';
-                    this.bossText = "GUN ACQUIRED! LEVEL CLEAR AHEAD!";
+                    this.bossText = "GUN ACQUIRED! AMMO REFILLED!";
                     o.active = false;
                     continue;
                 }
 
                 if(o.t==='spike'||o.t==='dspike'||o.t==='saw'||o.t==='wall'||o.t==='ceiling_spike'){ 
-                    this.die(); return; 
+                    this.die(); 
+                    return; 
                 }
+                
                 if(o.t==='jpad'){ 
-                    this.player.vy=this.JUMP_VEL*1.3; this.player.ground=false; this.spawnJumpDust(); 
+                    this.player.vy=this.JUMP_VEL*1.3; 
+                    this.player.ground=false; 
+                    this.spawnJumpDust(); 
                 }
+                
                 if(o.t==='platform'){
                     if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
-                        this.player.y=o.y-this.player.h; this.player.vy=0; this.player.ground=true; onPlatform=true; this.player.rot=Math.round(this.player.rot/90)*90;
+                        this.player.y=o.y-this.player.h; 
+                        this.player.vy=0; 
+                        this.player.ground=true; 
+                        onPlatform=true; 
+                        this.player.rot=Math.round(this.player.rot/90)*90;
                     }else{ 
-                        this.die(); return; 
+                        this.die(); 
+                        return; 
                     }
                 }
             }
@@ -650,10 +824,17 @@ class GeoDashEngine {
 
         if(this.playerMode === 'cube') {
             if(this.player.y+this.player.h>=this.GROUND_Y && !overGap){ 
-                this.player.y=this.GROUND_Y-this.player.h; this.player.vy=0; this.player.ground=true; this.player.rot=Math.round(this.player.rot/90)*90; 
+                this.player.y=this.GROUND_Y-this.player.h; 
+                this.player.vy=0; 
+                this.player.ground=true; 
+                this.player.rot=Math.round(this.player.rot/90)*90; 
             }
-            else if(this.player.y>400) { this.die(); }
-            else if(!onPlatform){ if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false; }
+            else if(this.player.y>400) {
+                this.die(); 
+            }
+            else if(!onPlatform){
+                if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false;
+            }
         }
     }
 
@@ -682,7 +863,6 @@ class GeoDashEngine {
             this.ctx.fillText(this.bossText, this.W / 2, 80);
         }
         
-        // Show Ammo
         if (this.hasGun && this.state === 'PLAYING') {
             this.ctx.fillStyle = '#ffd700';
             this.ctx.font = 'bold 16px Courier New';
@@ -706,15 +886,22 @@ class GeoDashEngine {
         for(let e of this.enemies) {
             if(e.type === 'hunter') {
                 this.ctx.fillStyle = '#ff3060';
-                this.ctx.beginPath(); this.ctx.ellipse(this.W - 60, e.y, 35, 15, 0, 0, Math.PI*2); this.ctx.fill();
-                this.ctx.fillStyle = '#05080f'; this.ctx.fillRect(this.W - 65, e.y - 5, 10, 10);
+                this.ctx.beginPath(); 
+                this.ctx.ellipse(this.W - 60, e.y, 35, 15, 0, 0, Math.PI*2); 
+                this.ctx.fill();
+                this.ctx.fillStyle = '#05080f'; 
+                this.ctx.fillRect(this.W - 65, e.y - 5, 10, 10);
             } else if (e.type === 'dragon') {
-                this.ctx.fillStyle = '#00ff88'; // Green Dragon
+                this.ctx.fillStyle = '#00ff88'; 
                 this.ctx.fillRect(this.W - 80, e.y, 60, 60);
-                this.ctx.fillStyle = '#ff3060'; // Red Eye
+                this.ctx.fillStyle = '#ff3060'; 
                 this.ctx.fillRect(this.W - 60, e.y + 10, 15, 15);
-                this.ctx.fillStyle = '#ffd700'; // Horns
-                this.ctx.beginPath(); this.ctx.moveTo(this.W - 40, e.y); this.ctx.lineTo(this.W - 20, e.y-20); this.ctx.lineTo(this.W - 20, e.y); this.ctx.fill();
+                this.ctx.fillStyle = '#ffd700'; 
+                this.ctx.beginPath(); 
+                this.ctx.moveTo(this.W - 40, e.y); 
+                this.ctx.lineTo(this.W - 20, e.y-20); 
+                this.ctx.lineTo(this.W - 20, e.y); 
+                this.ctx.fill();
             }
         }
 
@@ -722,7 +909,9 @@ class GeoDashEngine {
         for (let b of this.enemyBullets) {
             if(b.type === 'fire') {
                 this.ctx.fillStyle = '#ff8c00';
-                this.ctx.beginPath(); this.ctx.arc(b.x, b.y, 10, 0, Math.PI*2); this.ctx.fill();
+                this.ctx.beginPath(); 
+                this.ctx.arc(b.x, b.y, 10, 0, Math.PI*2); 
+                this.ctx.fill();
             } else {
                 this.ctx.fillStyle = '#ff3060';
                 this.ctx.fillRect(b.x, b.y, 20, 6);
@@ -745,25 +934,48 @@ class GeoDashEngine {
             else if(o.t==='spike'){ 
                 let baseY = o.onPlatY ? o.onPlatY : this.GROUND_Y; 
                 this.ctx.fillStyle='#ff3060';
-                this.ctx.beginPath(); this.ctx.moveTo(ox+19,baseY-38); this.ctx.lineTo(ox+38,baseY); this.ctx.lineTo(ox,baseY); this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+19,baseY-38);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.lineTo(ox,baseY);
+                this.ctx.fill();
             }
             else if(o.t==='dspike'){ 
                 let baseY = o.onPlatY ? o.onPlatY : this.GROUND_Y; 
                 this.ctx.fillStyle='#ff3060';
-                this.ctx.beginPath(); this.ctx.moveTo(ox+19,baseY-38); this.ctx.lineTo(ox+38,baseY); this.ctx.lineTo(ox,baseY); this.ctx.fill();
-                this.ctx.beginPath(); this.ctx.moveTo(ox+57,baseY-38); this.ctx.lineTo(ox+76,baseY); this.ctx.lineTo(ox+38,baseY); this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+19,baseY-38);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.lineTo(ox,baseY);
+                this.ctx.fill();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+57,baseY-38);
+                this.ctx.lineTo(ox+76,baseY);
+                this.ctx.lineTo(ox+38,baseY);
+                this.ctx.fill();
             }
             else if(o.t==='ceiling_spike'){ 
                 this.ctx.fillStyle='#ff3060';
-                this.ctx.beginPath(); this.ctx.moveTo(ox+19, 38); this.ctx.lineTo(ox+38, 0); this.ctx.lineTo(ox, 0); this.ctx.fill();
+                this.ctx.beginPath();
+                this.ctx.moveTo(ox+19, 38);
+                this.ctx.lineTo(ox+38, 0);
+                this.ctx.lineTo(ox, 0);
+                this.ctx.fill();
             }
             else if(o.t==='platform'){
-                this.ctx.fillStyle='#00ff88'; this.ctx.fillRect(ox,o.y,o.w,16); 
-                this.ctx.fillStyle='#0d1e2e'; this.ctx.fillRect(ox+2,o.y+2,o.w-4,12);
+                this.ctx.fillStyle='#00ff88'; 
+                this.ctx.fillRect(ox,o.y,o.w,16); 
+                this.ctx.fillStyle='#0d1e2e'; 
+                this.ctx.fillRect(ox+2,o.y+2,o.w-4,12);
             }
             else if(o.t==='jpad'){
-                this.ctx.fillStyle='#ffd700'; this.ctx.fillRect(ox,this.GROUND_Y-20,48,20); 
-                this.ctx.fillStyle='#000'; this.ctx.font = 'bold 12px Courier New'; this.ctx.textAlign = 'center'; this.ctx.fillText("JUMP", ox + 24, this.GROUND_Y - 6);
+                this.ctx.fillStyle='#ffd700'; 
+                this.ctx.fillRect(ox,this.GROUND_Y-20,48,20); 
+                this.ctx.fillStyle='#000'; 
+                this.ctx.font = 'bold 12px Courier New';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText("JUMP", ox + 24, this.GROUND_Y - 6);
             }
             else if(o.t==='saw'){
                 this.ctx.save();
@@ -774,7 +986,9 @@ class GeoDashEngine {
                 this.ctx.rotate(Math.PI / 4);
                 this.ctx.fillRect(-15, -15, 30, 30);
                 this.ctx.fillStyle = '#05080f';
-                this.ctx.beginPath(); this.ctx.arc(0,0, 8, 0, Math.PI*2); this.ctx.fill();
+                this.ctx.beginPath(); 
+                this.ctx.arc(0,0, 8, 0, Math.PI*2); 
+                this.ctx.fill();
                 this.ctx.restore();
             }
             else if(o.t==='wall'){
@@ -792,21 +1006,31 @@ class GeoDashEngine {
                 this.ctx.strokeRect(ox, this.GROUND_Y - o.h, 30, o.h);
             }
             else if(o.t==='portal_flappy'){
-                this.ctx.strokeStyle = '#ffd700'; this.ctx.lineWidth = 4;
-                this.ctx.beginPath(); this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2); this.ctx.stroke();
+                this.ctx.strokeStyle = '#ffd700'; 
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.stroke();
             }
             else if(o.t==='portal_cube'){
-                this.ctx.strokeStyle = this.themeColor; this.ctx.lineWidth = 4;
-                this.ctx.beginPath(); this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2); this.ctx.stroke();
+                this.ctx.strokeStyle = this.themeColor; 
+                this.ctx.lineWidth = 4;
+                this.ctx.beginPath();
+                this.ctx.ellipse(ox + 10, this.GROUND_Y - 50, 10, 40, 0, 0, Math.PI*2);
+                this.ctx.stroke();
             }
             else if(o.t==='gun_drop'){
-                this.ctx.fillStyle = '#ffd700'; this.ctx.fillRect(ox, o.y, 30, 30);
-                this.ctx.fillStyle = '#000'; this.ctx.fillRect(ox+5, o.y+10, 20, 10);
+                this.ctx.fillStyle = '#ffd700'; 
+                this.ctx.fillRect(ox, o.y, 30, 30);
+                this.ctx.fillStyle = '#000'; 
+                this.ctx.fillRect(ox+5, o.y+10, 20, 10);
             }
         }
 
         if(this.state==='DEAD' && this.dieReason){
-            this.ctx.fillStyle = '#ff3060'; this.ctx.font = 'bold 20px Courier New'; this.ctx.textAlign = 'center';
+            this.ctx.fillStyle = '#ff3060';
+            this.ctx.font = 'bold 20px Courier New';
+            this.ctx.textAlign = 'center';
             this.ctx.fillText(this.dieReason, this.W / 2, this.H / 2 - 40);
         }
 
@@ -823,7 +1047,11 @@ class GeoDashEngine {
                 
                 this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${t.life})`; 
                 if(t.mode === 'flappy') {
-                    this.ctx.beginPath(); this.ctx.moveTo(18, 0); this.ctx.lineTo(-18, 15); this.ctx.lineTo(-18, -15); this.ctx.fill();
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(18, 0); 
+                    this.ctx.lineTo(-18, 15); 
+                    this.ctx.lineTo(-18, -15);
+                    this.ctx.fill();
                 } else {
                     this.ctx.fillRect(-18, -18, 36, 36);
                 }
@@ -832,7 +1060,11 @@ class GeoDashEngine {
         }
 
         for(let p of this.particlePool){ 
-            if(p.active){ this.ctx.fillStyle=p.c; this.ctx.globalAlpha=Math.max(0,p.life); this.ctx.fillRect(p.x-p.s/2, p.y-p.s/2, p.s, p.s); } 
+            if(p.active){ 
+                this.ctx.fillStyle=p.c; 
+                this.ctx.globalAlpha=Math.max(0,p.life); 
+                this.ctx.fillRect(p.x-p.s/2, p.y-p.s/2, p.s, p.s); 
+            } 
         }
         this.ctx.globalAlpha=1.0;
 
@@ -842,15 +1074,41 @@ class GeoDashEngine {
             this.ctx.rotate(this.player.rot*Math.PI/180);
             
             if(this.playerMode === 'flappy') {
-                this.ctx.fillStyle = '#ffd700';
-                this.ctx.beginPath(); this.ctx.moveTo(18, 0); this.ctx.lineTo(-18, 15); this.ctx.lineTo(-18, -15); this.ctx.fill();
-                this.ctx.fillStyle = '#05080f'; this.ctx.fillRect(-10, -5, 10, 10); 
-                // Draw Gun on ship
-                if(this.hasGun) { this.ctx.fillStyle = '#00f0ff'; this.ctx.fillRect(0, -12, 15, 6); }
+                this.ctx.fillStyle = '#111';
+                this.ctx.beginPath(); 
+                this.ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); 
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#ffd700'; 
+                this.ctx.lineWidth = 2; 
+                this.ctx.stroke();
+                
+                this.ctx.fillStyle = '#00f0ff'; 
+                this.ctx.beginPath(); 
+                this.ctx.arc(5, -4, 6, 0, Math.PI, true); 
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = '#ff3060';
+                this.ctx.beginPath(); 
+                this.ctx.moveTo(-20, -5); 
+                this.ctx.lineTo(-35, 0); 
+                this.ctx.lineTo(-20, 5); 
+                this.ctx.fill();
+                
+                if(this.hasGun) { 
+                    this.ctx.fillStyle = '#00f0ff'; 
+                    this.ctx.fillRect(0, -12, 15, 6); 
+                }
             } else {
-                this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':this.themeColor; this.ctx.fillRect(-18,-18,36,36); 
-                this.ctx.fillStyle='#05080f'; this.ctx.fillRect(-14,-14,28,28); 
-                this.ctx.fillStyle=this.themeColor; this.ctx.fillRect(-8,-6,4,4); this.ctx.fillRect(4,-6,4,4); this.ctx.fillRect(-8,6,16,4); 
+                this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':this.themeColor; 
+                this.ctx.fillRect(-18,-18,36,36); 
+                
+                this.ctx.fillStyle='#05080f'; 
+                this.ctx.fillRect(-14,-14,28,28); 
+                
+                this.ctx.fillStyle=this.themeColor; 
+                this.ctx.fillRect(-8,-6,4,4); 
+                this.ctx.fillRect(4,-6,4,4); 
+                this.ctx.fillRect(-8,6,16,4); 
             }
             this.ctx.restore();
         }
@@ -913,7 +1171,7 @@ function triggerWinUi(tries) {
         
         const shareBtn = document.getElementById('overlayCastBtn');
         shareBtn.onclick = () => {
-            const text = `🔥 I just SURVIVED Level ${lastClearedLevel} of GeoDash 3.0 Story Mode! 🐉🛸\nMy reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB bounty! 💸\n\nThink you can beat the Dragon? 👇\n${GAME_URL}`;
+            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo in ${tries+1} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB bounty! 💸\n\nThink you can beat my attempts? 👇\n${GAME_URL}`;
             openCast(text);
         };
 
@@ -930,7 +1188,7 @@ function triggerWinUi(tries) {
                             walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
                             new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
                         ]);
-                    } catch(e) {}
+                    } catch(e) { }
                     
                     const txHash = await walletProvider.request({ 
                         method: 'eth_sendTransaction', 
