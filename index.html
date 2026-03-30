@@ -13,87 +13,557 @@
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
     <style>
-        :root { --bg-dark: #05080f; --cyan: #00f0ff; --red: #ff3060; --gold: #ffd700; --emerald: #00ff88; }
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Courier New', monospace; }
-        body { background-color: var(--bg-dark); color: #fff; display: flex; flex-direction: column; align-items: center; padding: 12px; overflow-x: hidden; scroll-behavior: smooth; }
+        :root { 
+            --bg-dark: #05080f; 
+            --cyan: #00f0ff; 
+            --red: #ff3060; 
+            --gold: #ffd700; 
+            --emerald: #00ff88; 
+        }
         
-        @keyframes titlePulse { 0% { text-shadow: 0 0 8px #00f0ff; } 100% { text-shadow: 0 0 15px #00f0ff, 0 0 8px #00f0ff; } }
-        @keyframes btnPulse { 0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } }
-
-        .header { width: 100%; max-width: 800px; display: flex; justify-content: space-between; padding: 12px 18px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.05)); border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-        .title { color: #00f0ff; font-size: 22px; font-weight: bold; letter-spacing: 2px; animation: titlePulse 2s infinite alternate; }
-        .stats { color: #ff3060; font-size: 14px; font-weight: bold; text-align: right; }
-
-        #welcomeModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,8,15,0.85); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-content { background: linear-gradient(180deg, #0a0f18, #05080f); border: 1px solid var(--cyan); border-radius: 16px; padding: 30px; max-width: 90%; width: 420px; text-align: center; box-shadow: 0 10px 40px rgba(0,240,255,0.15); }
-        .modal-title { color: #00f0ff; font-size: 26px; margin-bottom: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,240,255,0.3); }
-        .modal-text { font-size: 14px; color: #d0d0d0; line-height: 1.7; margin-bottom: 15px; text-align: left; }
-        .highlight { color: var(--gold); font-weight: bold; }
-        .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; animation: btnPulse 1.5s infinite alternate; transition: transform 0.2s; }
-        .modal-btn-spin:active { transform: scale(0.95); }
-
-        /* 🔥 LAG FIX: Removed heavy box-shadow and transition on the container 🔥 */
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); }
-        canvas { display: block; width: 100%; height: 100%; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            user-select: none; 
+            font-family: 'Courier New', monospace; 
+        }
         
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; backdrop-filter: blur(3px); }
-        #overlay h1 { font-size: 32px; margin-bottom: 10px; text-shadow: 0 0 15px currentColor; animation: pulse 0.6s ease infinite alternate; }
-        #overlay p { font-size: 15px; margin-bottom: 20px; color: #ffd700; white-space: pre-line; line-height: 1.5; }
-        .btn-large { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #000; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; letter-spacing: 1px; width: 85%; max-width: 300px; margin-bottom: 10px; }
-        .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
-
-        .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 15px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
-        /* 🔥 LAG FIX: Removed box-shadow on progress bar 🔥 */
-        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
-        .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
-
-        .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-        .lvl-btn { flex: 1; min-width: 45px; padding: 12px 0; text-align: center; font-weight: bold; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(10,15,24,0.6); color: #4a5a6a; cursor: not-allowed; transition: all 0.2s; }
+        body { 
+            background-color: var(--bg-dark); 
+            color: #fff; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 12px; 
+            overflow-x: hidden; 
+            scroll-behavior: smooth; 
+        }
         
-        .lvl-btn.done { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.4); color: #00ff88; cursor: pointer; }
-        .lvl-btn.onchain { background: rgba(255,215,0,0.05); border-color: rgba(255,215,0,0.4); color: var(--gold); cursor: pointer; }
-        /* 🔥 LAG FIX: Removed box-shadow on active buttons 🔥 */
-        .lvl-btn.onchain.active { background: var(--gold); color: #000; border-color: var(--gold); }
-        .lvl-btn.practice { background: rgba(0,240,255,0.05); border-color: rgba(0,240,255,0.3); color: #00f0ff; cursor: pointer; }
-        .lvl-btn.practice.active { background: #00f0ff; color: #000; border-color: #00f0ff; }
-
-        #spinProgressText { width: 100%; text-align: center; font-size: 12px; color: var(--gold); margin-bottom: 20px; font-weight: bold; letter-spacing: 0.5px; text-shadow: 0 0 5px rgba(255,215,0,0.3); }
-
-        .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 8px; display: flex; gap: 12px; }
-        .play-btn { flex: 1; padding: 16px; background: rgba(0,240,255,0.05); border: 1px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 8px; font-family: 'Courier New', monospace; transition: all 0.2s; }
-        .play-btn:hover { background: #00f0ff; color: #000; }
-        .play-btn-gold { background: rgba(255,215,0,0.05); border-color: var(--gold); color: var(--gold); animation: btnPulse 2s infinite alternate; } 
-        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; }
-        .play-btn-gold:disabled { border-color: #444; color: #666; background: transparent; cursor: not-allowed; animation: none; }
-        .btn-note { font-size: 11px; color: #777; text-align: center; width: 100%; margin-bottom: 25px; line-height: 1.4; }
-
-        .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; }
-        .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
-        .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 8px; text-align: center; text-transform: uppercase; }
-        .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
-        .prize-table th { color: #555; font-size: 10px; letter-spacing: 1px; padding: 4px 8px; border-bottom: 1px solid #222; text-align: left; }
-        .prize-table td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .prize-table tr.t-rare td { color: var(--cyan); }
-        .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
-
-        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; }
-        .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; letter-spacing: 1px; }
-        .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 22px; }
-        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .reel-inner { position: absolute; transition: top 0.1s; }
-        .spinning { filter: blur(2px); animation: fastSpin 0.1s infinite; }
-        @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
-        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; }
-        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
-        .slot-info { font-size: 13px; color: #aaa; margin-top: 8px; }
-        .cast-btn-small { background: linear-gradient(90deg, #8a2be2, #4a00e0); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 12px; display:none; }
-
-        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); }
-        .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 18px; font-size: 18px; letter-spacing: 1px; }
-        .lb-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; border-radius: 6px; margin-bottom: 4px; }
-        #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
+        @keyframes titlePulse { 
+            0% { text-shadow: 0 0 8px #00f0ff; } 
+            100% { text-shadow: 0 0 15px #00f0ff, 0 0 8px #00f0ff; } 
+        }
         
-        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; border-radius: 4px; font-size: 14px; backdrop-filter: blur(5px); }
+        @keyframes btnPulse { 
+            0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 
+            100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } 
+        }
+
+        .header { 
+            width: 100%; 
+            max-width: 800px; 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 18px; 
+            background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.05)); 
+            border: 1px solid rgba(0,240,255,0.2); 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            backdrop-filter: blur(5px); 
+        }
+        
+        .title { 
+            color: #00f0ff; 
+            font-size: 22px; 
+            font-weight: bold; 
+            letter-spacing: 2px; 
+            animation: titlePulse 2s infinite alternate; 
+        }
+        
+        .stats { 
+            color: #ff3060; 
+            font-size: 14px; 
+            font-weight: bold; 
+            text-align: right; 
+        }
+
+        #welcomeModal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(5,8,15,0.85); 
+            z-index: 9999; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            backdrop-filter: blur(8px); 
+        }
+        
+        .modal-content { 
+            background: linear-gradient(180deg, #0a0f18, #05080f); 
+            border: 1px solid var(--cyan); 
+            border-radius: 16px; 
+            padding: 30px; 
+            max-width: 90%; 
+            width: 420px; 
+            text-align: center; 
+        }
+        
+        .modal-title { 
+            color: #00f0ff; 
+            font-size: 26px; 
+            margin-bottom: 15px; 
+            font-weight: bold; 
+            text-shadow: 0 0 10px rgba(0,240,255,0.3); 
+        }
+        
+        .modal-text { 
+            font-size: 14px; 
+            color: #d0d0d0; 
+            line-height: 1.7; 
+            margin-bottom: 15px; 
+            text-align: left; 
+        }
+        
+        .highlight { 
+            color: var(--gold); 
+            font-weight: bold; 
+        }
+        
+        .modal-btn-spin { 
+            background: linear-gradient(90deg, #ffd700, #ff8c00); 
+            color: #000; 
+            border: none; 
+            padding: 16px; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            animation: btnPulse 1.5s infinite alternate; 
+            transition: transform 0.2s; 
+        }
+        
+        .modal-btn-spin:active { 
+            transform: scale(0.95); 
+        }
+
+        .game-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            aspect-ratio: 2/1; 
+            border: 2px solid #00f0ff; 
+            background: #05080f; 
+            overflow: hidden; 
+            border-radius: 8px; 
+            transform: translateZ(0); 
+        }
+        
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: 100%; 
+        }
+        
+        #overlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 10; 
+            text-align: center; 
+            padding: 10px; 
+            backdrop-filter: blur(3px); 
+        }
+        
+        #overlay h1 { 
+            font-size: 32px; 
+            margin-bottom: 10px; 
+            text-shadow: 0 0 15px currentColor; 
+            animation: pulse 0.6s ease infinite alternate; 
+        }
+        
+        #overlay p { 
+            font-size: 15px; 
+            margin-bottom: 20px; 
+            color: #ffd700; 
+            white-space: pre-line; 
+            line-height: 1.5; 
+        }
+        
+        .btn-large { 
+            background: linear-gradient(135deg, #ffd700, #ff8c00); 
+            color: #000; 
+            border: none; 
+            padding: 14px 20px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            letter-spacing: 1px; 
+            width: 85%; 
+            max-width: 300px; 
+            margin-bottom: 10px; 
+        }
+        
+        .btn-social { 
+            background: linear-gradient(135deg, #8a2be2, #4a00e0); 
+            color: #fff; 
+        }
+
+        .progress-bar-wrap { 
+            width: 100%; 
+            max-width: 800px; 
+            display: flex; 
+            align-items: center; 
+            margin: 15px 0; 
+            background: rgba(10,15,24,0.8); 
+            border: 1px solid rgba(0,240,255,0.2); 
+            border-radius: 8px; 
+            padding: 6px; 
+        }
+        
+        .progress-bar { 
+            height: 12px; 
+            background: linear-gradient(90deg, #00f0ff, #00ff88); 
+            width: 0%; 
+            border-radius: 6px; 
+            transition: width 0.1s linear, background 0.3s; 
+        }
+        
+        .progress-text { 
+            margin-left: 15px; 
+            color: var(--cyan); 
+            font-weight: bold; 
+            white-space: nowrap; 
+            font-size: 13px; 
+        }
+
+        .level-selector { 
+            width: 100%; 
+            max-width: 800px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 8px; 
+            margin-bottom: 8px; 
+        }
+        
+        .lvl-btn { 
+            flex: 1; 
+            min-width: 45px; 
+            padding: 12px 0; 
+            text-align: center; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(10,15,24,0.6); 
+            color: #4a5a6a; 
+            cursor: not-allowed; 
+            transition: all 0.2s; 
+        }
+        
+        .lvl-btn.done { 
+            background: rgba(0,255,136,0.1); 
+            border-color: rgba(0,255,136,0.4); 
+            color: #00ff88; 
+            cursor: pointer; 
+        }
+        
+        .lvl-btn.onchain { 
+            background: rgba(255,215,0,0.05); 
+            border-color: rgba(255,215,0,0.4); 
+            color: var(--gold); 
+            cursor: pointer; 
+        }
+        
+        .lvl-btn.onchain.active { 
+            background: var(--gold); 
+            color: #000; 
+            border-color: var(--gold); 
+        }
+        
+        .lvl-btn.practice { 
+            background: rgba(0,240,255,0.05); 
+            border-color: rgba(0,240,255,0.3); 
+            color: #00f0ff; 
+            cursor: pointer; 
+        }
+        
+        .lvl-btn.practice.active { 
+            background: #00f0ff; 
+            color: #000; 
+            border-color: #00f0ff; 
+        }
+
+        #spinProgressText { 
+            width: 100%; 
+            text-align: center; 
+            font-size: 12px; 
+            color: var(--gold); 
+            margin-bottom: 20px; 
+            font-weight: bold; 
+            letter-spacing: 0.5px; 
+        }
+
+        .play-btn-row { 
+            width: 100%; 
+            max-width: 800px; 
+            margin-bottom: 8px; 
+            display: flex; 
+            gap: 12px; 
+        }
+        
+        .play-btn { 
+            flex: 1; 
+            padding: 16px; 
+            background: rgba(0,240,255,0.05); 
+            border: 1px solid #00f0ff; 
+            color: #00f0ff; 
+            font-size: 14px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            font-family: 'Courier New', monospace; 
+            transition: all 0.2s; 
+        }
+        
+        .play-btn:hover { 
+            background: #00f0ff; 
+            color: #000; 
+        }
+        
+        .play-btn-gold { 
+            background: rgba(255,215,0,0.05); 
+            border-color: var(--gold); 
+            color: var(--gold); 
+            animation: btnPulse 2s infinite alternate; 
+        } 
+        
+        .play-btn-gold:hover:not(:disabled) { 
+            background: var(--gold); 
+            color: #000; 
+        }
+        
+        .play-btn-gold:disabled { 
+            border-color: #444; 
+            color: #666; 
+            background: transparent; 
+            cursor: not-allowed; 
+            animation: none; 
+        }
+        
+        .btn-note { 
+            font-size: 11px; 
+            color: #777; 
+            text-align: center; 
+            width: 100%; 
+            margin-bottom: 25px; 
+            line-height: 1.4; 
+        }
+
+        .prize-chart { 
+            width: 100%; 
+            max-width: 800px; 
+            border: 1px solid rgba(255,215,0,0.2); 
+            border-radius: 12px; 
+            padding: 18px; 
+            background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); 
+            margin-bottom: 15px; 
+        }
+        
+        .prize-chart-title { 
+            color: #ffd700; 
+            font-size: 15px; 
+            font-weight: bold; 
+            text-align: center; 
+            margin-bottom: 14px; 
+            letter-spacing: 2px; 
+        }
+        
+        .prize-section-label { 
+            color: #888; 
+            font-size: 11px; 
+            letter-spacing: 1px; 
+            margin: 10px 0 8px; 
+            text-align: center; 
+            text-transform: uppercase; 
+        }
+        
+        .prize-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 12px; 
+            font-family: 'Courier New', monospace; 
+        }
+        
+        .prize-table th { 
+            color: #555; 
+            font-size: 10px; 
+            letter-spacing: 1px; 
+            padding: 4px 8px; 
+            border-bottom: 1px solid #222; 
+            text-align: left; 
+        }
+        
+        .prize-table td { 
+            padding: 6px 8px; 
+            border-bottom: 1px solid rgba(255,255,255,0.02); 
+        }
+        
+        .prize-table tr.t-rare td { 
+            color: var(--cyan); 
+        }
+        
+        .prize-table tr.t-legend td { 
+            color: var(--gold); 
+            font-weight: bold; 
+        }
+
+        .slot-machine { 
+            width: 100%; 
+            max-width: 800px; 
+            border: 1px solid rgba(255,215,0,0.3); 
+            border-radius: 12px; 
+            padding: 25px; 
+            text-align: center; 
+            background: linear-gradient(180deg, #15130a, #0a0a05); 
+            margin-bottom: 25px; 
+        }
+        
+        .slot-title { 
+            color: var(--gold); 
+            font-size: 22px; 
+            font-weight: bold; 
+            margin-bottom: 18px; 
+            letter-spacing: 1px; 
+        }
+        
+        .reels-container { 
+            display: flex; 
+            justify-content: center; 
+            gap: 15px; 
+            margin-bottom: 22px; 
+        }
+        
+        .reel { 
+            width: 80px; 
+            height: 80px; 
+            background: #000; 
+            border: 2px solid #333; 
+            border-radius: 10px; 
+            font-size: 40px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            position: relative; 
+        }
+        
+        .reel-inner { 
+            position: absolute; 
+            transition: top 0.1s; 
+        }
+        
+        .spinning { 
+            filter: blur(2px); 
+            animation: fastSpin 0.1s infinite; 
+        }
+        
+        @keyframes fastSpin { 
+            0% { transform: translateY(-40px); } 
+            100% { transform: translateY(40px); } 
+        }
+        
+        .spin-btn { 
+            background: var(--gold); 
+            color: #000; 
+            border: none; 
+            padding: 14px 25px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            border-radius: 8px; 
+            width: 100%; 
+            max-width: 300px; 
+        }
+        
+        .spin-btn:disabled { 
+            background: #333 !important; 
+            color: #666 !important; 
+            cursor: not-allowed; 
+        }
+        
+        .slot-info { 
+            font-size: 13px; 
+            color: #aaa; 
+            margin-top: 8px; 
+        }
+        
+        .cast-btn-small { 
+            background: linear-gradient(90deg, #8a2be2, #4a00e0); 
+            color: #fff; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 12px; 
+            margin-top: 12px; 
+            display: none; 
+        }
+
+        .leaderboard { 
+            width: 100%; 
+            max-width: 800px; 
+            border: 1px solid rgba(0,240,255,0.2); 
+            border-radius: 12px; 
+            padding: 20px; 
+            background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); 
+        }
+        
+        .lb-title { 
+            color: var(--cyan); 
+            text-align: center; 
+            font-weight: bold; 
+            margin-bottom: 18px; 
+            font-size: 18px; 
+            letter-spacing: 1px; 
+        }
+        
+        .lb-row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 12px; 
+            border-bottom: 1px solid rgba(255,255,255,0.03); 
+            font-size: 13px; 
+            border-radius: 6px; 
+            margin-bottom: 4px; 
+        }
+        
+        #walletStatus { 
+            font-size: 12px; 
+            color: #666; 
+            margin-top: 25px; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            letter-spacing: 1px; 
+        }
+        
+        .toast { 
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: rgba(20,25,35,0.95); 
+            color: #fff; 
+            padding: 15px 20px; 
+            border-left: 4px solid var(--cyan); 
+            display: none; 
+            z-index: 1000; 
+            border-radius: 4px; 
+            font-size: 14px; 
+            backdrop-filter: blur(5px); 
+        }
     </style>
     
     <script type="module">
@@ -106,7 +576,9 @@
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
                     const titleEl = document.getElementById('mainTitle');
-                    if(titleEl && window.fcUsername) titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+                    if(titleEl && window.fcUsername) {
+                        titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+                    }
                 }
             }).catch(()=>{});
         } catch(e) {}
@@ -206,9 +678,14 @@
 
 <script>
 let ac = null;
+
 function initAudio() {
-    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (ac.state === 'suspended') ac.resume();
+    if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (ac.state === 'suspended') {
+        ac.resume();
+    }
 }
 
 function playJump() {
@@ -284,10 +761,28 @@ class GeoDashEngine {
         this.themeColor = '#00f0ff';
 
         this.playerMode = 'cube'; 
-        this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY: 0, ground: true };
+        this.player = { 
+            x: 130, 
+            y: this.GROUND_Y - 36, 
+            w: 36, 
+            h: 36, 
+            vy: 0, 
+            rot: 0, 
+            prevY: 0, 
+            ground: true 
+        };
         this.jumpBuffer = 0; 
         
-        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0, phaseText: "", phaseTimer: 0 };
+        this.hunter = { 
+            active: false, 
+            warning: false, 
+            timer: 0, 
+            y: 150, 
+            bullets: [], 
+            shotsFired: 0, 
+            phaseText: "", 
+            phaseTimer: 0 
+        };
         
         this.obstaclePool = []; 
         this.activeObstacles = [];
@@ -299,19 +794,43 @@ class GeoDashEngine {
         this.initPools();
         this.initStars();
 
-        window.addEventListener('keydown', (e) => { if(e.code === 'Space') this.jump(); });
-        this.canvas.addEventListener('mousedown', () => this.jump());
-        this.canvas.addEventListener('touchstart', (e) => { e.preventDefault(); this.jump(); }, {passive: false});
+        window.addEventListener('keydown', (e) => { 
+            if(e.code === 'Space') {
+                this.jump(); 
+            }
+        });
+        
+        this.canvas.addEventListener('mousedown', () => {
+            this.jump();
+        });
+        
+        this.canvas.addEventListener('touchstart', (e) => { 
+            e.preventDefault(); 
+            this.jump(); 
+        }, {passive: false});
     }
 
     initPools() {
-        for(let i=0; i<150; i++) this.particlePool.push({ active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor });
-        for(let i=0; i<100; i++) this.obstaclePool.push({ active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 });
+        for(let i=0; i<150; i++) {
+            this.particlePool.push({ 
+                active:false, x:0, y:0, vx:0, vy:0, life:0, s:0, c:this.themeColor 
+            });
+        }
+        for(let i=0; i<100; i++) {
+            this.obstaclePool.push({ 
+                active:false, t:'none', x:0, y:0, w:0, h:0, onPlatY:0 
+            });
+        }
     }
 
     initStars() {
         for(let i=0; i<30; i++) {
-            this.stars.push({ x: Math.random() * this.W, y: Math.random() * this.GROUND_Y, s: Math.random() * 2 + 1, speed: Math.random() * 0.4 + 0.1 });
+            this.stars.push({ 
+                x: Math.random() * this.W, 
+                y: Math.random() * this.GROUND_Y, 
+                s: Math.random() * 2 + 1, 
+                speed: Math.random() * 0.4 + 0.1 
+            });
         }
     }
 
@@ -324,7 +843,11 @@ class GeoDashEngine {
             {s: 7.6, len: 35000, gap: 450}, 
             {s: 7.8, len: 38000, gap: 420}, 
             {s: 8.0, len: 42000, gap: 400}, 
-            {s: 8.2, len: 44000, gap: 380}, {s: 8.5, len: 48000, gap: 360}, {s: 8.8, len: 52000, gap: 350}, {s: 9.0, len: 56000, gap: 340}, {s: 9.5, len: 60000, gap: 330}
+            {s: 8.2, len: 44000, gap: 380}, 
+            {s: 8.5, len: 48000, gap: 360}, 
+            {s: 8.8, len: 52000, gap: 350}, 
+            {s: 9.0, len: 56000, gap: 340}, 
+            {s: 9.5, len: 60000, gap: 330}
         ];
         
         let cIdx = Math.min(this.currentLevel - 1, 9);
@@ -342,13 +865,20 @@ class GeoDashEngine {
                 [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
                 [
                     {t:'portal_flappy', x:0},
-                    {t:'saw', x: 500, y: 250}, {t:'saw', x: 1000, y: 80},  
-                    {t:'saw', x: 1500, y: 250}, {t:'saw', x: 2000, y: 150},
-                    {t:'saw', x: 2500, y: 200}, {t:'saw', x: 3000, y: 100},
-                    {t:'saw', x: 3500, y: 280}, {t:'saw', x: 4000, y: 120},
-                    {t:'saw', x: 4500, y: 280}, {t:'saw', x: 5000, y: 90},
-                    {t:'saw', x: 5500, y: 250}, {t:'saw', x: 6000, y: 180},
-                    {t:'saw', x: 6500, y: 250}, {t:'saw', x: 7000, y: 100},
+                    {t:'saw', x: 500, y: 250}, 
+                    {t:'saw', x: 1000, y: 80},  
+                    {t:'saw', x: 1500, y: 250}, 
+                    {t:'saw', x: 2000, y: 150},
+                    {t:'saw', x: 2500, y: 200}, 
+                    {t:'saw', x: 3000, y: 100},
+                    {t:'saw', x: 3500, y: 280}, 
+                    {t:'saw', x: 4000, y: 120},
+                    {t:'saw', x: 4500, y: 280}, 
+                    {t:'saw', x: 5000, y: 90},
+                    {t:'saw', x: 5500, y: 250}, 
+                    {t:'saw', x: 6000, y: 180},
+                    {t:'saw', x: 6500, y: 250}, 
+                    {t:'saw', x: 7000, y: 100},
                     {t:'portal_cube', x: 7500} 
                 ]
             ];
@@ -376,20 +906,39 @@ class GeoDashEngine {
         }
         
         let curX = 900;
+        
         while(curX < this.levelLength + 1500) {
             let r = Math.sin(curX * 0.01) * 10000;
             let idx = Math.floor((r - Math.floor(r)) * chunks.length);
             let chunk = chunks[idx];
             
             for(let p of chunk) {
-                let h = (p.t==='spike'||p.t==='dspike'||p.t==='ceiling_spike')?32:(p.t==='wall'||p.t==='glass')?p.h:(p.t==='portal_flappy'||p.t==='portal_cube')?100:(p.t==='jpad')?20:16;
+                let h = 16;
+                
+                if(p.t==='spike' || p.t==='dspike' || p.t==='ceiling_spike') {
+                    h = 32;
+                } else if(p.t==='wall' || p.t==='glass') {
+                    h = p.h;
+                } else if(p.t==='portal_flappy' || p.t==='portal_cube') {
+                    h = 100;
+                } else if(p.t==='jpad') {
+                    h = 40; // Hitbox height increased to fix jump bug
+                }
+                
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
                 
                 if(p.t==='portal_flappy' || p.t==='portal_cube') {
                     finalY = this.GROUND_Y - 100;
                 }
                 
-                this.geometryPatterns.push({t: p.t, x: curX + p.x, y: finalY, w: p.w||0, h: h, onPlatY: p.onPlatY});
+                this.geometryPatterns.push({
+                    t: p.t, 
+                    x: curX + p.x, 
+                    y: finalY, 
+                    w: p.w||0, 
+                    h: h, 
+                    onPlatY: p.onPlatY
+                });
             }
             
             let chunkGap = (chunk.length > 3 && chunk[0].t === 'portal_flappy') ? 8000 : baseGap;
@@ -400,7 +949,13 @@ class GeoDashEngine {
     spawnObstacle(t, x, y, w, h, onPlatY) {
         let o = this.obstaclePool.find(obj => !obj.active);
         if(o) { 
-            o.active=true; o.t=t; o.x=x; o.y=y; o.w=w; o.h=h; o.onPlatY=onPlatY; 
+            o.active=true; 
+            o.t=t; 
+            o.x=x; 
+            o.y=y; 
+            o.w=w; 
+            o.h=h; 
+            o.onPlatY=onPlatY; 
             this.activeObstacles.push(o); 
         }
     }
@@ -409,7 +964,7 @@ class GeoDashEngine {
         for(let i=0; i<8; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
-                p.active=true; 
+                p.active = true; 
                 p.x = this.player.x + 18; 
                 p.y = this.player.y + 36; 
                 p.vx = (Math.random() - 0.5) * 10; 
@@ -426,7 +981,7 @@ class GeoDashEngine {
         for(let i=0; i<25; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
-                p.active=true; 
+                p.active = true; 
                 p.x = x + 15; 
                 p.y = y - Math.random() * h; 
                 p.vx = (Math.random() - 0.5) * 15; 
@@ -442,13 +997,13 @@ class GeoDashEngine {
         for(let i=0; i<40; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
-                p.active=true; 
-                p.x=this.player.x+18; 
-                p.y=this.player.y+18;
-                p.vx=(Math.random()-0.5)*18; 
-                p.vy=(Math.random()-0.5)*18;
-                p.life=1.0; 
-                p.s=5+Math.random()*5; 
+                p.active = true; 
+                p.x = this.player.x+18; 
+                p.y = this.player.y+18;
+                p.vx = (Math.random()-0.5)*18; 
+                p.vy = (Math.random()-0.5)*18;
+                p.life = 1.0; 
+                p.s = 5+Math.random()*5; 
                 p.c = isHunter ? '#ff3060' : this.themeColor;
             }
         }
@@ -457,21 +1012,43 @@ class GeoDashEngine {
     reset() {
         initAudio();
         cancelAnimationFrame(this.reqId);
+        
         this.ctx.fillStyle='#05080f'; 
         this.ctx.fillRect(0,0,this.W,this.H); 
         
         this.worldX = 0; 
         this.frameCount = 0;
         this.playerMode = 'cube';
-        this.player = { x: 130, y: this.GROUND_Y - 36, w: 36, h: 36, vy: 0, rot: 0, prevY:0, ground: true };
+        
+        this.player = { 
+            x: 130, 
+            y: this.GROUND_Y - 36, 
+            w: 36, 
+            h: 36, 
+            vy: 0, 
+            rot: 0, 
+            prevY:0, 
+            ground: true 
+        };
+        
         this.jumpBuffer = 0;
         this.trail = [];
         this.dieReason = '';
         
-        this.hunter = { active: false, warning: false, timer: 0, y: 150, bullets: [], shotsFired: 0, phaseText: "", phaseTimer: 0 };
+        this.hunter = { 
+            active: false, 
+            warning: false, 
+            timer: 0, 
+            y: 150, 
+            bullets: [], 
+            shotsFired: 0, 
+            phaseText: "", 
+            phaseTimer: 0 
+        };
         
         this.activeObstacles.forEach(o=>o.active=false); 
         this.activeObstacles=[];
+        
         this.particlePool.forEach(p=>p.active=false); 
 
         this.initPatterns();
@@ -481,21 +1058,21 @@ class GeoDashEngine {
     }
 
     start(isOfficial) {
-        if(this.state === 'PLAYING') return;
+        if(this.state === 'PLAYING') {
+            return;
+        }
         
         this.official = isOfficial;
         this.themeColor = isOfficial ? '#ffd700' : '#00f0ff';
         
         this.reset();
         
-        // 🔥 TAP TO START LOGIC 🔥
         this.state = 'READY'; 
         
         let pBar = document.getElementById('progressBar');
         pBar.style.width = '0%';
         pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
         
-        // 🔥 LAG FIX: Removed box shadow change here 🔥
         document.getElementById('gameBox').style.borderColor = this.themeColor;
         
         this.lastTime = performance.now();
@@ -518,7 +1095,10 @@ class GeoDashEngine {
             this.start(this.official); 
             return; 
         } 
-        if(this.state!=='PLAYING') return;
+        
+        if(this.state!=='PLAYING') {
+            return;
+        }
         
         if(this.playerMode === 'flappy') {
             this.player.vy = -10.0; 
@@ -532,10 +1112,13 @@ class GeoDashEngine {
 
     die(reason = "", isHunter = false) {
         if(this.state==='DEAD') return;
+        
         this.state = 'DEAD'; 
         this.attempts++;
         this.dieReason = reason;
+        
         document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
+        
         playDie();
         this.spawnDeathExplosion(isHunter);
         
@@ -555,24 +1138,33 @@ class GeoDashEngine {
     update(dt) {
         for(let p of this.particlePool){ 
             if(p.active){ 
-                p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=0.6*dt; p.life-=0.03*dt; 
+                p.x += p.vx*dt; 
+                p.y += p.vy*dt; 
+                p.vy += 0.6*dt; 
+                p.life -= 0.03*dt; 
                 if(p.life<=0) p.active=false; 
             } 
         }
 
         for(let s of this.stars) {
-            if(this.state === 'PLAYING') s.x -= s.speed * this.SPEED * dt;
-            if(s.x < 0) { s.x = this.W; s.y = Math.random() * this.GROUND_Y; }
+            if(this.state === 'PLAYING') {
+                s.x -= s.speed * this.SPEED * dt;
+            }
+            if(s.x < 0) { 
+                s.x = this.W; 
+                s.y = Math.random() * this.GROUND_Y; 
+            }
         }
 
         if(this.state === 'READY') return;
-        if(this.state!=='PLAYING') return;
+        if(this.state !== 'PLAYING') return;
         
         this.frameCount += dt; 
         this.worldX += this.SPEED*dt;
 
         if (this.playerMode === 'flappy') {
             this.hunter.timer += dt;
+            
             if (this.hunter.timer > 300 && !this.hunter.active && this.hunter.shotsFired < 50) { 
                 this.hunter.warning = true;
             }
@@ -609,8 +1201,14 @@ class GeoDashEngine {
             if (Math.floor(this.frameCount) % fireRate === 0) {
                 this.hunter.shotsFired++;
                 
-                if(this.hunter.shotsFired === 11) { this.hunter.phaseText = "⚠️ WEAPON CHANGE: RAPID FIRE ⚠️"; this.hunter.phaseTimer = 120; }
-                if(this.hunter.shotsFired === 21) { this.hunter.phaseText = "⚠️ WEAPON CHANGE: TRACKING MISSILES ⚠️"; this.hunter.phaseTimer = 120; }
+                if(this.hunter.shotsFired === 11) { 
+                    this.hunter.phaseText = "⚠️ WEAPON CHANGE: RAPID FIRE ⚠️"; 
+                    this.hunter.phaseTimer = 120; 
+                }
+                if(this.hunter.shotsFired === 21) { 
+                    this.hunter.phaseText = "⚠️ WEAPON CHANGE: TRACKING MISSILES ⚠️"; 
+                    this.hunter.phaseTimer = 120; 
+                }
 
                 if(this.hunter.shotsFired >= 50) {
                     this.hunter.active = false;
@@ -618,25 +1216,41 @@ class GeoDashEngine {
                     this.hunter.phaseText = "✅ HUNTER RETREATING. GOOD JOB.";
                     this.hunter.phaseTimer = 150;
                 } else {
-                    this.hunter.bullets.push({ x: this.W - 60, y: this.hunter.y + 5, vx: bulletVx, homing: homing });
+                    this.hunter.bullets.push({ 
+                        x: this.W - 60, 
+                        y: this.hunter.y + 5, 
+                        vx: bulletVx, 
+                        homing: homing 
+                    });
                 }
             }
 
             for (let i = this.hunter.bullets.length - 1; i >= 0; i--) {
                 let b = this.hunter.bullets[i];
                 b.x -= b.vx * dt;
-                if (b.homing) b.y += (this.player.y + 18 - b.y) * 0.08 * dt; 
                 
-                let px = this.player.x+6, py = this.player.y+6, pw = 24, ph = 24;
+                if (b.homing) {
+                    b.y += (this.player.y + 18 - b.y) * 0.08 * dt; 
+                }
+                
+                let px = this.player.x+6;
+                let py = this.player.y+6;
+                let pw = 24;
+                let ph = 24;
+                
                 if (b.x < px+pw && b.x+20 > px && b.y < py+ph && b.y+6 > py) {
                     this.die("SNIPED BY HUNTER 🎯", true);
                     return;
                 }
-                if (b.x < -50) this.hunter.bullets.splice(i, 1);
+                if (b.x < -50) {
+                    this.hunter.bullets.splice(i, 1);
+                }
             }
         }
-        if(this.hunter.phaseTimer > 0) this.hunter.phaseTimer -= dt;
-
+        
+        if(this.hunter.phaseTimer > 0) {
+            this.hunter.phaseTimer -= dt;
+        }
 
         if(this.playerMode === 'cube' && this.jumpBuffer > 0) {
             this.jumpBuffer -= dt;
@@ -650,19 +1264,31 @@ class GeoDashEngine {
         }
 
         if(Math.floor(this.frameCount) % 2 === 0) {
-            this.trail.push({x: this.player.x, y: this.player.y, rot: this.player.rot, life: 0.7, mode: this.playerMode});
+            this.trail.push({
+                x: this.player.x, 
+                y: this.player.y, 
+                rot: this.player.rot, 
+                life: 0.7, 
+                mode: this.playerMode
+            });
         }
-        for(let t of this.trail) t.life -= 0.04 * dt; 
+        
+        for(let t of this.trail) {
+            t.life -= 0.04 * dt; 
+        }
         this.trail = this.trail.filter(t => t.life > 0);
 
         if(Math.floor(this.frameCount)%30===0){
             let prog = Math.min(100,(this.worldX/this.levelLength)*100);
-            document.getElementById('progressBar').style.width=prog+'%';
+            document.getElementById('progressBar').style.width = prog + '%';
             let progressBonus = Math.floor((this.worldX/this.levelLength) * this.currentLevel * 50);
             document.getElementById('scoreUI').innerText=`Score: ${window.baseScore + progressBonus}`;
         }
 
-        if(this.worldX>=this.levelLength){ this.win(); return; }
+        if(this.worldX >= this.levelLength){ 
+            this.win(); 
+            return; 
+        }
 
         this.player.prevY = this.player.y;
         
@@ -679,12 +1305,22 @@ class GeoDashEngine {
         this.player.y += this.player.vy*dt;
 
         if(this.playerMode === 'flappy') {
-            if(this.player.y < 0) { this.player.y = 0; this.player.vy = 0; } 
-            if(this.player.y + this.player.h > this.GROUND_Y) { this.player.y = this.GROUND_Y - this.player.h; this.player.vy = 0; }
+            if(this.player.y < 0) { 
+                this.player.y = 0; 
+                this.player.vy = 0; 
+            }
+            if(this.player.y + this.player.h > this.GROUND_Y) { 
+                this.player.y = this.GROUND_Y - this.player.h; 
+                this.player.vy = 0; 
+            }
         }
 
-        let px=this.player.x+6, py=this.player.y+6, pw=24, ph=24;
-        let overGap=false, onPlatform=false;
+        let px = this.player.x + 6;
+        let py = this.player.y + 6;
+        let pw = 24;
+        let ph = 24;
+        let overGap = false;
+        let onPlatform = false;
 
         for(let o of this.obstaclePool){
             if(!o.active) continue;
@@ -692,20 +1328,41 @@ class GeoDashEngine {
             if(ox<-200||ox>800+100) continue; 
 
             if(o.t==='gap'){
-                if(this.player.x+18>ox&&this.player.x+18<ox+o.w) overGap=true; 
+                if(this.player.x+18>ox&&this.player.x+18<ox+o.w) {
+                    overGap=true; 
+                }
                 continue;
             }
             
             let oHX=ox, oHY=o.y, oHW=o.w, oHH=o.h;
-            if(o.t==='spike'){ oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; }
-            else if(o.t==='dspike'){oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;}
-            else if(o.t==='ceiling_spike'){ oHX=ox+6; oHY=0; oHW=26; oHH=32; } 
-            else if(o.t==='jpad'){oHX=ox; oHY=this.GROUND_Y-20; oHW=48; oHH=20;} // Bigger Jpad
-            else if(o.t==='platform'){oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;}
-            else if(o.t==='saw'){ oHX=ox-12; oHY=o.y-12; oHW=24; oHH=24; }
-            else if(o.t==='wall'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
-            else if(o.t==='glass'){ oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; }
-            else if(o.t==='portal_flappy' || o.t==='portal_cube'){ oHX=ox; oHY=this.GROUND_Y-100; oHW=20; oHH=100; }
+            
+            if(o.t==='spike'){ 
+                oHX=ox+6; oHY=o.y-32; oHW=26; oHH=32; 
+            }
+            else if(o.t==='dspike'){
+                oHX=ox+6; oHY=o.y-32; oHW=64; oHH=32;
+            }
+            else if(o.t==='ceiling_spike'){ 
+                oHX=ox+6; oHY=0; oHW=26; oHH=32; 
+            } 
+            else if(o.t==='jpad'){
+                oHX=ox; oHY=this.GROUND_Y-40; oHW=48; oHH=40;
+            }
+            else if(o.t==='platform'){
+                oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;
+            }
+            else if(o.t==='saw'){ 
+                oHX=ox-15; oHY=o.y-15; oHW=30; oHH=30; 
+            }
+            else if(o.t==='wall'){ 
+                oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; 
+            }
+            else if(o.t==='glass'){ 
+                oHX=ox; oHY=this.GROUND_Y-o.h; oHW=30; oHH=o.h; 
+            }
+            else if(o.t==='portal_flappy' || o.t==='portal_cube'){ 
+                oHX=ox; oHY=this.GROUND_Y-100; oHW=20; oHH=100; 
+            }
 
             let landTolerance = 25; 
 
@@ -734,10 +1391,13 @@ class GeoDashEngine {
                     return; 
                 }
                 
-                // 🔥 HIGH JUMP PAD LOGIC ENHANCED 🔥
+                // 🔥 JUMP PAD FIX 🔥
                 if(o.t==='jpad'){ 
-                    this.player.vy = this.JUMP_VEL * 1.5; // High Jump Fix applied!
+                    initAudio();
+                    this.player.y = this.GROUND_Y - 20 - this.player.h; 
+                    this.player.vy = this.JUMP_VEL * 1.5; 
                     this.player.ground = false; 
+                    this.jumpBuffer = 0; 
                     this.spawnJumpDust(); 
                     playJump(); 
                 }
@@ -768,7 +1428,9 @@ class GeoDashEngine {
                 this.die(); 
             }
             else if(!onPlatform){
-                if(this.player.y+this.player.h<this.GROUND_Y) this.player.ground=false;
+                if(this.player.y+this.player.h<this.GROUND_Y) {
+                    this.player.ground=false;
+                }
             }
         }
     }
@@ -808,18 +1470,24 @@ class GeoDashEngine {
         this.ctx.fillStyle = this.themeColor; 
         this.ctx.fillRect(0,this.GROUND_Y-1,this.W,3); 
 
-        // 🔥 PREMIUM UFO HUNTER 🔥
         if (this.hunter.active && this.state !== 'DEAD') {
             this.ctx.fillStyle = '#222';
-            this.ctx.beginPath(); this.ctx.ellipse(this.W - 60, this.hunter.y, 35, 15, 0, 0, Math.PI*2); this.ctx.fill();
-            this.ctx.strokeStyle = '#ff3060'; this.ctx.lineWidth = 3; this.ctx.stroke();
+            this.ctx.beginPath(); 
+            this.ctx.ellipse(this.W - 60, this.hunter.y, 35, 15, 0, 0, Math.PI*2); 
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#ff3060'; 
+            this.ctx.lineWidth = 3; 
+            this.ctx.stroke();
             this.ctx.fillStyle = 'rgba(255, 48, 96, 0.6)';
-            this.ctx.beginPath(); this.ctx.arc(this.W - 60, this.hunter.y - 5, 18, 0, Math.PI, true); this.ctx.fill();
+            this.ctx.beginPath(); 
+            this.ctx.arc(this.W - 60, this.hunter.y - 5, 18, 0, Math.PI, true); 
+            this.ctx.fill();
             this.ctx.fillStyle = '#fff';
-            this.ctx.beginPath(); this.ctx.arc(this.W - 60, this.hunter.y + 5, 5, 0, Math.PI*2); this.ctx.fill();
+            this.ctx.beginPath(); 
+            this.ctx.arc(this.W - 60, this.hunter.y + 5, 5, 0, Math.PI*2); 
+            this.ctx.fill();
             
             for (let b of this.hunter.bullets) {
-                // LAG FIX: Removed shadowBlur on bullets
                 if (b.homing) {
                     this.ctx.fillStyle = '#ffd700';
                     this.ctx.fillRect(b.x, b.y, 25, 8);
@@ -856,6 +1524,7 @@ class GeoDashEngine {
                 this.ctx.lineTo(ox+38,baseY);
                 this.ctx.lineTo(ox,baseY);
                 this.ctx.fill();
+                
                 this.ctx.beginPath();
                 this.ctx.moveTo(ox+57,baseY-38);
                 this.ctx.lineTo(ox+76,baseY);
@@ -893,7 +1562,9 @@ class GeoDashEngine {
                 this.ctx.rotate(Math.PI / 4);
                 this.ctx.fillRect(-15, -15, 30, 30);
                 this.ctx.fillStyle = '#05080f';
-                this.ctx.beginPath(); this.ctx.arc(0,0, 8, 0, Math.PI*2); this.ctx.fill();
+                this.ctx.beginPath(); 
+                this.ctx.arc(0,0, 8, 0, Math.PI*2); 
+                this.ctx.fill();
                 this.ctx.restore();
             }
             else if(o.t==='wall'){
@@ -932,6 +1603,7 @@ class GeoDashEngine {
             this.ctx.textAlign = 'center';
             this.ctx.fillText("⚠️ UNAUTHORIZED FLIGHT DETECTED: HUNTER INBOUND ⚠️", this.W / 2, 60);
         }
+        
         if (this.hunter.phaseTimer > 0 && this.hunter.phaseText) {
             this.ctx.fillStyle = (this.hunter.shotsFired >= 50) ? '#00ff88' : '#ffd700';
             this.ctx.font = 'bold 18px Courier New';
@@ -1174,15 +1846,15 @@ const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
 
 function showToast(msg, color='var(--cyan)'){
     const t=document.getElementById('toast');
-    t.innerText=msg;
-    t.style.borderLeftColor=color;
+    t.innerText=msg; 
+    t.style.borderLeftColor=color; 
     t.style.display='block';
     setTimeout(()=>t.style.display='none',3500);
 }
 
 function showWalletStatus(msg, isGood){
     const w=document.getElementById('walletStatus');
-    w.innerText=msg;
+    w.innerText=msg; 
     w.style.color=isGood?'#00ff88':'#ff3060';
 }
 
@@ -1190,13 +1862,13 @@ async function detectWallet(){
     if(walletProvider) return true;
     for(let i=0; i<10; i++){
         if(window.fcSdk && window.fcSdk.wallet && window.fcSdk.wallet.ethProvider){
-            walletProvider = window.fcSdk.wallet.ethProvider;
-            isFarcasterWallet = true;
+            walletProvider = window.fcSdk.wallet.ethProvider; 
+            isFarcasterWallet = true; 
             return true;
         }
-        if(window.ethereum){
-            walletProvider = window.ethereum;
-            return true;
+        if(window.ethereum){ 
+            walletProvider = window.ethereum; 
+            return true; 
         }
         await new Promise(r=>setTimeout(r,100));
     }
@@ -1204,9 +1876,9 @@ async function detectWallet(){
 }
 
 async function connectWallet(err=true){
-    if(!await detectWallet()){
-        if(err) showToast("No Web3 Wallet found!","red");
-        return false;
+    if(!await detectWallet()){ 
+        if(err) showToast("No Web3 Wallet found!","red"); 
+        return false; 
     }
     try {
         let acct = await walletProvider.request({method:'eth_accounts'}).catch(()=>[]);
@@ -1215,26 +1887,26 @@ async function connectWallet(err=true){
         
         userAddress = acct[0];
         
-        if(!isFarcasterWallet){
-            try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){}
+        if(!isFarcasterWallet){ 
+            try { await walletProvider.request({method:'wallet_switchEthereumChain',params:[{chainId:'0xa4b1'}]}); } catch(e){} 
         }
         
-        isConnected = true;
+        isConnected = true; 
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
-        refreshSpinStatus();
-        fetchPersonalStats();
+        refreshSpinStatus(); 
+        fetchPersonalStats(); 
         return true;
-    } catch(e) {
-        return false;
+    } catch(e) { 
+        return false; 
     }
 }
 
 function openCast(text){
     const url = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`;
-    if(window.fcSdk && window.fcSdk.actions){
-        window.fcSdk.actions.openUrl(url);
-    } else {
-        window.open(url,'_blank');
+    if(window.fcSdk && window.fcSdk.actions){ 
+        window.fcSdk.actions.openUrl(url); 
+    } else { 
+        window.open(url,'_blank'); 
     }
 }
 
@@ -1253,7 +1925,7 @@ window.addEventListener('load', () => {
         const text = `🎰 I just won $ARB on the GeoDash Spin Machine! 💸\n\nTest your reflexes and play now! 👇\n${GAME_URL}`;
         openCast(text);
     });
-    
+
     buildLevelUI(); 
     fetchGlobalLeaderboard();
     
@@ -1273,7 +1945,7 @@ async function startOfficialRun(){
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     if(ge.currentLevel > maxOnchain) {
         ge.currentLevel = maxOnchain; 
-        buildLevelUI();
+        buildLevelUI(); 
         document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
         showToast(`Auto-switched to Level ${maxOnchain} for Official Run!`, "#ffd700");
     }
@@ -1295,21 +1967,21 @@ async function startOfficialRun(){
             ]);
         } catch(e) { console.log("Proceeding to tx..."); }
 
-        const txPromise = walletProvider.request({
-            method: 'eth_sendTransaction',
-            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }]
+        const txPromise = walletProvider.request({ 
+            method: 'eth_sendTransaction', 
+            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
         });
         
-        showToast("Tx Initiated! Tap to dash.", "#00ff88"); 
-        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+        showToast("Tx Initiated! Tap to start.", "#00ff88"); 
+        btn.innerText = "💎 OFFICIAL RUN ACTIVE"; 
         ge.attempts = 0; 
         document.getElementById('attemptUI').innerText=`Attempt: 0`; 
         ge.start(true); 
         
         txPromise.catch(e => {
-            if(ge.official && (ge.state === 'PLAYING' || ge.state === 'READY')) {
-                ge.die("TX CANCELLED! STOPPING RUN.", false);
-                showToast("Transaction was cancelled.", "red");
+            if(ge.official && (ge.state === 'PLAYING' || ge.state === 'READY')) { 
+                ge.die("TX CANCELLED! STOPPING RUN.", false); 
+                showToast("Transaction was cancelled.", "red"); 
             }
         });
 
@@ -1321,7 +1993,7 @@ async function startOfficialRun(){
 }
 
 async function executeSpin(){
-    const btn = document.getElementById('spinBtn');
+    const btn = document.getElementById('spinBtn'); 
     document.getElementById('spinCastBtn').style.display = 'none'; 
     if(!isConnected) { if(!await connectWallet(true)) return; }
     if (!spinStatus.hasFree && spinStatus.bonus <= 0) { showToast("No spin available! Wait for cooldown.", "red"); return; }
@@ -1344,7 +2016,6 @@ async function executeSpin(){
         try{
             const iface = new ethers.utils.Interface(ABI); 
             const data = iface.encodeFunctionData("spin", []);
-            
             const txHash = await walletProvider.request({ 
                 method: 'eth_sendTransaction', 
                 params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
@@ -1371,10 +2042,9 @@ async function executeSpin(){
                 document.getElementById('spinResult').style.color = "#00ff88"; 
                 document.getElementById('spinCastBtn').style.display = 'inline-block'; 
                 
-                localSpins++;
-                localStorage.setItem('geodash_spins', localSpins);
+                localSpins++; 
+                localStorage.setItem('geodash_spins', localSpins); 
                 buildLevelUI(); 
-                
             } else { 
                 document.getElementById('r1').innerText='❌'; 
                 document.getElementById('r2').innerText='❌'; 
@@ -1387,7 +2057,7 @@ async function executeSpin(){
             fetchPersonalStats(); 
             fetchGlobalLeaderboard();
         }catch(e){
-            btn.disabled = false;
+            btn.disabled = false; 
             document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
             document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
             document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
@@ -1409,28 +2079,26 @@ function buildLevelUI(){
     
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     let spinBonusLevels = Math.floor(localSpins / 5); 
-    
     let maxPractice = Math.min(10, Math.max(1, maxOnchain + spinBonusLevels, practiceUnlocks)); 
 
     for(let i=1; i<=10; i++){
         const btn = document.createElement('button');
-        
-        if(window.completedLevels && window.completedLevels.has(i)){
-            btn.className='lvl-btn done';
-            btn.innerText='✓'+i;
+        if(window.completedLevels && window.completedLevels.has(i)){ 
+            btn.className='lvl-btn done'; 
+            btn.innerText='✓'+i; 
         }
-        else if(i <= maxOnchain){
-            btn.className='lvl-btn onchain'+(i===ge.currentLevel?' active':'');
-            btn.innerText=i;
+        else if(i <= maxOnchain){ 
+            btn.className='lvl-btn onchain'+(i===ge.currentLevel?' active':''); 
+            btn.innerText=i; 
         }
-        else if (i <= maxPractice) {
-            btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':'');
+        else if (i <= maxPractice) { 
+            btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':''); 
             btn.innerText=i + ' 🔓'; 
         }
-        else {
-            btn.className='lvl-btn';
-            btn.innerText='🔒';
-            btn.disabled=true;
+        else { 
+            btn.className='lvl-btn'; 
+            btn.innerText='🔒'; 
+            btn.disabled=true; 
         }
         
         btn.addEventListener('click', () => { 
@@ -1472,7 +2140,11 @@ function updateSpinUI() {
     let tl = spinStatus.timeLeft;
     
     timerInt = setInterval(() => {
-        if(tl <= 0){ refreshSpinStatus(); clearInterval(timerInt); return; } 
+        if(tl <= 0){ 
+            refreshSpinStatus(); 
+            clearInterval(timerInt); 
+            return; 
+        } 
         tl--;
         let h = Math.floor(tl/3600), m = Math.floor((tl%3600)/60), s = tl%60;
         btn.innerText = `⏳ WAIT ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
@@ -1495,9 +2167,8 @@ const fcUsernameCache={};
 async function fetchGlobalLeaderboard(){
     try{
         const [addrs, scores, lvls] = await readContract.getLeaderboard();
-        let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000");
+        let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000"); 
         let nameMap = {};
-        
         if(validAddrs.length > 0) {
             try {
                 const res = await fetch(`https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=${validAddrs.join(',')}`,{headers:{'accept':'application/json','api_key':'NEYNAR_API_DOCS'}});
@@ -1512,7 +2183,6 @@ async function fetchGlobalLeaderboard(){
                 }
             } catch(e) {}
         }
-        
         let html = ''; 
         let hasScores = false;
         
@@ -1552,7 +2222,7 @@ async function fetchPersonalStats(){
                 if(i < 10) window.unlockedLevels.add(i + 1); 
             }
             
-            ge.currentLevel = Math.max(...Array.from(window.unlockedLevels));
+            ge.currentLevel = Math.max(...Array.from(window.unlockedLevels)); 
             window.baseScore = score; 
             document.getElementById('scoreUI').innerText=`Score: ${score}`;
             
@@ -1571,7 +2241,9 @@ async function fetchPersonalStats(){
             if(res.ok){ 
                 const data=await res.json(); 
                 let addrL = userAddress.toLowerCase(); 
-                if(data[addrL] && data[addrL].length > 0) name = '@' + data[addrL][0].username; 
+                if(data[addrL] && data[addrL].length > 0) {
+                    name = '@' + data[addrL][0].username; 
+                }
             } 
         }catch(e){}
         
