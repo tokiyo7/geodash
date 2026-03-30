@@ -32,7 +32,8 @@
         .modal-btn-spin { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; border: none; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; animation: btnPulse 1.5s infinite alternate; transition: transform 0.2s; }
         .modal-btn-spin:active { transform: scale(0.95); }
 
-        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); box-shadow: 0 8px 30px rgba(0,0,0,0.8); transition: border-color 0.3s ease; }
+        /* 🔥 LAG FIX: Removed heavy box-shadow and transition on the container 🔥 */
+        .game-container { position: relative; width: 100%; max-width: 800px; aspect-ratio: 2/1; border: 2px solid #00f0ff; background: #05080f; overflow: hidden; border-radius: 8px; transform: translateZ(0); }
         canvas { display: block; width: 100%; height: 100%; }
         
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10; text-align: center; padding: 10px; backdrop-filter: blur(3px); }
@@ -42,7 +43,8 @@
         .btn-social { background: linear-gradient(135deg, #8a2be2, #4a00e0); color: #fff; }
 
         .progress-bar-wrap { width: 100%; max-width: 800px; display: flex; align-items: center; margin: 15px 0; background: rgba(10,15,24,0.8); border: 1px solid rgba(0,240,255,0.2); border-radius: 8px; padding: 6px; }
-        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; box-shadow: 0 0 10px rgba(0,240,255,0.5); border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
+        /* 🔥 LAG FIX: Removed box-shadow on progress bar 🔥 */
+        .progress-bar { height: 12px; background: linear-gradient(90deg, #00f0ff, #00ff88); width: 0%; border-radius: 6px; transition: width 0.1s linear, background 0.3s; }
         .progress-text { margin-left: 15px; color: var(--cyan); font-weight: bold; white-space: nowrap; font-size: 13px; }
 
         .level-selector { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
@@ -50,21 +52,22 @@
         
         .lvl-btn.done { background: rgba(0,255,136,0.1); border-color: rgba(0,255,136,0.4); color: #00ff88; cursor: pointer; }
         .lvl-btn.onchain { background: rgba(255,215,0,0.05); border-color: rgba(255,215,0,0.4); color: var(--gold); cursor: pointer; }
-        .lvl-btn.onchain.active { background: var(--gold); color: #000; border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+        /* 🔥 LAG FIX: Removed box-shadow on active buttons 🔥 */
+        .lvl-btn.onchain.active { background: var(--gold); color: #000; border-color: var(--gold); }
         .lvl-btn.practice { background: rgba(0,240,255,0.05); border-color: rgba(0,240,255,0.3); color: #00f0ff; cursor: pointer; }
-        .lvl-btn.practice.active { background: #00f0ff; color: #000; border-color: #00f0ff; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
+        .lvl-btn.practice.active { background: #00f0ff; color: #000; border-color: #00f0ff; }
 
         #spinProgressText { width: 100%; text-align: center; font-size: 12px; color: var(--gold); margin-bottom: 20px; font-weight: bold; letter-spacing: 0.5px; text-shadow: 0 0 5px rgba(255,215,0,0.3); }
 
         .play-btn-row { width: 100%; max-width: 800px; margin-bottom: 8px; display: flex; gap: 12px; }
         .play-btn { flex: 1; padding: 16px; background: rgba(0,240,255,0.05); border: 1px solid #00f0ff; color: #00f0ff; font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 8px; font-family: 'Courier New', monospace; transition: all 0.2s; }
-        .play-btn:hover { background: #00f0ff; color: #000; box-shadow: 0 0 15px rgba(0,240,255,0.4); }
+        .play-btn:hover { background: #00f0ff; color: #000; }
         .play-btn-gold { background: rgba(255,215,0,0.05); border-color: var(--gold); color: var(--gold); animation: btnPulse 2s infinite alternate; } 
-        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+        .play-btn-gold:hover:not(:disabled) { background: var(--gold); color: #000; }
         .play-btn-gold:disabled { border-color: #444; color: #666; background: transparent; cursor: not-allowed; animation: none; }
         .btn-note { font-size: 11px; color: #777; text-align: center; width: 100%; margin-bottom: 25px; line-height: 1.4; }
 
-        .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; box-shadow: inset 0 0 20px rgba(255,215,0,0.02); }
+        .prize-chart { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.2); border-radius: 12px; padding: 18px; background: linear-gradient(180deg, rgba(15,12,0,0.9), rgba(5,5,5,0.95)); margin-bottom: 15px; }
         .prize-chart-title { color: #ffd700; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 14px; letter-spacing: 2px; text-shadow: 0 0 8px rgba(255,215,0,0.4); }
         .prize-section-label { color: #888; font-size: 11px; letter-spacing: 1px; margin: 10px 0 8px; text-align: center; text-transform: uppercase; }
         .prize-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'Courier New', monospace; }
@@ -73,24 +76,24 @@
         .prize-table tr.t-rare td { color: var(--cyan); }
         .prize-table tr.t-legend td { color: var(--gold); font-weight: bold; }
 
-        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); }
+        .slot-machine { width: 100%; max-width: 800px; border: 1px solid rgba(255,215,0,0.3); border-radius: 12px; padding: 25px; text-align: center; background: linear-gradient(180deg, #15130a, #0a0a05); margin-bottom: 25px; }
         .slot-title { color: var(--gold); font-size: 22px; font-weight: bold; margin-bottom: 18px; letter-spacing: 1px; }
         .reels-container { display: flex; justify-content: center; gap: 15px; margin-bottom: 22px; }
-        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: inset 0 0 15px rgba(255,255,255,0.1); }
+        .reel { width: 80px; height: 80px; background: #000; border: 2px solid #333; border-radius: 10px; font-size: 40px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .reel-inner { position: absolute; transition: top 0.1s; }
         .spinning { filter: blur(2px); animation: fastSpin 0.1s infinite; }
         @keyframes fastSpin { 0% { transform: translateY(-40px); } 100% { transform: translateY(40px); } }
-        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; box-shadow: 0 4px 10px rgba(255,215,0,0.2); }
-        .spin-btn:disabled { background: #333 !important; color: #666 !important; box-shadow: none; cursor: not-allowed; }
+        .spin-btn { background: var(--gold); color: #000; border: none; padding: 14px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; max-width: 300px; }
+        .spin-btn:disabled { background: #333 !important; color: #666 !important; cursor: not-allowed; }
         .slot-info { font-size: 13px; color: #aaa; margin-top: 8px; }
         .cast-btn-small { background: linear-gradient(90deg, #8a2be2, #4a00e0); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size:12px; margin-top: 12px; display:none; }
 
-        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); box-shadow: inset 0 0 20px rgba(0,240,255,0.02); }
+        .leaderboard { width: 100%; max-width: 800px; border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 20px; background: linear-gradient(180deg, rgba(10,15,24,0.9), rgba(5,8,15,0.95)); }
         .lb-title { color: var(--cyan); text-align: center; font-weight: bold; margin-bottom: 18px; font-size: 18px; letter-spacing: 1px; }
         .lb-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; border-radius: 6px; margin-bottom: 4px; }
         #walletStatus { font-size: 12px; color: #666; margin-top: 25px; text-align: center; margin-bottom: 40px; letter-spacing: 1px; }
         
-        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border-radius: 4px; font-size: 14px; backdrop-filter: blur(5px); }
+        .toast { position: fixed; top: 20px; right: 20px; background: rgba(20,25,35,0.95); color: #fff; padding: 15px 20px; border-left: 4px solid var(--cyan); display: none; z-index: 1000; border-radius: 4px; font-size: 14px; backdrop-filter: blur(5px); }
     </style>
     
     <script type="module">
@@ -491,8 +494,8 @@ class GeoDashEngine {
         let pBar = document.getElementById('progressBar');
         pBar.style.width = '0%';
         pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
-        pBar.style.boxShadow = isOfficial ? '0 0 10px rgba(255,215,0,0.5)' : '0 0 10px rgba(0,240,255,0.5)';
         
+        // 🔥 LAG FIX: Removed box shadow change here 🔥
         document.getElementById('gameBox').style.borderColor = this.themeColor;
         
         this.lastTime = performance.now();
@@ -730,12 +733,15 @@ class GeoDashEngine {
                     this.die(); 
                     return; 
                 }
+                
+                // 🔥 HIGH JUMP PAD LOGIC ENHANCED 🔥
                 if(o.t==='jpad'){ 
-                    this.player.vy=this.JUMP_VEL*1.3; 
-                    this.player.ground=false; 
+                    this.player.vy = this.JUMP_VEL * 1.5; // High Jump Fix applied!
+                    this.player.ground = false; 
                     this.spawnJumpDust(); 
                     playJump(); 
                 }
+                
                 if(o.t==='platform'){
                     if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
                         this.player.y=o.y-this.player.h; 
@@ -813,12 +819,10 @@ class GeoDashEngine {
             this.ctx.beginPath(); this.ctx.arc(this.W - 60, this.hunter.y + 5, 5, 0, Math.PI*2); this.ctx.fill();
             
             for (let b of this.hunter.bullets) {
+                // LAG FIX: Removed shadowBlur on bullets
                 if (b.homing) {
-                    this.ctx.shadowBlur = 10;
-                    this.ctx.shadowColor = '#ffd700';
                     this.ctx.fillStyle = '#ffd700';
                     this.ctx.fillRect(b.x, b.y, 25, 8);
-                    this.ctx.shadowBlur = 0;
                 } else {
                     this.ctx.fillStyle = '#ff3060';
                     this.ctx.fillRect(b.x, b.y, 20, 6);
@@ -905,11 +909,6 @@ class GeoDashEngine {
                 this.ctx.strokeStyle = this.themeColor;
                 this.ctx.lineWidth = 2;
                 this.ctx.strokeRect(ox, this.GROUND_Y - o.h, 30, o.h);
-                this.ctx.beginPath();
-                this.ctx.moveTo(ox + 5, this.GROUND_Y - o.h + 5);
-                this.ctx.lineTo(ox + 25, this.GROUND_Y - o.h + 25);
-                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                this.ctx.stroke();
             }
             else if(o.t==='portal_flappy'){
                 this.ctx.strokeStyle = '#ffd700'; 
@@ -961,7 +960,9 @@ class GeoDashEngine {
                 this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${t.life})`; 
                 if(t.mode === 'flappy') {
                     this.ctx.beginPath();
-                    this.ctx.moveTo(18, 0); this.ctx.lineTo(-18, 15); this.ctx.lineTo(-18, -15);
+                    this.ctx.moveTo(18, 0); 
+                    this.ctx.lineTo(-18, 15); 
+                    this.ctx.lineTo(-18, -15);
                     this.ctx.fill();
                 } else {
                     this.ctx.fillRect(-18, -18, 36, 36);
@@ -984,20 +985,33 @@ class GeoDashEngine {
             this.ctx.translate(this.player.x+18, this.player.y+18);
             this.ctx.rotate(this.player.rot*Math.PI/180);
             
-            // 🔥 PREMIUM SHIP DESIGN 🔥
             if(this.playerMode === 'flappy') {
                 this.ctx.fillStyle = '#111';
-                this.ctx.beginPath(); this.ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); this.ctx.fill();
-                this.ctx.strokeStyle = '#ffd700'; this.ctx.lineWidth = 2; this.ctx.stroke();
+                this.ctx.beginPath(); 
+                this.ctx.ellipse(0, 0, 20, 10, 0, 0, Math.PI*2); 
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#ffd700'; 
+                this.ctx.lineWidth = 2; 
+                this.ctx.stroke();
+                
                 this.ctx.fillStyle = '#00f0ff'; 
-                this.ctx.beginPath(); this.ctx.arc(5, -4, 6, 0, Math.PI, true); this.ctx.fill();
+                this.ctx.beginPath(); 
+                this.ctx.arc(5, -4, 6, 0, Math.PI, true); 
+                this.ctx.fill();
+                
                 this.ctx.fillStyle = '#ff3060';
-                this.ctx.beginPath(); this.ctx.moveTo(-20, -5); this.ctx.lineTo(-35, 0); this.ctx.lineTo(-20, 5); this.ctx.fill();
+                this.ctx.beginPath(); 
+                this.ctx.moveTo(-20, -5); 
+                this.ctx.lineTo(-35, 0); 
+                this.ctx.lineTo(-20, 5); 
+                this.ctx.fill();
             } else {
                 this.ctx.fillStyle=(this.state==='CLEAR')?'#00ff88':this.themeColor; 
                 this.ctx.fillRect(-18,-18,36,36); 
+                
                 this.ctx.fillStyle='#05080f'; 
                 this.ctx.fillRect(-14,-14,28,28); 
+                
                 this.ctx.fillStyle=this.themeColor; 
                 this.ctx.fillRect(-8,-6,4,4); 
                 this.ctx.fillRect(4,-6,4,4); 
@@ -1081,7 +1095,12 @@ function triggerWinUi(tries) {
                     const iface = new ethers.utils.Interface(ABI);
                     const data = iface.encodeFunctionData(methodName, args);
                     
-                    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+                    try { 
+                        await Promise.race([
+                            walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+                        ]);
+                    } catch(e) { }
                     
                     const txHash = await walletProvider.request({ 
                         method: 'eth_sendTransaction', 
@@ -1229,6 +1248,12 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
+    // 🔥 FIX: SPIN CAST BUTTON EVENT 🔥
+    document.getElementById('spinCastBtn').addEventListener('click', () => {
+        const text = `🎰 I just won $ARB on the GeoDash Spin Machine! 💸\n\nTest your reflexes and play now! 👇\n${GAME_URL}`;
+        openCast(text);
+    });
+    
     buildLevelUI(); 
     fetchGlobalLeaderboard();
     
@@ -1242,7 +1267,6 @@ window.addEventListener('load', () => {
     },500);
 });
 
-// 🔥 INSTANT TX START UPGRADE 🔥
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     
@@ -1264,14 +1288,19 @@ async function startOfficialRun(){
         const iface = new ethers.utils.Interface(ABI);
         const data = iface.encodeFunctionData("startLevel", [ge.currentLevel]);
         
-        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+        try { 
+            await Promise.race([
+                walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+            ]);
+        } catch(e) { console.log("Proceeding to tx..."); }
 
         const txPromise = walletProvider.request({
             method: 'eth_sendTransaction',
             params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }]
         });
         
-        showToast("Tx Initiated! Click the screen to dash.", "#00ff88"); 
+        showToast("Tx Initiated! Tap to dash.", "#00ff88"); 
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         ge.attempts = 0; 
         document.getElementById('attemptUI').innerText=`Attempt: 0`; 
@@ -1297,7 +1326,12 @@ async function executeSpin(){
     if(!isConnected) { if(!await connectWallet(true)) return; }
     if (!spinStatus.hasFree && spinStatus.bonus <= 0) { showToast("No spin available! Wait for cooldown.", "red"); return; }
     
-    try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+    try { 
+        await Promise.race([
+            walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+        ]);
+    } catch(e) { console.log("Proceeding to tx..."); }
     
     btn.disabled=true;
     document.getElementById('r1').className='reel-inner spinning'; 
