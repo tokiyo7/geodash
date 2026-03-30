@@ -100,6 +100,7 @@
             max-width: 90%; 
             width: 420px; 
             text-align: center; 
+            box-shadow: 0 10px 40px rgba(0,240,255,0.15); 
         }
         
         .modal-title { 
@@ -304,6 +305,7 @@
             margin-bottom: 20px; 
             font-weight: bold; 
             letter-spacing: 0.5px; 
+            text-shadow: 0 0 5px rgba(255,215,0,0.3); 
         }
 
         .play-btn-row { 
@@ -922,7 +924,7 @@ class GeoDashEngine {
                 } else if(p.t==='portal_flappy' || p.t==='portal_cube') {
                     h = 100;
                 } else if(p.t==='jpad') {
-                    h = 40; // Hitbox height increased to fix jump bug
+                    h = 40; 
                 }
                 
                 let finalY = p.onPlatY ? p.onPlatY : (p.y ? p.y : this.GROUND_Y);
@@ -1391,15 +1393,19 @@ class GeoDashEngine {
                     return; 
                 }
                 
-                // 🔥 JUMP PAD FIX 🔥
+                // 🔥 JUMP PAD MANUAL + FALLING LOGIC 🔥
                 if(o.t==='jpad'){ 
-                    initAudio();
-                    this.player.y = this.GROUND_Y - 20 - this.player.h; 
-                    this.player.vy = this.JUMP_VEL * 1.5; 
-                    this.player.ground = false; 
-                    this.jumpBuffer = 0; 
-                    this.spawnJumpDust(); 
-                    playJump(); 
+                    let isFalling = (!this.player.ground && this.player.vy > 0);
+                    let manualJump = (this.jumpBuffer > 0);
+
+                    if (isFalling || manualJump) {
+                        initAudio();
+                        this.player.vy = this.JUMP_VEL * 1.35; 
+                        this.player.ground = false; 
+                        this.jumpBuffer = 0; 
+                        this.spawnJumpDust(); 
+                        playJump(); 
+                    }
                 }
                 
                 if(o.t==='platform'){
