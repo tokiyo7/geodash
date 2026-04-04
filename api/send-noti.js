@@ -1,10 +1,6 @@
-// api/send-noti.js
-
 export default async function handler(req, res) {
-    // 🛑 YAHAN APNA SECRET PASSWORD SET KARO
     const MY_SECRET_PASSWORD = "tokiyoboss";
 
-    // Agar tum browser me ye link khologe, toh ye mast UI dikhayega
     if (req.method === 'GET') {
         const html = `
             <!DOCTYPE html>
@@ -85,23 +81,60 @@ export default async function handler(req, res) {
         return res.status(200).setHeader('Content-Type', 'text/html').send(html);
     }
 
-    // Jab form submit hoga, toh ye code chalega
     if (req.method === 'POST') {
         const { password, title, message } = req.body;
 
-        // Password check karna
         if (password !== MY_SECRET_PASSWORD) {
             return res.status(401).json({ error: "Wrong Password Boss!" });
         }
 
         try {
-            // Yahan hum Database (Tijori) se saare tokens nikalenge aur loop lagakar notification bhejenge.
-            // ABHI KE LIYE: Humne Tijori setup nahi ki hai, toh ye dummy success dega.
-            console.log(`Sending Notification: ${title} - ${message}`);
-            
-            // TODO: Fetch tokens from Database and hit Neynar/Farcaster API
+            const KV_URL = process.env.KV_REST_API_URL;
+            const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+            const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
-            return res.status(200).json({ message: "Admin Panel Works! (Tokens list empty right now)" });
+            if (!KV_URL || !KV_TOKEN) {
+                return res.status(500).json({ error: "Database not connected yet!" });
+            }
+
+            // Tijori se saare tokens nikalna
+            const kvRes = await fetch(KV_URL, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${KV_TOKEN}` },
+                body: JSON.stringify(["SMEMBERS", "geodash_tokens"])
+            });
+            const kvData = await kvRes.json();
+            const tokens = kvData.result || [];
+
+            if (tokens.length === 0) {
+                return res.status(400).json({ error: "0 players found in database. No one to send to!" });
+            }
+
+            let successCount = 0;
+            
+            // Sabko Neynar ke through notification bhejte hain
+            for (let token of tokens) {
+                try {
+                    const neynarRes = await fetch('https://api.neynar.com/v2/farcaster/frame/notifications', {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                            'api_key': NEYNAR_API_KEY,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            notification: { title: title, body: message },
+                            target_url: "https://geodash-amber.vercel.app",
+                            token: token
+                        })
+                    });
+                    if (neynarRes.ok) successCount++;
+                } catch(e) {
+                    console.error("Failed to send to token", token);
+                }
+            }
+
+            return res.status(200).json({ message: \`Successfully sent to \${successCount} out of \${tokens.length} players!\` });
         } catch (error) {
             return res.status(500).json({ error: "Failed to send: " + error.message });
         }
