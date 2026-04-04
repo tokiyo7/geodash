@@ -649,10 +649,6 @@
     *Official Run requires a transaction to prevent hacking. Practice is free.
 </div>
 
-<button class="btn-large" id="notifyBtn" style="background: linear-gradient(90deg, #00f0ff, #0088aa); margin-bottom: 25px; width: 100%; max-width: 800px; padding: 12px; font-size: 15px;">
-    🔔 TURN ON NOTIFICATIONS
-</button>
-
 <div class="prize-chart">
     <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
     <table class="prize-table">
@@ -1944,26 +1940,6 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    // 🔥 UPGRADED LOGIC: NOTIFICATION BUTTON CLICK 🔥
-    document.getElementById('notifyBtn').addEventListener('click', async () => {
-        if (window.fcSdk && window.fcSdk.actions) {
-            try {
-                const ctx = await window.fcSdk.context;
-                if (ctx && ctx.client && ctx.client.added) {
-                    // Agar pehle se added hai, toh Farcaster popup nahi dega. User ko batana padega.
-                    showToast("App already added! Manage in Warpcast Settings.", "#ffd700");
-                } else {
-                    await window.fcSdk.actions.addFrame();
-                    showToast("Notification request sent!", "#00ff88");
-                }
-            } catch (error) {
-                showToast("Action cancelled by user!", "red");
-            }
-        } else {
-            showToast("Open in Farcaster to enable!", "red");
-        }
-    });
-    
     document.getElementById('spinCastBtn').addEventListener('click', () => {
         const text = `🎰 I just won $ARB on the GeoDash Spin Machine! 💸\n\nTest your reflexes and play now! 👇\n${GAME_URL}`;
         openCast(text);
@@ -2135,7 +2111,7 @@ function buildLevelUI(){
             btn.innerText=i; 
         }
         else if (i <= maxPractice) { 
-            btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':''); 
+            btn.className='lvl-btn practice'+(i===ge.currentLevel?' active':'active'); 
             btn.innerText=i + ' 🔓'; 
         }
         else { 
