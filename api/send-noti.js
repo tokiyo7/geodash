@@ -90,7 +90,6 @@ export default async function handler(req, res) {
         }
 
         try {
-            // Hum dono (Vercel KV aur Upstash) ke password check kar rahe hain
             const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
             const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
             const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
@@ -135,7 +134,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // Galti yahan hui thi pichli baar, isko theek kar diya gaya hai
             return res.status(200).json({ message: "Successfully sent to " + successCount + " out of " + tokens.length + " players!" });
         } catch (error) {
             return res.status(500).json({ error: "Failed to send: " + error.message });
