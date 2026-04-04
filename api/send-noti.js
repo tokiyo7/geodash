@@ -74,7 +74,7 @@ export default async function handler(req, res) {
                         btn.style.background = "linear-gradient(90deg, #ffd700, #ff8c00)";
                         btn.disabled = false;
                     });
-                </script>
+                <\/script>
             </body>
             </html>
         `;
@@ -89,8 +89,9 @@ export default async function handler(req, res) {
         }
 
         try {
-            const KV_URL = process.env.KV_REST_API_URL;
-            const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+            // FIXED: Using Upstash Environment Variables instead of KV
+            const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
+            const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
             const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
             if (!KV_URL || !KV_TOKEN) {
@@ -134,7 +135,8 @@ export default async function handler(req, res) {
                 }
             }
 
-            return res.status(200).json({ message: \`Successfully sent to \${successCount} out of \${tokens.length} players!\` });
+            // FIXED: Removed the backslashes that were crashing the server
+            return res.status(200).json({ message: `Successfully sent to ${successCount} out of ${tokens.length} players!` });
         } catch (error) {
             return res.status(500).json({ error: "Failed to send: " + error.message });
         }
