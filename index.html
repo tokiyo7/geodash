@@ -581,13 +581,20 @@
         
         try {
             sdk.actions.ready();
-            sdk.context.then(context => {
+            sdk.context.then(async context => {
                 if (context && context.user) {
                     window.fcUsername = context.user.username || null;
                     const titleEl = document.getElementById('mainTitle');
                     if(titleEl && window.fcUsername) {
                         titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
                     }
+                }
+                
+                // 🔥 AUTO-PROMPT FOR NOTIFICATIONS (NEW USERS ONLY) 🔥
+                if (context && context.client && !context.client.added) {
+                    try {
+                        await sdk.actions.addFrame();
+                    } catch(e) { console.log("Auto-prompt dismissed"); }
                 }
             }).catch(()=>{});
         } catch(e) {}
@@ -1937,15 +1944,20 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    // 🔥 NEW LOGIC: NOTIFICATION BUTTON CLICK 🔥
+    // 🔥 UPGRADED LOGIC: NOTIFICATION BUTTON CLICK 🔥
     document.getElementById('notifyBtn').addEventListener('click', async () => {
         if (window.fcSdk && window.fcSdk.actions) {
             try {
-                // Request Farcaster Notification Permission
-                await window.fcSdk.actions.addFrame();
-                showToast("Notification request sent!", "#00ff88");
+                const ctx = await window.fcSdk.context;
+                if (ctx && ctx.client && ctx.client.added) {
+                    // Agar pehle se added hai, toh Farcaster popup nahi dega. User ko batana padega.
+                    showToast("App already added! Manage in Warpcast Settings.", "#ffd700");
+                } else {
+                    await window.fcSdk.actions.addFrame();
+                    showToast("Notification request sent!", "#00ff88");
+                }
             } catch (error) {
-                showToast("Error or already added!", "red");
+                showToast("Action cancelled by user!", "red");
             }
         } else {
             showToast("Open in Farcaster to enable!", "red");
