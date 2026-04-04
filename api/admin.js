@@ -2,10 +2,9 @@ import { ethers } from 'ethers';
 
 export default async function handler(req, res) {
     const MY_SECRET_PASSWORD = "tokiyoboss";
-    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324"; // TERA NAYA RANGE WALA CONTRACT 🔥
+    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // 📡 Backend ke liye Padhne (Read) wala NAYA ABI (Min/Max ke sath)
     const READ_ABI = [
         "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
         "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
@@ -114,11 +113,12 @@ export default async function handler(req, res) {
 
                     <div id="spinTab" class="tab-content control-panel" style="display:none;">
                         <h3>🎰 Manage Spin Probabilities & Random Ranges</h3>
-                        <p style="font-size:12px; color:#aaa;">Tier 3 chance is auto-calculated. Set Minimum and Maximum ARB for each tier.</p>
+                        <p style="font-size:12px; color:#aaa;">Ensure total chance is exactly 100%. Tier 3 will calculate automatically.</p>
                         
                         <div class="flex-inputs">
-                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 1 Chance (%)</label><input type="number" id="t1c"></div>
-                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 2 Chance (%)</label><input type="number" id="t2c"></div>
+                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 1 Chance (%)</label><input type="number" id="t1c" oninput="calcT3()"></div>
+                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 2 Chance (%)</label><input type="number" id="t2c" oninput="calcT3()"></div>
+                            <div style="flex:1;"><label style="font-size:11px; color:#ffd700;">Tier 3 Chance (%) [Auto]</label><input type="number" id="t3c" readonly style="background:#222; color:#ffd700; border:1px solid #555; cursor:not-allowed;"></div>
                         </div>
                         
                         <div style="margin-top:20px; padding:10px; background:#0a0f18; border-radius:5px;">
@@ -156,7 +156,6 @@ export default async function handler(req, res) {
 
                 <script>
                     const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324";
-                    // NAYA WRITE ABI (Min/Max support)
                     const WRITE_ABI = [
                         "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
                         "function setSpinSettings(uint256 _t1Chance, uint256 _t2Chance, uint256 _t1Min, uint256 _t1Max, uint256 _t2Min, uint256 _t2Max, uint256 _t3Min, uint256 _t3Max) external",
@@ -165,6 +164,14 @@ export default async function handler(req, res) {
                     ];
 
                     let globalData = null;
+
+                    function calcT3() {
+                        let t1 = parseInt(document.getElementById('t1c').value) || 0;
+                        let t2 = parseInt(document.getElementById('t2c').value) || 0;
+                        let t3 = 100 - t1 - t2;
+                        if(t3 < 0) t3 = 0;
+                        document.getElementById('t3c').value = t3;
+                    }
 
                     async function login() {
                         const pwd = document.getElementById('adminPassword').value;
@@ -196,12 +203,9 @@ export default async function handler(req, res) {
                                 populateSpinData();
                             } else {
                                 document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
-                                document.getElementById('devilBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
                             }
                         } catch (e) {
-                            document.getElementById('loginBox').style.display = 'none';
-                            document.getElementById('dashboard').style.display = 'block';
-                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash! Check connection.</td></tr>\`;
+                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash!</td></tr>\`;
                         }
                     }
 
@@ -233,13 +237,12 @@ export default async function handler(req, res) {
                         if(globalData && globalData.spinData) {
                             document.getElementById('t1c').value = globalData.spinData.t1Chance;
                             document.getElementById('t2c').value = globalData.spinData.t2Chance;
+                            calcT3(); // Auto calculate T3 on load
                             
                             document.getElementById('t1min').value = globalData.spinData.t1Min;
                             document.getElementById('t1max').value = globalData.spinData.t1Max;
-                            
                             document.getElementById('t2min').value = globalData.spinData.t2Min;
                             document.getElementById('t2max').value = globalData.spinData.t2Max;
-                            
                             document.getElementById('t3min').value = globalData.spinData.t3Min;
                             document.getElementById('t3max').value = globalData.spinData.t3Max;
                         }
@@ -257,8 +260,6 @@ export default async function handler(req, res) {
                         alert("Address Copied: " + address);
                     }
 
-                    // --- WEB3 WRITE FUNCTIONS --- //
-                    
                     async function getContract() {
                         if (!window.ethereum) throw new Error("MetaMask extension not found!");
                         await window.ethereum.request({ method: 'eth_requestAccounts' });
