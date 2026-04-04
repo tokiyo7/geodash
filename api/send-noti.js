@@ -78,7 +78,8 @@ export default async function handler(req, res) {
             </body>
             </html>
         `;
-        return res.status(200).setHeader('Content-Type', 'text/html').send(html);
+        res.setHeader('Content-Type', 'text/html');
+        return res.status(200).send(html);
     }
 
     if (req.method === 'POST') {
@@ -89,20 +90,21 @@ export default async function handler(req, res) {
         }
 
         try {
-            const KV_URL = process.env.KV_REST_API_URL;
-            const KV_TOKEN = process.env.KV_REST_API_TOKEN;
+            // Hum dono (Vercel KV aur Upstash) ke password check kar rahe hain
+            const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+            const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
             const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
             if (!KV_URL || !KV_TOKEN) {
                 return res.status(500).json({ error: "Database not connected yet!" });
             }
 
-            // Tijori se saare tokens nikalna
             const kvRes = await fetch(KV_URL, {
                 method: 'POST',
-                headers: { Authorization: `Bearer ${KV_TOKEN}` },
+                headers: { Authorization: "Bearer " + KV_TOKEN },
                 body: JSON.stringify(["SMEMBERS", "geodash_tokens"])
             });
+            
             const kvData = await kvRes.json();
             const tokens = kvData.result || [];
 
@@ -112,7 +114,6 @@ export default async function handler(req, res) {
 
             let successCount = 0;
             
-            // Sabko Neynar ke through notification bhejte hain
             for (let token of tokens) {
                 try {
                     const neynarRes = await fetch('https://api.neynar.com/v2/farcaster/frame/notifications', {
@@ -134,7 +135,8 @@ export default async function handler(req, res) {
                 }
             }
 
-            return res.status(200).json({ message: \`Successfully sent to \${successCount} out of \${tokens.length} players!\` });
+            // Galti yahan hui thi pichli baar, isko theek kar diya gaya hai
+            return res.status(200).json({ message: "Successfully sent to " + successCount + " out of " + tokens.length + " players!" });
         } catch (error) {
             return res.status(500).json({ error: "Failed to send: " + error.message });
         }
