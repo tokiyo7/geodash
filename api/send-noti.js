@@ -54,7 +54,7 @@ export default async function handler(req, res) {
 
                 <div class="radar-box">
                     <h3 style="margin-top:0; color:#00ff88;">📡 Farcaster Radar</h3>
-                    <p style="font-size:12px; color:#888;">Agar Farcaster token bhejega, toh yahan live dikhega. (Page refresh karein update ke liye)</p>
+                    <p style="font-size:12px; color:#888;">Live Token Tracking</p>
                     ${radarHtml}
                 </div>
 
@@ -113,54 +113,55 @@ export default async function handler(req, res) {
         try {
             const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
             const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-            const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
             if (!KV_URL || !KV_TOKEN) return res.status(500).json({ error: "Database keys missing in Vercel!" });
 
-            await fetch(KV_URL, {
-                method: 'POST',
-                headers: { Authorization: "Bearer " + KV_TOKEN },
-                body: JSON.stringify(["SREM", "geodash_tokens", "test-token-123"])
-            });
-
+            // Fetch tokens from DB
             const kvRes = await fetch(KV_URL, {
                 method: 'POST',
                 headers: { Authorization: "Bearer " + KV_TOKEN },
                 body: JSON.stringify(["SMEMBERS", "geodash_tokens"])
             });
             const kvData = await kvRes.json();
-            const tokens = kvData.result || [];
+            let tokens = kvData.result || [];
 
-            if (tokens.length === 0) return res.status(400).json({ error: "0 players found in DB. Check Radar below!" });
+            // Remove testing token if it's still there
+            tokens = tokens.filter(t => t !== "test-token-123");
+
+            if (tokens.length === 0) return res.status(400).json({ error: "0 players found in DB." });
 
             let successCount = 0;
-            let lastNeynarError = "";
+            let lastError = "";
             
-            for (let token of tokens) {
+            // 🔥 DIRECT FARCASTER API (No Neynar Needed!) 🔥
+            for (let i = 0; i < tokens.length; i += 100) {
+                const batch = tokens.slice(i, i + 100);
                 try {
-                    const neynarRes = await fetch('https://api.neynar.com/v2/farcaster/frame/notifications', {
+                    const farcasterRes = await fetch('https://api.farcaster.xyz/v1/frame-notifications', {
                         method: 'POST',
-                        headers: {
-                            'accept': 'application/json',
-                            'api_key': NEYNAR_API_KEY,
-                            'content-type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            notification: { title: title, body: message },
-                            target_url: "https://geodash-amber.vercel.app",
-                            token: token
+                            notificationId: "msg-" + Date.now() + "-" + i,
+                            title: title,
+                            body: message,
+                            targetUrl: "https://geodash-amber.vercel.app",
+                            tokens: batch
                         })
                     });
-                    const responseData = await neynarRes.json();
-                    if (neynarRes.ok) successCount++;
-                    else lastNeynarError = responseData.message || JSON.stringify(responseData);
+                    
+                    if (farcasterRes.ok) {
+                        successCount += batch.length;
+                    } else {
+                        const errData = await farcasterRes.json();
+                        lastError = JSON.stringify(errData);
+                    }
                 } catch(e) {
-                    lastNeynarError = e.message;
+                    lastError = e.message;
                 }
             }
 
-            if (successCount === 0) return res.status(400).json({ error: `Neynar API Error: ${lastNeynarError}` });
-            return res.status(200).json({ message: `Successfully sent to ${successCount} out of ${tokens.length} players!` });
+            if (successCount === 0) return res.status(400).json({ error: `Farcaster API Error: ${lastError}` });
+            return res.status(200).json({ message: `Successfully sent to ${successCount} players! Check your phone!` });
         } catch (error) {
             return res.status(500).json({ error: "Backend crash: " + error.message });
         }
