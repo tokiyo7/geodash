@@ -589,14 +589,6 @@
                         titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
                     }
                 }
-                
-                // 🔥 SMART BUTTON LOGIC: SIRF UNKO DIKHEGA JINHONE ADD NAHI KIYA 🔥
-                if (context && context.client && !context.client.added) {
-                    const notifyBtn = document.getElementById('smartNotifyBtn');
-                    if (notifyBtn) {
-                        notifyBtn.style.display = 'block';
-                    }
-                }
             }).catch(()=>{});
         } catch(e) {}
     </script>
@@ -624,7 +616,7 @@
     </div>
 </div>
 
-<button id="smartNotifyBtn" style="display:none; width: 100%; max-width: 800px; padding: 10px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.1)); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; border-radius: 8px; margin-bottom: 12px; cursor: pointer; text-align: center; box-shadow: 0 0 10px rgba(0,240,255,0.2);">
+<button id="smartNotifyBtn" style="display:block; width: 100%; max-width: 800px; padding: 10px; background: linear-gradient(90deg, rgba(10,15,24,0.9), rgba(0,240,255,0.1)); border: 1px solid #00f0ff; color: #00f0ff; font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; border-radius: 8px; margin-bottom: 12px; cursor: pointer; text-align: center; box-shadow: 0 0 10px rgba(0,240,255,0.2);">
     🔔 CLICK TO ENABLE ALERTS & REWARDS
 </button>
 
@@ -1945,14 +1937,13 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    // 🔥 NAYE BUTTON KA CLICK LOGIC 🔥
+    // 🔥 CLICK LOGIC 🔥
     const notifyBtn = document.getElementById('smartNotifyBtn');
     if (notifyBtn) {
         notifyBtn.addEventListener('click', async () => {
             if (window.fcSdk && window.fcSdk.actions) {
                 try {
                     await window.fcSdk.actions.addFrame();
-                    notifyBtn.style.display = 'none'; // Click hote hi hide ho jayega!
                     showToast("Alerts Enabled! Welcome to GeoDash.", "#00ff88");
                 } catch (error) {
                     console.log("User cancelled notification request.");
@@ -2297,6 +2288,4 @@ async function fetchPersonalStats(){
 }
 </script>
 </body>
-</html>  
-
-
+</html>
