@@ -2,17 +2,21 @@ import { ethers } from 'ethers';
 
 export default async function handler(req, res) {
     const MY_SECRET_PASSWORD = "tokiyoboss";
-    const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138"; 
+    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324"; // TERA NAYA RANGE WALA CONTRACT 🔥
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
+    // 📡 Backend ke liye Padhne (Read) wala NAYA ABI (Min/Max ke sath)
     const READ_ABI = [
         "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
         "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
         "function tier1Chance() external view returns (uint256)",
         "function tier2Chance() external view returns (uint256)",
-        "function tier1Reward() external view returns (uint256)",
-        "function tier2Reward() external view returns (uint256)",
-        "function tier3Reward() external view returns (uint256)"
+        "function t1Min() external view returns (uint256)",
+        "function t1Max() external view returns (uint256)",
+        "function t2Min() external view returns (uint256)",
+        "function t2Max() external view returns (uint256)",
+        "function t3Min() external view returns (uint256)",
+        "function t3Max() external view returns (uint256)"
     ];
 
     if (req.method === 'GET') {
@@ -22,7 +26,7 @@ export default async function handler(req, res) {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>GeoDash Super Admin 3.0</title>
+                <title>GeoDash Super Admin 3.1</title>
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
                 <style>
                     body { background: #05080f; color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
@@ -42,7 +46,7 @@ export default async function handler(req, res) {
                     
                     .control-panel { background: #111; border: 1px solid #00ff88; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
                     .control-panel h3 { margin-top: 0; color: #00ff88; }
-                    .flex-inputs { display: flex; gap: 10px; margin-bottom: 15px; }
+                    .flex-inputs { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
                     .flex-inputs input { width: 100%; }
 
                     table { width: 100%; border-collapse: collapse; background: #0a0f18; border-radius: 8px; overflow: hidden; margin-bottom: 20px;}
@@ -66,15 +70,15 @@ export default async function handler(req, res) {
 
                 <div id="dashboard">
                     <div class="header">
-                        <h1>🚀 GeoDash 3.0 Admin Hub</h1>
-                        <p style="color:#888;">Contract: 0xd9145CCE52D386f254917e481eB44e9943F39138</p>
+                        <h1>🚀 GeoDash 3.1 Admin Hub</h1>
+                        <p style="color:#888;">Contract: 0x58d052d73800fA9488bCE5E123e7FF8507832324</p>
                     </div>
 
                     <div class="tabs">
                         <div class="tab active" onclick="switchTab('geoTab')">🟦 GeoDash Board</div>
                         <div class="tab" onclick="switchTab('devilTab')">👿 Devil Board</div>
                         <div class="tab" onclick="switchTab('rewardTab')">🎁 Reward & Whitelist</div>
-                        <div class="tab" onclick="switchTab('spinTab')">🎰 Spin Settings</div>
+                        <div class="tab" onclick="switchTab('spinTab')">🎰 Spin Range Settings</div>
                     </div>
 
                     <div id="geoTab" class="tab-content">
@@ -109,29 +113,53 @@ export default async function handler(req, res) {
                     </div>
 
                     <div id="spinTab" class="tab-content control-panel" style="display:none;">
-                        <h3>🎰 Manage Spin Probabilities & Rewards</h3>
-                        <p style="font-size:12px; color:#aaa;">Note: Tier 3 (Jackpot) chance is automatically calculated. Total chance must be < 100.</p>
+                        <h3>🎰 Manage Spin Probabilities & Random Ranges</h3>
+                        <p style="font-size:12px; color:#aaa;">Tier 3 chance is auto-calculated. Set Minimum and Maximum ARB for each tier.</p>
                         
                         <div class="flex-inputs">
-                            <div><label style="font-size:11px; color:#888;">Tier 1 Chance (%)</label><input type="number" id="t1c" placeholder="e.g. 70"></div>
-                            <div><label style="font-size:11px; color:#888;">Tier 2 Chance (%)</label><input type="number" id="t2c" placeholder="e.g. 29"></div>
+                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 1 Chance (%)</label><input type="number" id="t1c"></div>
+                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 2 Chance (%)</label><input type="number" id="t2c"></div>
                         </div>
-                        <div class="flex-inputs">
-                            <div><label style="font-size:11px; color:#888;">Tier 1 Reward (ARB)</label><input type="text" id="t1r" placeholder="e.g. 0.005"></div>
-                            <div><label style="font-size:11px; color:#888;">Tier 2 Reward (ARB)</label><input type="text" id="t2r" placeholder="e.g. 0.05"></div>
-                            <div><label style="font-size:11px; color:#888;">Tier 3 Reward (ARB)</label><input type="text" id="t3r" placeholder="e.g. 0.2"></div>
+                        
+                        <div style="margin-top:20px; padding:10px; background:#0a0f18; border-radius:5px;">
+                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 1 Range (ARB)</label>
+                            <div class="flex-inputs" style="margin-top:5px;">
+                                <input type="text" id="t1min" placeholder="Min (e.g. 0.001)"> 
+                                <span style="color:#555;">to</span> 
+                                <input type="text" id="t1max" placeholder="Max (e.g. 0.05)">
+                            </div>
                         </div>
-                        <button onclick="updateSpinSettings()">⚙️ UPDATE SPIN SETTINGS (MetaMask)</button>
+
+                        <div style="margin-top:10px; padding:10px; background:#0a0f18; border-radius:5px;">
+                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 2 Range (ARB)</label>
+                            <div class="flex-inputs" style="margin-top:5px;">
+                                <input type="text" id="t2min" placeholder="Min (e.g. 0.05)"> 
+                                <span style="color:#555;">to</span> 
+                                <input type="text" id="t2max" placeholder="Max (e.g. 0.1)">
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px; padding:10px; background:#0a0f18; border-radius:5px;">
+                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 3 Range (ARB)</label>
+                            <div class="flex-inputs" style="margin-top:5px;">
+                                <input type="text" id="t3min" placeholder="Min (e.g. 0.1)"> 
+                                <span style="color:#555;">to</span> 
+                                <input type="text" id="t3max" placeholder="Max (e.g. 0.2)">
+                            </div>
+                        </div>
+
+                        <button onclick="updateSpinSettings()">⚙️ UPDATE ALL SETTINGS (MetaMask)</button>
                         <p id="spinStatus" style="font-size:12px; margin-top:10px;"></p>
                     </div>
 
                 </div>
 
                 <script>
-                    const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138";
+                    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324";
+                    // NAYA WRITE ABI (Min/Max support)
                     const WRITE_ABI = [
                         "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
-                        "function setSpinSettings(uint256 _t1Chance, uint256 _t2Chance, uint256 _t1Reward, uint256 _t2Reward, uint256 _t3Reward) external",
+                        "function setSpinSettings(uint256 _t1Chance, uint256 _t2Chance, uint256 _t1Min, uint256 _t1Max, uint256 _t2Min, uint256 _t2Max, uint256 _t3Min, uint256 _t3Max) external",
                         "function banPlayer(address _player, bool _fromDevilGame) external",
                         "function resetSpecificLeaderboard(bool _resetDevilGame) external"
                     ];
@@ -157,7 +185,6 @@ export default async function handler(req, res) {
                                 return;
                             }
 
-                            // Agar password sahi hai (401 nahi hai), toh Panel dikha do!
                             document.getElementById('loginBox').style.display = 'none';
                             document.getElementById('dashboard').style.display = 'block';
 
@@ -168,15 +195,13 @@ export default async function handler(req, res) {
                                 renderLeaderboards();
                                 populateSpinData();
                             } else {
-                                // UI dikhega, par table me error chhap jayega
                                 document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
                                 document.getElementById('devilBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
                             }
                         } catch (e) {
-                            // Agar Vercel crash ho jaye (jaise ethers missing)
                             document.getElementById('loginBox').style.display = 'none';
                             document.getElementById('dashboard').style.display = 'block';
-                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash! (Check package.json for ethers)</td></tr>\`;
+                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash! Check connection.</td></tr>\`;
                         }
                     }
 
@@ -206,11 +231,17 @@ export default async function handler(req, res) {
 
                     function populateSpinData() {
                         if(globalData && globalData.spinData) {
-                            document.getElementById('t1c').value = globalData.spinData.t1Chance || 70;
-                            document.getElementById('t2c').value = globalData.spinData.t2Chance || 29;
-                            document.getElementById('t1r').value = globalData.spinData.t1Reward || 0.005;
-                            document.getElementById('t2r').value = globalData.spinData.t2Reward || 0.05;
-                            document.getElementById('t3r').value = globalData.spinData.t3Reward || 0.2;
+                            document.getElementById('t1c').value = globalData.spinData.t1Chance;
+                            document.getElementById('t2c').value = globalData.spinData.t2Chance;
+                            
+                            document.getElementById('t1min').value = globalData.spinData.t1Min;
+                            document.getElementById('t1max').value = globalData.spinData.t1Max;
+                            
+                            document.getElementById('t2min').value = globalData.spinData.t2Min;
+                            document.getElementById('t2max').value = globalData.spinData.t2Max;
+                            
+                            document.getElementById('t3min').value = globalData.spinData.t3Min;
+                            document.getElementById('t3max').value = globalData.spinData.t3Max;
                         }
                     }
 
@@ -226,7 +257,7 @@ export default async function handler(req, res) {
                         alert("Address Copied: " + address);
                     }
 
-                    // --- WEB3 WRITE FUNCTIONS (MetaMask required) --- //
+                    // --- WEB3 WRITE FUNCTIONS --- //
                     
                     async function getContract() {
                         if (!window.ethereum) throw new Error("MetaMask extension not found!");
@@ -240,18 +271,15 @@ export default async function handler(req, res) {
                         const addr = document.getElementById('wlAddress').value;
                         const amt = document.getElementById('wlAmount').value;
                         const status = document.getElementById('wlStatus');
-                        
                         if(!addr || !amt) return alert("Please fill both fields!");
                         
                         try {
                             status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask to sign...";
                             const contract = await getContract();
                             const amtWei = ethers.parseEther(amt.toString());
-                            
                             const tx = await contract.addToWhitelist([addr], [amtWei]);
                             status.innerText = "⏳ Waiting for blockchain confirmation...";
                             await tx.wait();
-                            
                             status.style.color = "#00ff88"; status.innerText = "✅ Successfully added to Whitelist!";
                             document.getElementById('wlAddress').value = ""; document.getElementById('wlAmount').value = "";
                         } catch(e) {
@@ -262,9 +290,12 @@ export default async function handler(req, res) {
                     async function updateSpinSettings() {
                         const t1c = document.getElementById('t1c').value;
                         const t2c = document.getElementById('t2c').value;
-                        const t1r = document.getElementById('t1r').value;
-                        const t2r = document.getElementById('t2r').value;
-                        const t3r = document.getElementById('t3r').value;
+                        const t1min = document.getElementById('t1min').value;
+                        const t1max = document.getElementById('t1max').value;
+                        const t2min = document.getElementById('t2min').value;
+                        const t2max = document.getElementById('t2max').value;
+                        const t3min = document.getElementById('t3min').value;
+                        const t3max = document.getElementById('t3max').value;
                         const status = document.getElementById('spinStatus');
 
                         try {
@@ -273,11 +304,12 @@ export default async function handler(req, res) {
                             
                             const tx = await contract.setSpinSettings(
                                 t1c, t2c, 
-                                ethers.parseEther(t1r), ethers.parseEther(t2r), ethers.parseEther(t3r)
+                                ethers.parseEther(t1min), ethers.parseEther(t1max),
+                                ethers.parseEther(t2min), ethers.parseEther(t2max),
+                                ethers.parseEther(t3min), ethers.parseEther(t3max)
                             );
                             status.innerText = "⏳ Waiting for blockchain confirmation...";
                             await tx.wait();
-                            
                             status.style.color = "#00ff88"; status.innerText = "✅ Spin Settings Updated Successfully!";
                         } catch(e) {
                             status.style.color = "#ff3060"; status.innerText = "❌ Error: " + (e.reason || e.message);
@@ -340,15 +372,24 @@ export default async function handler(req, res) {
 
             const t1c = Number(await contract.tier1Chance());
             const t2c = Number(await contract.tier2Chance());
-            const t1r = ethers.formatEther(await contract.tier1Reward());
-            const t2r = ethers.formatEther(await contract.tier2Reward());
-            const t3r = ethers.formatEther(await contract.tier3Reward());
+            
+            const t1min = ethers.formatEther(await contract.t1Min());
+            const t1max = ethers.formatEther(await contract.t1Max());
+            const t2min = ethers.formatEther(await contract.t2Min());
+            const t2max = ethers.formatEther(await contract.t2Max());
+            const t3min = ethers.formatEther(await contract.t3Min());
+            const t3max = ethers.formatEther(await contract.t3Max());
 
             return res.status(200).json({ 
                 success: true, 
                 geoDash: formatBoard(geoAddrs, geoLvls, geoAtts),
                 devilMode: formatBoard(devAddrs, devLvls, devAtts),
-                spinData: { t1Chance: t1c, t2Chance: t2c, t1Reward: t1r, t2Reward: t2r, t3Reward: t3r }
+                spinData: { 
+                    t1Chance: t1c, t2Chance: t2c, 
+                    t1Min: t1min, t1Max: t1max, 
+                    t2Min: t2min, t2Max: t2max, 
+                    t3Min: t3min, t3Max: t3max 
+                }
             });
         } catch (error) {
             return res.status(200).json({ success: false, error: error.message });
