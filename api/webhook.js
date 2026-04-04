@@ -1,13 +1,17 @@
 export default async function handler(req, res) {
     if (req.method === 'POST') {
         try {
+            // Data string me aaye ya JSON me, ye usko theek kar lega
+            let body = req.body;
+            if (typeof body === 'string') {
+                try { body = JSON.parse(body); } catch(e) {}
+            }
+
             let token = null;
-            
-            // Farcaster se Token pakadna
-            if (req.body?.notificationDetails?.token) {
-                token = req.body.notificationDetails.token;
-            } else if (req.body?.token) {
-                token = req.body.token;
+            if (body?.notificationDetails?.token) {
+                token = body.notificationDetails.token;
+            } else if (body?.token) {
+                token = body.token;
             }
 
             if (token) {
@@ -15,7 +19,6 @@ export default async function handler(req, res) {
                 const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
                 
                 if (KV_URL && KV_TOKEN) {
-                    // Token ko Upstash Tijori me save karna
                     await fetch(KV_URL, {
                         method: 'POST',
                         headers: { Authorization: "Bearer " + KV_TOKEN },
@@ -23,7 +26,6 @@ export default async function handler(req, res) {
                     });
                 }
             }
-            // Farcaster ko bolna "Sab theek hai"
             return res.status(200).json({ success: true });
         } catch (error) {
             return res.status(500).json({ error: "System Error" });
