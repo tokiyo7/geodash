@@ -2,10 +2,9 @@ import { ethers } from 'ethers';
 
 export default async function handler(req, res) {
     const MY_SECRET_PASSWORD = "tokiyoboss";
-    const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // TERA NAYA CONTRACT 🔥
+    const CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // 📡 Backend ke liye sirf Padhne (Read) wala ABI
     const READ_ABI = [
         "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
         "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
@@ -32,7 +31,7 @@ export default async function handler(req, res) {
                     
                     #loginBox { max-width: 350px; margin: 100px auto; background: #111; padding: 30px; border: 2px solid #ff3060; border-radius: 10px; text-align: center; }
                     input { width: 90%; padding: 12px; margin: 10px 0; background: #000; color: #00f0ff; border: 1px solid #00f0ff; border-radius: 5px; outline: none; }
-                    button { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; padding: 12px 20px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 14px; transition: 0.2s; }
+                    button { background: linear-gradient(90deg, #ffd700, #ff8c00); color: #000; padding: 12px 20px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 14px; transition: 0.2s; margin-top: 10px;}
                     button:hover { transform: scale(1.05); }
                     .danger-btn { background: #ff3060; color: white; }
                     
@@ -52,7 +51,7 @@ export default async function handler(req, res) {
                     tr:hover { background: #151a25; }
                     .highlight { color: #ffd700; font-weight: bold; }
                     
-                    .copy-btn, .ban-btn { padding: 5px 10px; font-size: 11px; margin-right: 5px;}
+                    .copy-btn, .ban-btn { padding: 5px 10px; font-size: 11px; margin-right: 5px; cursor: pointer;}
                     .ban-btn { background: #ff3060; color: white; border: none; }
                 </style>
             </head>
@@ -82,7 +81,9 @@ export default async function handler(req, res) {
                         <button class="danger-btn" onclick="resetBoard(false)" style="margin-bottom:15px;">⚠️ Reset GeoDash Board</button>
                         <table>
                             <thead><tr><th>Rank</th><th>Wallet Address</th><th>Highest Level</th><th>Attempts</th><th>Actions</th></tr></thead>
-                            <tbody id="geoBody"></tbody>
+                            <tbody id="geoBody">
+                                <tr><td colspan="5" style="text-align:center; color:#888;">Fetching Data...</td></tr>
+                            </tbody>
                         </table>
                     </div>
 
@@ -90,7 +91,9 @@ export default async function handler(req, res) {
                         <button class="danger-btn" onclick="resetBoard(true)" style="margin-bottom:15px;">⚠️ Reset Devil Board</button>
                         <table>
                             <thead><tr><th>Rank</th><th>Wallet Address</th><th>Highest Level</th><th>Attempts</th><th>Actions</th></tr></thead>
-                            <tbody id="devilBody"></tbody>
+                            <tbody id="devilBody">
+                                <tr><td colspan="5" style="text-align:center; color:#888;">Fetching Data...</td></tr>
+                            </tbody>
                         </table>
                     </div>
 
@@ -107,7 +110,7 @@ export default async function handler(req, res) {
 
                     <div id="spinTab" class="tab-content control-panel" style="display:none;">
                         <h3>🎰 Manage Spin Probabilities & Rewards</h3>
-                        <p style="font-size:12px; color:#aaa;">Note: Tier 3 (Jackpot) chance is automatically calculated as (100 - Tier1 - Tier2)%. Must total < 100.</p>
+                        <p style="font-size:12px; color:#aaa;">Note: Tier 3 (Jackpot) chance is automatically calculated. Total chance must be < 100.</p>
                         
                         <div class="flex-inputs">
                             <div><label style="font-size:11px; color:#888;">Tier 1 Chance (%)</label><input type="number" id="t1c" placeholder="e.g. 70"></div>
@@ -139,6 +142,7 @@ export default async function handler(req, res) {
                         const pwd = document.getElementById('adminPassword').value;
                         const btn = document.querySelector('#loginBox button');
                         btn.innerText = "FETCHING BLOCKCHAIN...";
+                        document.getElementById('errorMsg').innerText = "";
                         
                         try {
                             const res = await fetch('/api/admin', {
@@ -147,24 +151,38 @@ export default async function handler(req, res) {
                                 body: JSON.stringify({ password: pwd })
                             });
                             
-                            if (res.ok) {
-                                globalData = await res.json();
-                                document.getElementById('loginBox').style.display = 'none';
-                                document.getElementById('dashboard').style.display = 'block';
+                            if (res.status === 401) {
+                                document.getElementById('errorMsg').innerText = "❌ Wrong Password!";
+                                btn.innerText = "SYNC BLOCKCHAIN";
+                                return;
+                            }
+
+                            // Agar password sahi hai (401 nahi hai), toh Panel dikha do!
+                            document.getElementById('loginBox').style.display = 'none';
+                            document.getElementById('dashboard').style.display = 'block';
+
+                            const data = await res.json();
+                            
+                            if (data.success) {
+                                globalData = data;
                                 renderLeaderboards();
                                 populateSpinData();
                             } else {
-                                document.getElementById('errorMsg').innerText = "❌ Wrong Password!";
-                                btn.innerText = "SYNC BLOCKCHAIN";
+                                // UI dikhega, par table me error chhap jayega
+                                document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
+                                document.getElementById('devilBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
                             }
                         } catch (e) {
-                            document.getElementById('errorMsg').innerText = "Network Error!";
-                            btn.innerText = "SYNC BLOCKCHAIN";
+                            // Agar Vercel crash ho jaye (jaise ethers missing)
+                            document.getElementById('loginBox').style.display = 'none';
+                            document.getElementById('dashboard').style.display = 'block';
+                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash! (Check package.json for ethers)</td></tr>\`;
                         }
                     }
 
                     function renderLeaderboards() {
                         const buildRows = (data, isDevil) => {
+                            if (!data || data.length === 0) return '<tr><td colspan="5" style="text-align:center; color:#888;">No players on the board yet!</td></tr>';
                             let html = "";
                             data.forEach((p, index) => {
                                 html += \`
@@ -187,11 +205,13 @@ export default async function handler(req, res) {
                     }
 
                     function populateSpinData() {
-                        document.getElementById('t1c').value = globalData.spinData.t1Chance;
-                        document.getElementById('t2c').value = globalData.spinData.t2Chance;
-                        document.getElementById('t1r').value = globalData.spinData.t1Reward;
-                        document.getElementById('t2r').value = globalData.spinData.t2Reward;
-                        document.getElementById('t3r').value = globalData.spinData.t3Reward;
+                        if(globalData && globalData.spinData) {
+                            document.getElementById('t1c').value = globalData.spinData.t1Chance || 70;
+                            document.getElementById('t2c').value = globalData.spinData.t2Chance || 29;
+                            document.getElementById('t1r').value = globalData.spinData.t1Reward || 0.005;
+                            document.getElementById('t2r').value = globalData.spinData.t2Reward || 0.05;
+                            document.getElementById('t3r').value = globalData.spinData.t3Reward || 0.2;
+                        }
                     }
 
                     function switchTab(tabId) {
@@ -209,7 +229,7 @@ export default async function handler(req, res) {
                     // --- WEB3 WRITE FUNCTIONS (MetaMask required) --- //
                     
                     async function getContract() {
-                        if (!window.ethereum) throw new Error("MetaMask not found!");
+                        if (!window.ethereum) throw new Error("MetaMask extension not found!");
                         await window.ethereum.request({ method: 'eth_requestAccounts' });
                         const provider = new ethers.BrowserProvider(window.ethereum);
                         const signer = await provider.getSigner();
@@ -224,7 +244,7 @@ export default async function handler(req, res) {
                         if(!addr || !amt) return alert("Please fill both fields!");
                         
                         try {
-                            status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask...";
+                            status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask to sign...";
                             const contract = await getContract();
                             const amtWei = ethers.parseEther(amt.toString());
                             
@@ -248,7 +268,7 @@ export default async function handler(req, res) {
                         const status = document.getElementById('spinStatus');
 
                         try {
-                            status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask...";
+                            status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask to sign...";
                             const contract = await getContract();
                             
                             const tx = await contract.setSpinSettings(
@@ -258,18 +278,18 @@ export default async function handler(req, res) {
                             status.innerText = "⏳ Waiting for blockchain confirmation...";
                             await tx.wait();
                             
-                            status.style.color = "#00ff88"; status.innerText = "✅ Spin Settings Updated!";
+                            status.style.color = "#00ff88"; status.innerText = "✅ Spin Settings Updated Successfully!";
                         } catch(e) {
                             status.style.color = "#ff3060"; status.innerText = "❌ Error: " + (e.reason || e.message);
                         }
                     }
 
                     async function banPlayer(address, isDevil) {
-                        if(!confirm("Are you sure you want to BAN this player and remove them from the board?")) return;
+                        if(!confirm("Are you sure you want to BAN this player from the leaderboard?")) return;
                         try {
                             const contract = await getContract();
                             const tx = await contract.banPlayer(address, isDevil);
-                            alert("Transaction sent! Board will update after confirmation.");
+                            alert("Ban command sent! Board will update after confirmation.");
                             await tx.wait();
                             window.location.reload();
                         } catch(e) {
@@ -282,7 +302,7 @@ export default async function handler(req, res) {
                         try {
                             const contract = await getContract();
                             const tx = await contract.resetSpecificLeaderboard(isDevil);
-                            alert("Transaction sent! Board is resetting.");
+                            alert("Reset command sent! Board is clearing.");
                             await tx.wait();
                             window.location.reload();
                         } catch(e) {
@@ -305,7 +325,6 @@ export default async function handler(req, res) {
             const provider = new ethers.JsonRpcProvider(ARB_RPC);
             const contract = new ethers.Contract(CONTRACT_ADDRESS, READ_ABI, provider);
 
-            // Fetch Leaderboards
             const [geoAddrs, geoLvls, geoAtts] = await contract.getGeoLeaderboard();
             const [devAddrs, devLvls, devAtts] = await contract.getDevilLeaderboard();
             
@@ -319,7 +338,6 @@ export default async function handler(req, res) {
                 return board;
             };
 
-            // Fetch Spin Data
             const t1c = Number(await contract.tier1Chance());
             const t2c = Number(await contract.tier2Chance());
             const t1r = ethers.formatEther(await contract.tier1Reward());
@@ -333,7 +351,7 @@ export default async function handler(req, res) {
                 spinData: { t1Chance: t1c, t2Chance: t2c, t1Reward: t1r, t2Reward: t2r, t3Reward: t3r }
             });
         } catch (error) {
-            return res.status(500).json({ error: "Blockchain Sync Failed: " + error.message });
+            return res.status(200).json({ success: false, error: error.message });
         }
     }
 }
