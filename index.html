@@ -206,6 +206,9 @@
             width: 85%; 
             max-width: 300px; 
             margin-bottom: 10px; 
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .btn-social { 
@@ -488,6 +491,8 @@
             border-radius: 8px; 
             width: 100%; 
             max-width: 300px; 
+            display: block;
+            margin: 0 auto;
         }
         
         .spin-btn:disabled { 
@@ -513,6 +518,8 @@
             font-size: 12px; 
             margin-top: 12px; 
             display: none; 
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .leaderboard { 
@@ -634,6 +641,10 @@
 <div class="btn-note">
     *Official Run requires a transaction to prevent hacking. Practice is free.
 </div>
+
+<button class="btn-large" id="notifyBtn" style="background: linear-gradient(90deg, #00f0ff, #0088aa); margin-bottom: 25px; width: 100%; max-width: 800px; padding: 12px; font-size: 15px;">
+    🔔 TURN ON NOTIFICATIONS
+</button>
 
 <div class="prize-chart">
     <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
@@ -1926,7 +1937,21 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    // 🔥 FIX: SPIN CAST BUTTON EVENT 🔥
+    // 🔥 NEW LOGIC: NOTIFICATION BUTTON CLICK 🔥
+    document.getElementById('notifyBtn').addEventListener('click', async () => {
+        if (window.fcSdk && window.fcSdk.actions) {
+            try {
+                // Request Farcaster Notification Permission
+                await window.fcSdk.actions.addFrame();
+                showToast("Notification request sent!", "#00ff88");
+            } catch (error) {
+                showToast("Error or already added!", "red");
+            }
+        } else {
+            showToast("Open in Farcaster to enable!", "red");
+        }
+    });
+    
     document.getElementById('spinCastBtn').addEventListener('click', () => {
         const text = `🎰 I just won $ARB on the GeoDash Spin Machine! 💸\n\nTest your reflexes and play now! 👇\n${GAME_URL}`;
         openCast(text);
