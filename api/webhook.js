@@ -7,38 +7,43 @@ export default async function handler(req, res) {
             let body = req.body;
             if (typeof body === 'string') { try { body = JSON.parse(body); } catch(e) {} }
 
-            // 📡 RADAR LOGIC (Isko abhi rehne dete hain safety ke liye)
-            if (KV_URL && KV_TOKEN) {
-                const logEntry = JSON.stringify({ time: new Date().toLocaleTimeString(), method: req.method, body: body });
-                await fetch(KV_URL, { method: 'POST', headers: { Authorization: "Bearer " + KV_TOKEN }, body: JSON.stringify(["LPUSH", "geodash_logs", logEntry]) });
-                await fetch(KV_URL, { method: 'POST', headers: { Authorization: "Bearer " + KV_TOKEN }, body: JSON.stringify(["LTRIM", "geodash_logs", 0, 4]) });
-            }
-
+            let decodedJson = null;
             let token = null;
 
-            // 1. Direct format check
-            if (body?.notificationDetails?.token) {
-                token = body.notificationDetails.token;
-            } 
-            // 2. 🔥 LOCK-BREAKER: Jo Radar me pakda gaya ("payload": "eyJ...") usko decode karna
-            else if (body?.payload) {
+            // 🔥 ADVANCED LOCK-BREAKER 2.0: Base64URL ko theek karke todna 🔥
+            if (body?.payload) {
                 try {
-                    // Base64 secret lock ko kholna
-                    const decodedStr = Buffer.from(body.payload, 'base64').toString('utf-8');
-                    const decodedJson = JSON.parse(decodedStr);
+                    // Farcaster ke lock (Base64URL) ko standard format me lana
+                    let base64 = body.payload.replace(/-/g, '+').replace(/_/g, '/');
+                    while (base64.length % 4) { base64 += '='; } // Missing padding theek karna
                     
-                    // Andar se token nikalna
+                    // Lock tod kar andar ka JSON nikalna
+                    const decodedStr = Buffer.from(base64, 'base64').toString('utf-8');
+                    decodedJson = JSON.parse(decodedStr);
+                    
+                    // Andar se asli Token nikalna
                     if (decodedJson?.notificationDetails?.token) {
                         token = decodedJson.notificationDetails.token;
                     } else if (decodedJson?.token) {
                         token = decodedJson.token;
                     }
                 } catch(e) {
-                    console.log("Decode error", e);
+                    decodedJson = { error: "Lock tootne me fail hua", details: e.message };
                 }
             }
 
-            // 🔥 Token mila toh Tijori me daalo!
+            // 📡 RADAR LOGIC: Ab Radar me khula hua lock (Decoded Data) dikhega!
+            if (KV_URL && KV_TOKEN) {
+                const logEntry = JSON.stringify({ 
+                    time: new Date().toLocaleTimeString(), 
+                    Status: token ? "✅ TOKEN MIL GAYA!" : "❌ TOKEN NAHI MILA",
+                    DecodedData: decodedJson || body 
+                });
+                await fetch(KV_URL, { method: 'POST', headers: { Authorization: "Bearer " + KV_TOKEN }, body: JSON.stringify(["LPUSH", "geodash_logs", logEntry]) });
+                await fetch(KV_URL, { method: 'POST', headers: { Authorization: "Bearer " + KV_TOKEN }, body: JSON.stringify(["LTRIM", "geodash_logs", 0, 4]) });
+            }
+
+            // 🔥 Token mila toh chupchaap Tijori me daalo!
             if (token && KV_URL && KV_TOKEN) {
                 await fetch(KV_URL, {
                     method: 'POST',
@@ -47,7 +52,7 @@ export default async function handler(req, res) {
                 });
             }
             
-            return res.status(200).json({ success: true, caughtToken: !!token });
+            return res.status(200).json({ success: true, tokenCaught: !!token });
         } catch (error) {
             return res.status(500).json({ error: "System Error" });
         }
