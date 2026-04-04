@@ -8,7 +8,7 @@ export default async function handler(req, res) {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>GeoDash Admin Panel</title>
+                <title>GeoDash Broadcast</title>
                 <style>
                     body { background: #05080f; color: #00f0ff; font-family: 'Courier New', monospace; text-align: center; padding: 40px; }
                     .box { border: 2px solid #ff3060; border-radius: 12px; padding: 30px; max-width: 400px; margin: 0 auto; background: rgba(10,15,24,0.9); }
@@ -95,9 +95,17 @@ export default async function handler(req, res) {
             const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
 
             if (!KV_URL || !KV_TOKEN) {
-                return res.status(500).json({ error: "Database not connected yet!" });
+                return res.status(500).json({ error: "Database keys missing in Vercel!" });
             }
 
+            // 🔥 FIX: SABSE PEHLE NAKLI TOKEN KO DELETE KARO 🔥
+            await fetch(KV_URL, {
+                method: 'POST',
+                headers: { Authorization: "Bearer " + KV_TOKEN },
+                body: JSON.stringify(["SREM", "geodash_tokens", "test-token-123"])
+            });
+
+            // Ab asli tokens nikalo
             const kvRes = await fetch(KV_URL, {
                 method: 'POST',
                 headers: { Authorization: "Bearer " + KV_TOKEN },
@@ -108,10 +116,11 @@ export default async function handler(req, res) {
             const tokens = kvData.result || [];
 
             if (tokens.length === 0) {
-                return res.status(400).json({ error: "0 players found in database. No one to send to!" });
+                return res.status(400).json({ error: "0 players found. (Nakli token delete ho gaya, ab dosto se naya Add Frame karwao!)" });
             }
 
             let successCount = 0;
+            let lastNeynarError = "";
             
             for (let token of tokens) {
                 try {
@@ -128,15 +137,27 @@ export default async function handler(req, res) {
                             token: token
                         })
                     });
-                    if (neynarRes.ok) successCount++;
+                    
+                    const responseData = await neynarRes.json();
+                    
+                    if (neynarRes.ok) {
+                        successCount++;
+                    } else {
+                        lastNeynarError = responseData.message || JSON.stringify(responseData);
+                    }
                 } catch(e) {
-                    console.error("Failed to send to token", token);
+                    lastNeynarError = e.message;
                 }
             }
 
-            return res.status(200).json({ message: "Successfully sent to " + successCount + " out of " + tokens.length + " players!" });
+            // Agar ek bhi send nahi hua toh ERROR screen pe dikhao!
+            if (successCount === 0) {
+                return res.status(400).json({ error: `Neynar Failed: ${lastNeynarError}` });
+            }
+
+            return res.status(200).json({ message: `Successfully sent to ${successCount} out of ${tokens.length} players!` });
         } catch (error) {
-            return res.status(500).json({ error: "Failed to send: " + error.message });
+            return res.status(500).json({ error: "Backend crash: " + error.message });
         }
     }
 }
