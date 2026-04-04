@@ -12,6 +12,7 @@
     "imageUrl": "https://geodash-amber.vercel.app/preview.png",
     "buttonTitle": "Play GeoDash",
     "splashImageUrl": "https://geodash-amber.vercel.app/icon.png",
-    "splashBackgroundColor": "#05080f"
+    "splashBackgroundColor": "#05080f",
+    "webhookUrl": "https://geodash-amber.vercel.app/api/webhook"
   }
 }
