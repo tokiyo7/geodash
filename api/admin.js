@@ -5,19 +5,15 @@ export default async function handler(req, res) {
     const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // V9 Hybrid Full ABI
     const ABI = [
-        "function admin1() view returns (address)",
-        "function admin2() view returns (address)",
         "function spinMinReward() view returns (uint256)",
         "function spinMaxReward() view returns (uint256)",
         "function getArbBalance() view returns (uint256)",
         "function getGeoLeaderboard() view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
-        "function getDevilLeaderboard() view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
+        "function whitelistRewards(address) view returns (uint256)",
         "function setSpinRange(uint256 _min, uint256 _max) external",
         "function resetLeaderboard(bool _isDevil) external",
         "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
-        "function adminWithdrawArb(uint256 amount) external",
         "event LevelCleared(address indexed player, uint256 level, uint256 attempts)"
     ];
 
@@ -27,68 +23,54 @@ export default async function handler(req, res) {
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>GeoDash Pro Admin 3.1</title>
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
                 <style>
                     :root { --bg: #05080f; --cyan: #00f0ff; --gold: #ffd700; --red: #ff3060; --green: #00ff88; }
                     body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 20px; }
-                    .header { text-align: center; margin-bottom: 30px; border-bottom: 1px solid #222; padding-bottom: 20px; }
-                    #loginBox { max-width: 400px; margin: 100px auto; background: #0a0f18; padding: 40px; border: 2px solid var(--cyan); border-radius: 15px; text-align: center; box-shadow: 0 0 20px rgba(0,240,255,0.2); }
+                    #loginBox { max-width: 400px; margin: 100px auto; background: #0a0f18; padding: 40px; border: 2px solid var(--cyan); border-radius: 15px; text-align: center; }
                     input { width: 100%; padding: 12px; margin: 10px 0; background: #000; color: var(--cyan); border: 1px solid #333; border-radius: 5px; outline: none; }
-                    button { background: linear-gradient(90deg, var(--gold), #ff8c00); color: #000; padding: 12px 20px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; width: 100%; margin-top: 10px; }
-                    button:hover { transform: scale(1.02); opacity: 0.9; }
-                    .danger-btn { background: linear-gradient(90deg, var(--red), #800); color: white; }
+                    button { background: linear-gradient(90deg, var(--gold), #ff8c00); color: #000; padding: 12px 20px; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; width: 100%; margin-top: 10px; }
                     #dashboard { display: none; max-width: 1100px; margin: 0 auto; }
+                    .card { background: #0a0f18; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 20px; }
                     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
                     .tab { flex: 1; padding: 15px; text-align: center; background: #111; border: 1px solid #333; cursor: pointer; border-radius: 8px; color: #888; font-weight: bold; }
                     .tab.active { background: rgba(0,240,255,0.1); border-color: var(--cyan); color: var(--cyan); }
-                    .card { background: #0a0f18; border: 1px solid #222; border-radius: 12px; padding: 25px; margin-bottom: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 14px; }
-                    th { color: var(--green); }
-                    .highlight { color: var(--gold); font-weight: bold; }
-                    .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-                    .balance-box { font-size: 20px; color: var(--green); font-weight: bold; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222; font-size: 13px; }
+                    .status-pending { color: var(--gold); font-weight: bold; }
+                    .status-claimed { color: var(--green); opacity: 0.6; }
+                    .pending-banner { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--gold); padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
                 </style>
             </head>
             <body>
                 <div id="loginBox">
-                    <h2 style="color:var(--cyan)">🕵️‍♂️ SYSTEM SYNC</h2>
+                    <h2>🕵️‍♂️ SYSTEM SYNC</h2>
                     <input type="password" id="pass" placeholder="Enter Admin Password">
-                    <button onclick="login()">AUTHORIZE ACCESS</button>
-                    <p id="err" style="color:var(--red); font-size:12px; margin-top:15px;"></p>
+                    <button onclick="login()">AUTHORIZE</button>
                 </div>
 
                 <div id="dashboard">
-                    <div class="header">
-                        <h1>🚀 GEODASH COMMAND CENTER</h1>
-                        <p style="color:#555">Contract: ${CONTRACT_ADDRESS}</p>
-                    </div>
-
-                    <div class="stats-row card">
+                    <h1>🚀 GEODASH COMMAND CENTER v3.1</h1>
+                    
+                    <div class="pending-banner">
                         <div>
-                            <span style="color:#888">Vault Balance:</span>
-                            <div class="balance-box"><span id="vBal">0.00</span> ARB</div>
+                            <span style="color:var(--gold)">Total Unclaimed Rewards:</span>
+                            <h2 id="totalPending">Scanning...</h2>
                         </div>
-                        <div style="text-align:right">
-                            <span style="color:#888">Spin Range:</span>
-                            <div style="color:var(--gold)" id="rangeTxt">Loading...</div>
-                        </div>
+                        <button onclick="refreshAnalytics()" style="width:auto; padding:8px 15px;">🔄 Refresh Analytics</button>
                     </div>
 
                     <div class="tabs">
-                        <div class="tab active" onclick="showTab('boardTab', this)">📊 Leaderboards</div>
-                        <div class="tab" onclick="showTab('spinTab', this)">🎰 Spin Settings</div>
-                        <div class="tab" onclick="showTab('rewardTab', this)">🎁 Reward Hub</div>
+                        <div class="tab active" onclick="showTab('analyticsTab', this)">📈 Player Analytics</div>
+                        <div class="tab" onclick="showTab('spinTab', this)">🎰 Spin & Whitelist</div>
                     </div>
 
-                    <div id="boardTab" class="tab-content">
+                    <div id="analyticsTab" class="tab-content">
                         <div class="card">
-                            <h3 style="color:var(--cyan); margin-top:0">🟦 GeoDash Classic Board</h3>
-                            <button class="danger-btn" style="width:auto; padding:8px 15px; font-size:12px" onclick="resetLB(false)">Reset Board</button>
-                            <table id="geoTable">
-                                <thead><tr><th>Rank</th><th>Address</th><th>Level</th><th>Tries</th></tr></thead>
+                            <h3>Live Player Activity & Claim Status</h3>
+                            <table id="activityTable">
+                                <thead><tr><th>Player</th><th>Level</th><th>Tries</th><th>Reward Status</th></tr></thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -96,34 +78,26 @@ export default async function handler(req, res) {
 
                     <div id="spinTab" class="tab-content" style="display:none">
                         <div class="card">
-                            <h3 style="color:var(--gold)">⚙️ Adjust Spin Rewards</h3>
-                            <p style="font-size:12px; color:#888">Set the range of ARB players can win. (Values in ARB)</p>
-                            <div style="display:flex; gap:20px; margin-top:20px">
-                                <div style="flex:1">
-                                    <label>Minimum Reward</label>
-                                    <input type="number" id="minR" step="0.001" placeholder="e.g. 0.01">
-                                </div>
-                                <div style="flex:1">
-                                    <label>Maximum Reward</label>
-                                    <input type="number" id="maxR" step="0.001" placeholder="e.g. 0.1">
-                                </div>
+                            <h3>🎰 Adjust Spin Range</h3>
+                            <div style="display:flex; gap:10px">
+                                <input type="number" id="minR" step="0.001" placeholder="Min ARB">
+                                <input type="number" id="maxR" step="0.001" placeholder="Max ARB">
                             </div>
-                            <button onclick="updateRange()">UPDATE BLOCKCHAIN RANGE</button>
+                            <button onclick="updateRange()">UPDATE RANGE</button>
                         </div>
-                    </div>
-
-                    <div id="rewardTab" class="tab-content" style="display:none">
                         <div class="card">
-                            <h3 style="color:var(--green)">🎁 Manual Whitelist</h3>
-                            <input type="text" id="wlAddr" placeholder="Player Wallet Address">
-                            <input type="number" id="wlAmt" step="0.01" placeholder="Amount to give (e.g. 1.0 ARB)">
-                            <button onclick="addWL()">ADD TO REWARD HUB</button>
+                            <h3>🎁 Whitelist Player</h3>
+                            <input type="text" id="wlAddr" placeholder="Wallet Address">
+                            <input type="number" id="wlAmt" step="0.01" placeholder="ARB Amount">
+                            <button onclick="addWL()">ADD TO HUB</button>
                         </div>
                     </div>
                 </div>
 
                 <script>
-                    let authHeader = "";
+                    let provider, contract;
+                    const CONTRACT_ADDR = "${CONTRACT_ADDRESS}";
+
                     async function login() {
                         const p = document.getElementById('pass').value;
                         const res = await fetch('/api/admin', {
@@ -133,25 +107,50 @@ export default async function handler(req, res) {
                         });
                         const data = await res.json();
                         if(data.success) {
-                            authHeader = p;
                             document.getElementById('loginBox').style.display = 'none';
                             document.getElementById('dashboard').style.display = 'block';
-                            loadData(data);
-                        } else {
-                            document.getElementById('err').innerText = "Invalid Password!";
-                        }
+                            initEthers();
+                            refreshAnalytics();
+                        } else { alert("Wrong Password!"); }
                     }
 
-                    function loadData(data) {
-                        document.getElementById('vBal').innerText = data.bal;
-                        document.getElementById('rangeTxt').innerText = data.min + " - " + data.max + " ARB";
-                        document.getElementById('minR').value = data.min;
-                        document.getElementById('maxR').value = data.max;
+                    function initEthers() {
+                        provider = new ethers.BrowserProvider(window.ethereum);
+                        contract = new ethers.Contract(CONTRACT_ADDR, ${JSON.stringify(ABI)}, provider);
+                    }
+
+                    async function refreshAnalytics() {
+                        const tbody = document.querySelector('#activityTable tbody');
+                        tbody.innerHTML = '<tr><td colspan="4">Scanning Blockchain Events...</td></tr>';
                         
-                        const tbody = document.querySelector('#geoTable tbody');
-                        tbody.innerHTML = data.geo.map((p, i) => \`
-                            <tr><td>#\${i+1}</td><td style="color:var(--cyan)">\${p.addr}</td><td class="highlight">Level \${p.lvl}</td><td>\${p.att}</td></tr>
-                        \`).join('');
+                        // Fetching LevelCleared events
+                        const filter = contract.filters.LevelCleared();
+                        const events = await contract.queryFilter(filter, -50000); // Last 50k blocks
+                        
+                        let totalUnclaimed = 0;
+                        let rows = "";
+
+                        for(let event of events.reverse()) {
+                            const addr = event.args[0];
+                            const lvl = event.args[1].toString();
+                            const att = event.args[2].toString();
+                            
+                            // Check if this specific user has a pending reward
+                            const pending = await contract.whitelistRewards(addr);
+                            const isPending = pending > 0n;
+                            if(isPending) totalUnclaimed += Number(ethers.formatEther(pending));
+
+                            rows += \`<tr>
+                                <td>\${addr.slice(0,6)}...\${addr.slice(-4)}</td>
+                                <td>Lv \${lvl}</td>
+                                <td>\${att}</td>
+                                <td class="\${isPending ? 'status-pending' : 'status-claimed'}">
+                                    \${isPending ? '⏳ PENDING ('+ethers.formatEther(pending)+' ARB)' : '✅ CLAIMED / NONE'}
+                                </td>
+                            </tr>\`;
+                        }
+                        tbody.innerHTML = rows;
+                        document.getElementById('totalPending').innerText = totalUnclaimed.toFixed(3) + " ARB";
                     }
 
                     function showTab(id, el) {
@@ -161,43 +160,18 @@ export default async function handler(req, res) {
                         el.classList.add('active');
                     }
 
-                    async function getContract() {
-                        const provider = new ethers.BrowserProvider(window.ethereum);
-                        const signer = await provider.getSigner();
-                        return new ethers.Contract("${CONTRACT_ADDRESS}", ${JSON.stringify(ABI)}, signer);
-                    }
-
                     async function updateRange() {
-                        try {
-                            const c = await getContract();
-                            const min = ethers.parseEther(document.getElementById('minR').value.toString());
-                            const max = ethers.parseEther(document.getElementById('maxR').value.toString());
-                            const tx = await c.setSpinRange(min, max);
-                            alert("Transaction Sent! Waiting for block...");
-                            await tx.wait();
-                            alert("Success!");
-                        } catch(e) { alert(e.message); }
-                    }
-
-                    async function resetLB(isDev) {
-                        if(!confirm("Reset this leaderboard?")) return;
-                        try {
-                            const c = await getContract();
-                            const tx = await c.resetLeaderboard(isDev);
-                            await tx.wait();
-                            alert("Leaderboard Cleared!");
-                        } catch(e) { alert(e.message); }
+                        const signer = await provider.getSigner();
+                        const c = new ethers.Contract(CONTRACT_ADDR, ${JSON.stringify(ABI)}, signer);
+                        const tx = await c.setSpinRange(ethers.parseEther(document.getElementById('minR').value), ethers.parseEther(document.getElementById('maxR').value));
+                        await tx.wait(); alert("Range Updated!");
                     }
 
                     async function addWL() {
-                        try {
-                            const c = await getContract();
-                            const addr = document.getElementById('wlAddr').value;
-                            const amt = ethers.parseEther(document.getElementById('wlAmt').value.toString());
-                            const tx = await c.addToWhitelist([addr], [amt]);
-                            await tx.wait();
-                            alert("Player Whitelisted!");
-                        } catch(e) { alert(e.message); }
+                        const signer = await provider.getSigner();
+                        const c = new ethers.Contract(CONTRACT_ADDR, ${JSON.stringify(ABI)}, signer);
+                        const tx = await c.addToWhitelist([document.getElementById('wlAddr').value], [ethers.parseEther(document.getElementById('wlAmt').value)]);
+                        await tx.wait(); alert("Whitelisted!"); refreshAnalytics();
                     }
                 </script>
             </body>
@@ -209,30 +183,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         const { password } = req.body;
-        if (password !== MY_SECRET_PASSWORD) return res.status(401).json({ error: "Unauthorized" });
-
-        try {
-            const provider = new ethers.JsonRpcProvider(ARB_RPC);
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-
-            const [geoA, geoL, geoT] = await contract.getGeoLeaderboard();
-            const min = await contract.spinMinReward();
-            const max = await contract.spinMaxReward();
-            const bal = await contract.getArbBalance();
-
-            const geo = geoA.map((addr, i) => ({
-                addr, lvl: Number(geoL[i]), att: Number(geoT[i])
-            })).filter(p => p.addr !== ethers.ZeroAddress);
-
-            return res.status(200).json({
-                success: true,
-                geo,
-                min: ethers.formatEther(min),
-                max: ethers.formatEther(max),
-                bal: ethers.formatEther(bal)
-            });
-        } catch (error) {
-            return res.status(500).json({ error: error.message });
-        }
+        if (password !== MY_SECRET_PASSWORD) return res.status(401).json({ success: false });
+        return res.status(200).json({ success: true });
     }
 }
