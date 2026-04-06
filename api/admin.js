@@ -2,20 +2,15 @@ import { ethers } from 'ethers';
 
 export default async function handler(req, res) {
     const MY_SECRET_PASSWORD = "tokiyoboss";
-    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324"; 
+    // Naya Farcaster Safe Contract Address
+    const CONTRACT_ADDRESS = "0x9488b2e99BB3470078EEB0812799c76ea4e64C65"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
+    // Updated READ ABI for new contract
     const READ_ABI = [
         "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
         "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
-        "function tier1Chance() external view returns (uint256)",
-        "function tier2Chance() external view returns (uint256)",
-        "function t1Min() external view returns (uint256)",
-        "function t1Max() external view returns (uint256)",
-        "function t2Min() external view returns (uint256)",
-        "function t2Max() external view returns (uint256)",
-        "function t3Min() external view returns (uint256)",
-        "function t3Max() external view returns (uint256)"
+        "function getArbBalance() external view returns (uint256)"
     ];
 
     if (req.method === 'GET') {
@@ -39,7 +34,7 @@ export default async function handler(req, res) {
                     .danger-btn { background: #ff3060; color: white; }
                     
                     #dashboard { display: none; max-width: 1200px; margin: 0 auto; }
-                    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+                    .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;}
                     .tab { flex: 1; padding: 15px; text-align: center; background: #111; border: 1px solid #333; cursor: pointer; font-weight: bold; color: #888; border-radius: 5px; }
                     .tab.active { background: rgba(0,240,255,0.1); border-color: #00f0ff; color: #00f0ff; }
                     
@@ -54,8 +49,8 @@ export default async function handler(req, res) {
                     tr:hover { background: #151a25; }
                     .highlight { color: #ffd700; font-weight: bold; }
                     
-                    .copy-btn, .ban-btn { padding: 5px 10px; font-size: 11px; margin-right: 5px; cursor: pointer;}
-                    .ban-btn { background: #ff3060; color: white; border: none; }
+                    .copy-btn { padding: 5px 10px; font-size: 11px; margin-right: 5px; cursor: pointer; background: #333; color: white; border: none; border-radius: 3px;}
+                    .copy-btn:hover { background: #555; }
                 </style>
             </head>
             <body>
@@ -70,18 +65,18 @@ export default async function handler(req, res) {
                 <div id="dashboard">
                     <div class="header">
                         <h1>🚀 GeoDash 3.1 Admin Hub</h1>
-                        <p style="color:#888;">Contract: 0x58d052d73800fA9488bCE5E123e7FF8507832324</p>
+                        <p style="color:#888;">Contract: 0x9488b2e99BB3470078EEB0812799c76ea4e64C65</p>
+                        <p style="color:#00ff88; font-weight:bold;">Vault Balance: <span id="vaultBalance">Loading...</span> ARB</p>
                     </div>
 
                     <div class="tabs">
                         <div class="tab active" onclick="switchTab('geoTab')">🟦 GeoDash Board</div>
                         <div class="tab" onclick="switchTab('devilTab')">👿 Devil Board</div>
                         <div class="tab" onclick="switchTab('rewardTab')">🎁 Reward & Whitelist</div>
-                        <div class="tab" onclick="switchTab('spinTab')">🎰 Spin Range Settings</div>
+                        <div class="tab" onclick="switchTab('spinTab')">🎰 Spin Info</div>
                     </div>
 
                     <div id="geoTab" class="tab-content">
-                        <button class="danger-btn" onclick="resetBoard(false)" style="margin-bottom:15px;">⚠️ Reset GeoDash Board</button>
                         <table>
                             <thead><tr><th>Rank</th><th>Wallet Address</th><th>Highest Level</th><th>Attempts</th><th>Actions</th></tr></thead>
                             <tbody id="geoBody">
@@ -91,7 +86,6 @@ export default async function handler(req, res) {
                     </div>
 
                     <div id="devilTab" class="tab-content" style="display:none;">
-                        <button class="danger-btn" onclick="resetBoard(true)" style="margin-bottom:15px;">⚠️ Reset Devil Board</button>
                         <table>
                             <thead><tr><th>Rank</th><th>Wallet Address</th><th>Highest Level</th><th>Attempts</th><th>Actions</th></tr></thead>
                             <tbody id="devilBody">
@@ -112,66 +106,26 @@ export default async function handler(req, res) {
                     </div>
 
                     <div id="spinTab" class="tab-content control-panel" style="display:none;">
-                        <h3>🎰 Manage Spin Probabilities & Random Ranges</h3>
-                        <p style="font-size:12px; color:#aaa;">Ensure total chance is exactly 100%. Tier 3 will calculate automatically.</p>
-                        
-                        <div class="flex-inputs">
-                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 1 Chance (%)</label><input type="number" id="t1c" oninput="calcT3()"></div>
-                            <div style="flex:1;"><label style="font-size:11px; color:#00ff88;">Tier 2 Chance (%)</label><input type="number" id="t2c" oninput="calcT3()"></div>
-                            <div style="flex:1;"><label style="font-size:11px; color:#ffd700;">Tier 3 Chance (%) [Auto]</label><input type="number" id="t3c" readonly style="background:#222; color:#ffd700; border:1px solid #555; cursor:not-allowed;"></div>
-                        </div>
-                        
-                        <div style="margin-top:20px; padding:10px; background:#0a0f18; border-radius:5px;">
-                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 1 Range (ARB)</label>
-                            <div class="flex-inputs" style="margin-top:5px;">
-                                <input type="text" id="t1min" placeholder="Min (e.g. 0.001)"> 
-                                <span style="color:#555;">to</span> 
-                                <input type="text" id="t1max" placeholder="Max (e.g. 0.05)">
-                            </div>
-                        </div>
-
-                        <div style="margin-top:10px; padding:10px; background:#0a0f18; border-radius:5px;">
-                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 2 Range (ARB)</label>
-                            <div class="flex-inputs" style="margin-top:5px;">
-                                <input type="text" id="t2min" placeholder="Min (e.g. 0.05)"> 
-                                <span style="color:#555;">to</span> 
-                                <input type="text" id="t2max" placeholder="Max (e.g. 0.1)">
-                            </div>
-                        </div>
-
-                        <div style="margin-top:10px; padding:10px; background:#0a0f18; border-radius:5px;">
-                            <label style="color:#ffd700; font-size:13px; font-weight:bold;">Tier 3 Range (ARB)</label>
-                            <div class="flex-inputs" style="margin-top:5px;">
-                                <input type="text" id="t3min" placeholder="Min (e.g. 0.1)"> 
-                                <span style="color:#555;">to</span> 
-                                <input type="text" id="t3max" placeholder="Max (e.g. 0.2)">
-                            </div>
-                        </div>
-
-                        <button onclick="updateSpinSettings()">⚙️ UPDATE ALL SETTINGS (MetaMask)</button>
-                        <p id="spinStatus" style="font-size:12px; margin-top:10px;"></p>
+                        <h3>🎰 Spin Machine Configuration</h3>
+                        <p style="font-size:14px; color:#aaa; line-height: 1.6;">
+                            <b>Farcaster Optimization Active:</b><br><br>
+                            To ensure 100% stability and zero "No State Changes" errors on Warpcast, the Spin Machine probabilities are currently locked inside the smart contract.<br><br>
+                            <b>Current Range:</b> 0.01 ARB to 0.05 ARB per spin.<br>
+                            <b>Cooldown:</b> 1 Hour.<br><br>
+                            <i>Note: Manual slider adjustments are disabled in this version for maximum security and speed.</i>
+                        </p>
                     </div>
 
                 </div>
 
                 <script>
-                    const CONTRACT_ADDRESS = "0x58d052d73800fA9488bCE5E123e7FF8507832324";
+                    const CONTRACT_ADDRESS = "0x9488b2e99BB3470078EEB0812799c76ea4e64C65";
+                    // Updated WRITE ABI for new contract
                     const WRITE_ABI = [
-                        "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
-                        "function setSpinSettings(uint256 _t1Chance, uint256 _t2Chance, uint256 _t1Min, uint256 _t1Max, uint256 _t2Min, uint256 _t2Max, uint256 _t3Min, uint256 _t3Max) external",
-                        "function banPlayer(address _player, bool _fromDevilGame) external",
-                        "function resetSpecificLeaderboard(bool _resetDevilGame) external"
+                        "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external"
                     ];
 
                     let globalData = null;
-
-                    function calcT3() {
-                        let t1 = parseInt(document.getElementById('t1c').value) || 0;
-                        let t2 = parseInt(document.getElementById('t2c').value) || 0;
-                        let t3 = 100 - t1 - t2;
-                        if(t3 < 0) t3 = 0;
-                        document.getElementById('t3c').value = t3;
-                    }
 
                     async function login() {
                         const pwd = document.getElementById('adminPassword').value;
@@ -199,18 +153,18 @@ export default async function handler(req, res) {
                             
                             if (data.success) {
                                 globalData = data;
+                                document.getElementById('vaultBalance').innerText = data.vaultBal;
                                 renderLeaderboards();
-                                populateSpinData();
                             } else {
                                 document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Backend Error: \${data.error}</td></tr>\`;
                             }
                         } catch (e) {
-                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash!</td></tr>\`;
+                            document.getElementById('geoBody').innerHTML = \`<tr><td colspan="5" style="color:#ff3060; text-align:center;">⚠️ Server Crash! \${e.message}</td></tr>\`;
                         }
                     }
 
                     function renderLeaderboards() {
-                        const buildRows = (data, isDevil) => {
+                        const buildRows = (data) => {
                             if (!data || data.length === 0) return '<tr><td colspan="5" style="text-align:center; color:#888;">No players on the board yet!</td></tr>';
                             let html = "";
                             data.forEach((p, index) => {
@@ -221,31 +175,15 @@ export default async function handler(req, res) {
                                         <td class="highlight">Level \${p.level}</td>
                                         <td>\${p.attempts}</td>
                                         <td>
-                                            <button class="copy-btn" onclick="copyAddress('\${p.wallet}')">📋 Copy</button>
-                                            <button class="ban-btn" onclick="banPlayer('\${p.wallet}', \${isDevil})">🔨 Ban</button>
+                                            <button class="copy-btn" onclick="copyAddress('\${p.wallet}')">📋 Copy Address</button>
                                         </td>
                                     </tr>\`;
                             });
                             return html;
                         };
 
-                        document.getElementById('geoBody').innerHTML = buildRows(globalData.geoDash, false);
-                        document.getElementById('devilBody').innerHTML = buildRows(globalData.devilMode, true);
-                    }
-
-                    function populateSpinData() {
-                        if(globalData && globalData.spinData) {
-                            document.getElementById('t1c').value = globalData.spinData.t1Chance;
-                            document.getElementById('t2c').value = globalData.spinData.t2Chance;
-                            calcT3(); // Auto calculate T3 on load
-                            
-                            document.getElementById('t1min').value = globalData.spinData.t1Min;
-                            document.getElementById('t1max').value = globalData.spinData.t1Max;
-                            document.getElementById('t2min').value = globalData.spinData.t2Min;
-                            document.getElementById('t2max').value = globalData.spinData.t2Max;
-                            document.getElementById('t3min').value = globalData.spinData.t3Min;
-                            document.getElementById('t3max').value = globalData.spinData.t3Max;
-                        }
+                        document.getElementById('geoBody').innerHTML = buildRows(globalData.geoDash);
+                        document.getElementById('devilBody').innerHTML = buildRows(globalData.devilMode);
                     }
 
                     function switchTab(tabId) {
@@ -255,9 +193,9 @@ export default async function handler(req, res) {
                         document.getElementById(tabId).style.display = 'block';
                     }
 
-                    function copyAddress(address) {
+                    window.copyAddress = function(address) {
                         navigator.clipboard.writeText(address);
-                        alert("Address Copied: " + address);
+                        alert("Address Copied: " + address + "\\n\\nYou can now paste this into the Reward Whitelist tab.");
                     }
 
                     async function getContract() {
@@ -268,7 +206,7 @@ export default async function handler(req, res) {
                         return new ethers.Contract(CONTRACT_ADDRESS, WRITE_ABI, signer);
                     }
 
-                    async function addToWhitelist() {
+                    window.addToWhitelist = async function() {
                         const addr = document.getElementById('wlAddress').value;
                         const amt = document.getElementById('wlAmount').value;
                         const status = document.getElementById('wlStatus');
@@ -285,61 +223,6 @@ export default async function handler(req, res) {
                             document.getElementById('wlAddress').value = ""; document.getElementById('wlAmount').value = "";
                         } catch(e) {
                             status.style.color = "#ff3060"; status.innerText = "❌ Error: " + (e.reason || e.message);
-                        }
-                    }
-
-                    async function updateSpinSettings() {
-                        const t1c = document.getElementById('t1c').value;
-                        const t2c = document.getElementById('t2c').value;
-                        const t1min = document.getElementById('t1min').value;
-                        const t1max = document.getElementById('t1max').value;
-                        const t2min = document.getElementById('t2min').value;
-                        const t2max = document.getElementById('t2max').value;
-                        const t3min = document.getElementById('t3min').value;
-                        const t3max = document.getElementById('t3max').value;
-                        const status = document.getElementById('spinStatus');
-
-                        try {
-                            status.style.color = "#ffd700"; status.innerText = "⏳ Opening MetaMask to sign...";
-                            const contract = await getContract();
-                            
-                            const tx = await contract.setSpinSettings(
-                                t1c, t2c, 
-                                ethers.parseEther(t1min), ethers.parseEther(t1max),
-                                ethers.parseEther(t2min), ethers.parseEther(t2max),
-                                ethers.parseEther(t3min), ethers.parseEther(t3max)
-                            );
-                            status.innerText = "⏳ Waiting for blockchain confirmation...";
-                            await tx.wait();
-                            status.style.color = "#00ff88"; status.innerText = "✅ Spin Settings Updated Successfully!";
-                        } catch(e) {
-                            status.style.color = "#ff3060"; status.innerText = "❌ Error: " + (e.reason || e.message);
-                        }
-                    }
-
-                    async function banPlayer(address, isDevil) {
-                        if(!confirm("Are you sure you want to BAN this player from the leaderboard?")) return;
-                        try {
-                            const contract = await getContract();
-                            const tx = await contract.banPlayer(address, isDevil);
-                            alert("Ban command sent! Board will update after confirmation.");
-                            await tx.wait();
-                            window.location.reload();
-                        } catch(e) {
-                            alert("Error: " + (e.reason || e.message));
-                        }
-                    }
-
-                    async function resetBoard(isDevil) {
-                        if(!confirm("🚨 WARNING! This will WIPE the entire leaderboard. Are you sure?")) return;
-                        try {
-                            const contract = await getContract();
-                            const tx = await contract.resetSpecificLeaderboard(isDevil);
-                            alert("Reset command sent! Board is clearing.");
-                            await tx.wait();
-                            window.location.reload();
-                        } catch(e) {
-                            alert("Error: " + (e.reason || e.message));
                         }
                     }
                 </script>
@@ -361,6 +244,10 @@ export default async function handler(req, res) {
             const [geoAddrs, geoLvls, geoAtts] = await contract.getGeoLeaderboard();
             const [devAddrs, devLvls, devAtts] = await contract.getDevilLeaderboard();
             
+            // Get vault balance directly
+            const bal = await contract.getArbBalance();
+            const vaultEth = ethers.formatEther(bal);
+            
             const formatBoard = (addrs, lvls, atts) => {
                 let board = [];
                 for (let i = 0; i < addrs.length; i++) {
@@ -371,26 +258,11 @@ export default async function handler(req, res) {
                 return board;
             };
 
-            const t1c = Number(await contract.tier1Chance());
-            const t2c = Number(await contract.tier2Chance());
-            
-            const t1min = ethers.formatEther(await contract.t1Min());
-            const t1max = ethers.formatEther(await contract.t1Max());
-            const t2min = ethers.formatEther(await contract.t2Min());
-            const t2max = ethers.formatEther(await contract.t2Max());
-            const t3min = ethers.formatEther(await contract.t3Min());
-            const t3max = ethers.formatEther(await contract.t3Max());
-
             return res.status(200).json({ 
                 success: true, 
                 geoDash: formatBoard(geoAddrs, geoLvls, geoAtts),
                 devilMode: formatBoard(devAddrs, devLvls, devAtts),
-                spinData: { 
-                    t1Chance: t1c, t2Chance: t2c, 
-                    t1Min: t1min, t1Max: t1max, 
-                    t2Min: t2min, t2Max: t2max, 
-                    t3Min: t3min, t3Max: t3max 
-                }
+                vaultBal: vaultEth
             });
         } catch (error) {
             return res.status(200).json({ success: false, error: error.message });
