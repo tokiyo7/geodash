@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoDash — ADMIN PANEL</title>
+    <title>GeoDash — PRO ADMIN PANEL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         :root {
@@ -27,7 +27,7 @@
         
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -41,7 +41,7 @@
             box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
         }
         
-        .card h2 { color: var(--cyan); font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        .card h2 { color: var(--cyan); font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
 
         .balance-display { font-size: 24px; font-weight: bold; color: var(--emerald); margin-bottom: 15px; }
 
@@ -55,37 +55,45 @@
             margin-bottom: 10px;
             font-size: 14px;
         }
-        textarea { resize: vertical; min-height: 100px; }
+        textarea { resize: vertical; min-height: 80px; }
         input:focus, textarea:focus { border-color: var(--cyan); outline: none; }
 
         .btn {
             background: linear-gradient(90deg, #00f0ff, #0088ff);
             color: #000;
             border: none;
-            padding: 12px 20px;
+            padding: 10px 15px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             transition: 0.2s;
-            width: 100%;
         }
         .btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
         .btn-red { background: linear-gradient(90deg, #ff3060, #aa0022); color: #fff; }
         .btn-gold { background: linear-gradient(90deg, #ffd700, #ff8800); color: #000; }
+        .btn-small { padding: 6px 10px; font-size: 12px; }
         .btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        th { color: var(--gold); }
+        tr:hover { background: rgba(255,255,255,0.05); }
 
         #statusMsg {
             position: fixed; top: 20px; right: 20px; background: #111; border-left: 4px solid var(--cyan);
             padding: 15px; border-radius: 4px; display: none; z-index: 1000; max-width: 300px;
         }
 
-        .help-text { font-size: 11px; color: #888; margin-bottom: 10px; line-height: 1.4; }
+        .help-text { font-size: 12px; color: #888; margin-bottom: 10px; line-height: 1.4; }
+        
+        .flex-row { display: flex; gap: 10px; }
+        .badge { background: #222; padding: 4px 8px; border-radius: 4px; font-size: 11px; border: 1px solid #444; }
     </style>
 </head>
 <body>
 
-    <h1>⚙️ GEODASH ADMIN PANEL</h1>
+    <h1>⚙️ GEODASH PRO ADMIN</h1>
     
     <div class="container">
         <div class="card" style="text-align: center;">
@@ -96,32 +104,53 @@
         <div id="adminControls" style="display: none; flex-direction: column; gap: 20px;">
             
             <div class="card">
-                <h2>💰 Prize Vault Status</h2>
+                <h2><span>💰 Prize Vault</span> <span class="badge" id="spinRangeBadge">Spin Range: 0.005 - 0.02 ETH</span></h2>
                 <div class="balance-display" id="contractBalance">Loading...</div>
                 
-                <div style="display: flex; gap: 10px;">
+                <div class="flex-row">
                     <input type="number" id="fundAmount" placeholder="Amount in ETH (e.g. 0.1)" step="0.01">
                     <button class="btn" onclick="fundContract()" style="width: 150px;">Fund Vault</button>
                 </div>
-                <div class="help-text">Add ETH to the contract so the Spin Machine can pay out prizes automatically.</div>
             </div>
 
             <div class="card">
-                <h2>🎁 Add Winners to Reward Hub</h2>
+                <h2>
+                    <span>🏆 Live Player Activity (All Clears)</span>
+                    <button class="btn btn-gold btn-small" onclick="fetchRecentClears()">🔄 Refresh</button>
+                </h2>
+                <div class="help-text">Shows ALL players who cleared a level, even if not in Top 15. (Fetches last 1000 blocks).</div>
+                <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Player Address</th>
+                                <th>Level</th>
+                                <th>Attempts</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerActivityTable">
+                            <tr><td colspan="4" style="text-align:center; color:#888;">Click Refresh to load data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎁 Reward Manager (Whitelist)</h2>
                 <div class="help-text">
-                    Format: <code>WalletAddress, AmountInETH</code> (One player per line).<br>
-                    Example:<br>
-                    0x1234...abcd, 0.05<br>
-                    0x5678...efgh, 0.1
+                    Add addresses from the table above or manually. Format: <code>Address, ETH Amount</code>
                 </div>
                 <textarea id="whitelistInput" placeholder="0x..., 0.05&#n;0x..., 0.1"></textarea>
-                <button class="btn btn-gold" onclick="submitWhitelist()">✅ Submit Whitelist</button>
+                <div class="flex-row">
+                    <button class="btn btn-gold" onclick="submitWhitelist()">✅ Submit Whitelist</button>
+                    <button class="btn" onclick="document.getElementById('whitelistInput').value = ''" style="background:#444; color:#fff;">Clear</button>
+                </div>
             </div>
 
             <div class="card" style="border-color: rgba(255, 48, 96, 0.3);">
-                <h2 style="color: var(--red);">🚨 Emergency Withdraw</h2>
-                <div class="help-text">Withdraw ETH back to your admin wallet if needed.</div>
-                <div style="display: flex; gap: 10px;">
+                <h2 style="color: var(--red);">🚨 Emergency Controls</h2>
+                <div class="flex-row">
                     <input type="number" id="withdrawAmount" placeholder="Amount in ETH" step="0.01">
                     <button class="btn btn-red" onclick="withdrawFunds()" style="width: 150px;">Withdraw</button>
                 </div>
@@ -135,13 +164,15 @@
 <script>
 // --- CONFIGURATION ---
 const CONTRACT_ADDRESS = "0x9488b2e99BB3470078EEB0812799c76ea4e64C65";
+// Added LevelCleared event to ABI for the live feed
 const ABI = [
     "function admin1() view returns (address)",
     "function admin2() view returns (address)",
     "function getContractBalance() view returns (uint256)",
     "function fundContract() payable",
     "function adminWithdraw(uint256 amount)",
-    "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts)"
+    "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts)",
+    "event LevelCleared(address indexed player, uint256 level, uint256 attempts)"
 ];
 
 let provider, signer, contract, userAddress;
@@ -165,11 +196,11 @@ async function connectWallet() {
         
         // Ensure Arbitrum Network
         const network = await provider.getNetwork();
-        if (network.chainId !== 42161) { // 42161 is Arbitrum One Mainnet
+        if (network.chainId !== 42161) {
             try {
                 await window.ethereum.request({
                     method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0xa4b1' }], // 0xa4b1 is hex for 42161
+                    params: [{ chainId: '0xa4b1' }],
                 });
             } catch (e) {
                 showToast("Please switch to Arbitrum Mainnet!", "var(--red)");
@@ -185,16 +216,16 @@ async function connectWallet() {
         document.getElementById('walletInfo').style.color = "var(--emerald)";
         document.getElementById('connectBtn').style.display = "none";
 
-        // Verify if user is admin
         const ad1 = await contract.admin1();
         const ad2 = await contract.admin2();
         
         if (userAddress.toLowerCase() === ad1.toLowerCase() || userAddress.toLowerCase() === ad2.toLowerCase()) {
             document.getElementById('adminControls').style.display = "flex";
             refreshBalance();
-            showToast("Welcome Admin!", "var(--emerald)");
+            fetchRecentClears(); // Auto-load data on connect
+            showToast("Welcome back, Admin!", "var(--emerald)");
         } else {
-            showToast("ACCESS DENIED: You are not an admin.", "var(--red)");
+            showToast("ACCESS DENIED: Not an admin.", "var(--red)");
         }
     } catch (err) {
         showToast("Connection failed.", "var(--red)");
@@ -241,6 +272,69 @@ async function withdrawFunds() {
     }
 }
 
+// THE MISSING FEATURE: Fetch all recent players directly from the blockchain
+async function fetchRecentClears() {
+    const tbody = document.getElementById('playerActivityTable');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading blockchain data... ⏳</td></tr>';
+    
+    try {
+        const currentBlock = await provider.getBlockNumber();
+        // Look back roughly 24 hours of blocks on Arbitrum (approx 340,000 blocks)
+        // You can adjust this number if you need older data
+        const startBlock = currentBlock - 300000; 
+
+        const filter = contract.filters.LevelCleared();
+        const events = await contract.queryFilter(filter, startBlock, currentBlock);
+
+        if (events.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888;">No recent activity found.</td></tr>';
+            return;
+        }
+
+        // Sort latest first
+        events.reverse();
+        
+        let html = '';
+        events.forEach(event => {
+            const player = event.args.player;
+            const level = event.args.level.toString();
+            const attempts = event.args.attempts.toString();
+            const shortAddr = `${player.slice(0,6)}...${player.slice(-4)}`;
+            
+            // Suggesting 0.05 ETH as default reward, but admin can change it in the textarea
+            html += `
+                <tr>
+                    <td style="color:var(--cyan); font-family:monospace;" title="${player}">${shortAddr}</td>
+                    <td>Lv ${level}</td>
+                    <td>${attempts}</td>
+                    <td>
+                        <button class="btn btn-small" onclick="addPlayerToWhitelist('${player}', 0.05)">Add to Reward List</button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = html;
+        showToast("Player data refreshed!", "var(--emerald)");
+
+    } catch (error) {
+        console.error(error);
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--red);">Error fetching data. Try again.</td></tr>';
+    }
+}
+
+// Helper to easily move a player from the table to the input box
+function addPlayerToWhitelist(address, defaultAmount) {
+    const input = document.getElementById('whitelistInput');
+    const newLine = `${address}, ${defaultAmount}`;
+    if (input.value.trim() === '') {
+        input.value = newLine;
+    } else {
+        input.value += `\n${newLine}`;
+    }
+    showToast("Added to list. You can edit the amount before submitting.", "var(--cyan)");
+}
+
 async function submitWhitelist() {
     const input = document.getElementById('whitelistInput').value.trim();
     if (!input) return showToast("Input cannot be empty", "var(--red)");
@@ -250,6 +344,8 @@ async function submitWhitelist() {
     let amounts = [];
 
     for (let i = 0; i < lines.length; i++) {
+        if(lines[i].trim() === '') continue; // Skip empty lines
+        
         let parts = lines[i].split(',');
         if (parts.length !== 2) {
             return showToast(`Line ${i+1} format error. Use: Address, Amount`, "var(--red)");
