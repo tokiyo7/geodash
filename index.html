@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GeoDash — Play & Earn ARB</title>
-    <meta property="og:title" content="GeoDash — The Boss Fight Update">
+    <title>GeoDash 3.0 — Play & Earn ARB</title>
+    <meta property="og:title" content="GeoDash 3.0 — The Boss Fight Update">
     <meta property="og:description" content="Geometry Dash on Arbitrum! Survive the 3-Phase Robo-Hunter Boss Fight! Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 3.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
     <meta name="theme-color" content="#05080f">
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
@@ -36,6 +36,7 @@
             flex-direction: column; 
             align-items: center; 
             padding: 12px; 
+            padding-top: 0;
             overflow-x: hidden; 
             scroll-behavior: smooth; 
         }
@@ -48,6 +49,133 @@
         @keyframes btnPulse { 
             0% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); } 
             100% { box-shadow: 0 0 15px var(--gold), 0 0 8px var(--gold); } 
+        }
+
+        /* ═══════════════════════════════════════════════════
+           TASK 2: TOP NAVIGATION BAR (position: relative, NOT sticky)
+           Flexbox layout with nav-modes on LEFT, Reward Hub on RIGHT
+           ═══════════════════════════════════════════════════ */
+        .top-nav {
+            width: 100%;
+            max-width: 800px;
+            background: linear-gradient(135deg, rgba(10,15,24,0.95), rgba(5,8,15,0.98));
+            border: 2px solid rgba(0,240,255,0.15);
+            border-radius: 0 0 16px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 14px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(8px);
+            flex-wrap: nowrap;
+            gap: 10px;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .nav-modes {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .btn-geo-classic {
+            font-size: 1.1rem;
+            font-weight: 900;
+            padding: 14px 22px;
+            border: 3px solid #00f0ff;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0a1628, #0d2244);
+            color: #00f0ff;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(0,240,255,0.3), inset 0 0 8px rgba(0,240,255,0.1);
+            transition: all 0.25s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .btn-geo-classic:hover {
+            box-shadow: 0 0 30px rgba(0,240,255,0.6), inset 0 0 14px rgba(0,240,255,0.2);
+            transform: scale(1.04);
+        }
+        
+        .btn-geo-classic.active {
+            background: rgba(0,240,255,0.12);
+            box-shadow: 0 0 36px rgba(0,240,255,0.7), inset 0 0 18px rgba(0,240,255,0.25);
+            color: #fff;
+            text-shadow: 0 0 10px #00f0ff;
+        }
+
+        .btn-devil-mode {
+            font-size: 1.1rem;
+            font-weight: 900;
+            padding: 14px 22px;
+            border: 3px solid #ff3060;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a0a0a, #2e0d0d);
+            color: #ff3060;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(255,48,96,0.25);
+            transition: all 0.25s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .btn-devil-mode:hover {
+            box-shadow: 0 0 28px rgba(255,48,96,0.6);
+            transform: scale(1.04);
+        }
+        
+        .btn-devil-mode.active {
+            box-shadow: 0 0 40px rgba(255,48,96,0.8), 0 0 80px rgba(255,48,96,0.4);
+            background: rgba(255,48,96,0.1);
+            color: #fff;
+            text-shadow: 0 0 10px #ff3060;
+            animation: devilPulseBtn 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes devilPulseBtn {
+            0%, 100% { box-shadow: 0 0 40px rgba(255,48,96,0.8), 0 0 80px rgba(255,48,96,0.4); }
+            50% { box-shadow: 0 0 60px rgba(255,48,96,1), 0 0 120px rgba(255,48,96,0.65); }
+        }
+
+        .btn-reward-hub {
+            font-size: 1.1rem;
+            font-weight: 900;
+            padding: 14px 24px;
+            border: 3px solid #ffd700;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #1a1400, #2e2200);
+            color: #ffd700;
+            cursor: pointer;
+            box-shadow: 0 0 18px rgba(255,215,0,0.35);
+            transition: all 0.25s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+            animation: goldenGlow 2s ease-in-out infinite;
+            margin-left: auto;
+        }
+        
+        .btn-reward-hub:hover {
+            box-shadow: 0 0 36px rgba(255,215,0,0.8);
+            transform: scale(1.06);
+        }
+        
+        @keyframes goldenGlow {
+            0%, 100% { box-shadow: 0 0 18px rgba(255,215,0,0.35), 0 0 36px rgba(255,215,0,0.12); }
+            50% { box-shadow: 0 0 36px rgba(255,215,0,0.65), 0 0 60px rgba(255,215,0,0.35); }
+        }
+
+        @media(max-width:600px) {
+            .btn-geo-classic, .btn-devil-mode { font-size: 0.65rem; padding: 10px 4px; white-space: nowrap; flex: 1; text-align: center; }
+            .btn-reward-hub { font-size: 0.65rem; padding: 10px 4px; white-space: nowrap; margin-left: 0; flex: 1; text-align: center; }
+            .top-nav { padding: 8px 4px; gap: 4px; flex-wrap: nowrap; }
+            .nav-modes { gap: 4px; flex-wrap: nowrap; flex: 2; display: flex; }
         }
 
         .header { 
@@ -143,6 +271,98 @@
             transform: scale(0.95); 
         }
 
+        /* ═══════════════════════════════════════════════════
+           FIX 4: REWARD HUB MODAL
+           ═══════════════════════════════════════════════════ */
+        #rewardModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5,8,15,0.85);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .reward-modal-content {
+            background: linear-gradient(180deg, #0a0f18, #05080f);
+            border: 1px solid var(--gold);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 90%;
+            width: 420px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(255,215,0,0.15);
+        }
+
+        .reward-modal-title {
+            color: #ffd700;
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,215,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        .reward-modal-body {
+            font-size: 15px;
+            color: #d0d0d0;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        .reward-claim-btn {
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            color: #000;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            animation: btnPulse 1.5s infinite alternate;
+            transition: transform 0.2s;
+            display: none;
+        }
+
+        .reward-claim-btn:active {
+            transform: scale(0.95);
+        }
+
+        .reward-claim-btn:disabled {
+            background: #333 !important;
+            color: #666 !important;
+            cursor: not-allowed;
+            animation: none;
+        }
+
+        .reward-close-btn {
+            background: rgba(255,255,255,0.05);
+            color: #888;
+            border: 1px solid #444;
+            padding: 12px;
+            width: 100%;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .reward-close-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
         .game-container { 
             position: relative; 
             width: 100%; 
@@ -152,7 +372,13 @@
             background: #05080f; 
             overflow: hidden; 
             border-radius: 8px; 
-            transform: translateZ(0); 
+            transform: translateZ(0);
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+        
+        .game-container.devil-active-border {
+            border-color: #ff3060 !important;
+            box-shadow: 0 0 40px rgba(255,48,96,0.35) !important;
         }
         
         canvas { 
@@ -333,9 +559,17 @@
             transition: all 0.2s; 
         }
         
-        .play-btn:hover { 
+        .play-btn:hover:not(:disabled) { 
             background: #00f0ff; 
             color: #000; 
+        }
+
+        .play-btn:disabled {
+            border-color: #444 !important;
+            color: #666 !important;
+            background: transparent !important;
+            cursor: not-allowed !important;
+            animation: none !important;
         }
         
         .play-btn-gold { 
@@ -365,6 +599,17 @@
             width: 100%; 
             margin-bottom: 25px; 
             line-height: 1.4; 
+        }
+
+        .arbiscan-note {
+            font-size: 10px;
+            color: #555;
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            font-style: italic;
         }
 
         .prize-chart { 
@@ -506,6 +751,8 @@
             color: #aaa; 
             margin-top: 8px; 
         }
+
+
         
         .cast-btn-small { 
             background: linear-gradient(90deg, #8a2be2, #4a00e0); 
@@ -539,6 +786,39 @@
             font-size: 18px; 
             letter-spacing: 1px; 
         }
+
+        .lb-toggle {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            justify-content: center;
+        }
+        
+        .lb-toggle button {
+            flex: 0 1 auto;
+            padding: 8px 18px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: rgba(10,15,24,0.6);
+            color: #888;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+        }
+        
+        .lb-toggle button.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            background: rgba(0,240,255,0.08);
+        }
+        
+        .lb-toggle button.lb-devil-toggle.active {
+            border-color: #ff3060;
+            color: #ff3060;
+            background: rgba(255,48,96,0.08);
+        }
         
         .lb-row { 
             display: flex; 
@@ -568,41 +848,159 @@
             padding: 15px 20px; 
             border-left: 4px solid var(--cyan); 
             display: none; 
-            z-index: 1000; 
+            z-index: 10000; 
             border-radius: 4px; 
             font-size: 14px; 
-            backdrop-filter: blur(5px); 
+            backdrop-filter: blur(5px);
+            max-width: 90vw;
+        }
+
+        #devilOverlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(180deg, rgba(20, 0, 0, 0.95), rgba(10, 0, 0, 0.98), rgba(0, 0, 0, 0.99)); 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+            backdrop-filter: blur(6px);
+            text-align: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        #devilOverlay .devil-chains { 
+            font-size: 3rem; 
+            letter-spacing: 10px; 
+            margin-bottom: 8px; 
+        }
+        
+        #devilOverlay h1 { 
+            color: #ff3060; 
+            font-size: 34px; 
+            margin: 15px 0; 
+            text-shadow: 0 0 30px #ff3060, 0 0 60px rgba(255,48,96,0.5);
+            letter-spacing: 3px;
+            animation: devilTitleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes devilTitleGlow {
+            0% { text-shadow: 0 0 30px #ff3060, 0 0 60px rgba(255,48,96,0.5); }
+            100% { text-shadow: 0 0 50px #ff3060, 0 0 100px rgba(255,48,96,0.7), 0 0 150px rgba(255,48,96,0.3); }
+        }
+        
+        #devilOverlay p { 
+            color: #ff8888; 
+            font-size: 15px; 
+            letter-spacing: 1px;
+            font-style: italic;
+        }
+
+        .blood-drip {
+            position: absolute;
+            top: -80px;
+            width: 4px;
+            background: linear-gradient(180deg, #ff3060, #8b0000, transparent);
+            border-radius: 0 0 50% 50%;
+            opacity: 0.7;
+            animation: bloodFall linear infinite;
+        }
+
+        .blood-drip::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #ff3060;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #ff3060, 0 0 12px rgba(255,48,96,0.5);
+        }
+
+        @keyframes bloodFall {
+            0% { top: -80px; opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { top: 110%; opacity: 0; }
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-active {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
         }
     </style>
-    
+
     <script type="module">
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         window.fcSdk = sdk; 
         
-        try {
-            sdk.actions.ready();
-            sdk.context.then(async context => {
-                if (context && context.user) {
-                    window.fcUsername = context.user.username || null;
-                    const titleEl = document.getElementById('mainTitle');
-                    if(titleEl && window.fcUsername) {
-                        titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+        window.addEventListener('DOMContentLoaded', () => {
+            // Wait 300ms for Frame environment sync
+            setTimeout(() => {
+                try {
+                    if (window.fcSdk && window.fcSdk.actions) {
+                        window.fcSdk.actions.ready();
+                        window.fcSdk.context.then(async context => {
+                            if (context && context.user) {
+                                window.fcUsername = context.user.username || null;
+                                const titleEl = document.getElementById('mainTitle');
+                                if(titleEl && window.fcUsername) {
+                                    titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+                                }
+                            }
+                        }).catch(()=>{});
                     }
-                }
-            }).catch(()=>{});
-        } catch(e) {}
+                } catch (e) { console.error("SDK Ready Error:", e); }
+            }, 300);
+        });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
 <body>
 
+<div class="top-nav">
+    <div class="nav-modes">
+        <button class="btn-geo-classic active" id="btnGeoMode" onclick="toggleDevilMode(false)">🟦 GeoDash Classic</button>
+        <button class="btn-devil-mode" id="btnDevilMode" onclick="toggleDevilMode(true)">👿 DEVIL MODE</button>
+    </div>
+    <button class="btn-reward-hub" id="btnRewardHub" onclick="openRewardModal()">🎁 REWARD HUB</button>
+</div>
+
 <div id="welcomeModal">
     <div class="modal-content">
-        <div class="modal-title">Welcome to GeoDash! ⚡</div>
-        <div class="modal-text">🚀 **THE BOSS FIGHT UPDATE:** Think you can just fly over everything? Survive 50 shots from the Robo-Hunter in Flappy Mode! 🎯</div>
-        <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is free to Practice. Pass a practice level OR spin the slot machine to unlock higher levels!</div>
-        <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience.</div>
+        <div class="modal-title">GeoDash 3.0: THE BOSS UPDATE ⚡</div>
+        <div class="modal-text">🚀 **VERSION 3.0 IS LIVE:** Experience the ultimate test of reflexes! Survive the 3-Phase Robo-Hunter Boss Fight and claim your place on the global leaderboard. 🎯</div>
+        <div class="modal-text">💎 **ON-CHAIN REWARDS:** Play Official Runs to earn $ARB rewards directly to your wallet. Every clear matters in the new Season!</div>
+        <div class="modal-text">💻 **OPTIMIZED EXPERIENCE:** Best played on Laptop/PC for maximum FPS and precision. Check the Rotate button for full-screen mode!</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
+    </div>
+</div>
+
+<div id="rewardModal">
+    <div class="reward-modal-content">
+        <div class="reward-modal-title">🎁 REWARD HUB</div>
+        <div class="reward-modal-body" id="rewardModalBody">
+            ⏳ Loading your reward status...
+        </div>
+        <button class="reward-claim-btn" id="rewardClaimBtn" onclick="executeClaimReward()">🎉 CLAIM NOW</button>
+        <button class="reward-close-btn" id="rewardCloseBtn" onclick="closeRewardModal()">Close</button>
     </div>
 </div>
 
@@ -622,12 +1020,35 @@
 
 <div class="game-container" id="gameBox">
     <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <div id="devilOverlay">
+        <div class="blood-drip" style="left: 5%; height: 60px; animation-duration: 3.2s; animation-delay: 0s;"></div>
+        <div class="blood-drip" style="left: 12%; height: 45px; animation-duration: 2.8s; animation-delay: 0.5s;"></div>
+        <div class="blood-drip" style="left: 22%; height: 70px; animation-duration: 3.5s; animation-delay: 1.2s;"></div>
+        <div class="blood-drip" style="left: 35%; height: 50px; animation-duration: 2.6s; animation-delay: 0.3s;"></div>
+        <div class="blood-drip" style="left: 48%; height: 55px; animation-duration: 3.0s; animation-delay: 1.8s;"></div>
+        <div class="blood-drip" style="left: 58%; height: 40px; animation-duration: 2.4s; animation-delay: 0.7s;"></div>
+        <div class="blood-drip" style="left: 68%; height: 65px; animation-duration: 3.3s; animation-delay: 1.5s;"></div>
+        <div class="blood-drip" style="left: 75%; height: 48px; animation-duration: 2.9s; animation-delay: 0.1s;"></div>
+        <div class="blood-drip" style="left: 82%; height: 58px; animation-duration: 3.1s; animation-delay: 2.0s;"></div>
+        <div class="blood-drip" style="left: 90%; height: 42px; animation-duration: 2.5s; animation-delay: 1.0s;"></div>
+        <div class="blood-drip" style="left: 95%; height: 52px; animation-duration: 3.4s; animation-delay: 0.8s;"></div>
+        <div class="blood-drip" style="left: 42%; height: 62px; animation-duration: 2.7s; animation-delay: 1.4s;"></div>
+
+        <div class="devil-chains">⛓️🔒⛓️</div>
+        <h1>COMING SOON</h1>
+        <p>The demons are forging new traps...</p>
+        <div class="devil-chains" style="margin-top:10px;">🔥👿🔥</div>
+    </div>
     <div id="overlay">
         <h1 id="overlayTitle">LEVEL CLEAR!</h1>
         <p id="overlaySub">Data saved on-chain.</p>
         <button class="btn-large btn-social" id="overlayCastBtn">📢 SHARE TO CLAIM ARB</button>
         <button class="btn-large" id="overlayBtn" style="margin-top:15px; font-size:14px; padding:10px 20px; background: #222; color: #fff;">Return to Menu</button>
     </div>
+</div>
+
+<div style="width:100%; max-width:800px; margin: 10px 0; display: flex; justify-content: center;">
+    <button id="rotateBtn" style="width:100%; padding: 16px; background: rgba(10,15,24,0.9); border: 2px solid var(--cyan); border-radius: 12px; color: var(--cyan); font-weight: 900; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.25); letter-spacing: 1.5px; font-family: 'Courier New', monospace; transition: all 0.3s; font-size: 14px; text-transform: uppercase;">🔄 FULL SCREEN / ROTATE</button>
 </div>
 
 <div class="progress-bar-wrap">
@@ -645,13 +1066,16 @@
 <div class="btn-note">
     *Official Run requires a transaction to prevent hacking. Practice is free.
 </div>
+<div class="arbiscan-note">
+    (Note: Your on-chain transaction may show action "0x10b5ee50" — this is the secure Level Start function!)
+</div>
 
 <div class="prize-chart">
     <div class="prize-chart-title">🎰 SPIN REWARDS (Instant)</div>
     <table class="prize-table">
         <tr><th>Chance</th><th>Prize Range</th></tr>
-        <tr class="t-rare"><td>(Common)</td><td>0.001 — 0.05 ARB</td></tr>
-        <tr class="t-legend"><td>(Jackpot!)</td><td>0.05 — 0.50 ARB</td></tr>
+        <tr class="t-rare"><td>(Common)</td><td>Up to 0.05 ARB</td></tr>
+        <tr class="t-legend"><td>(Jackpot!)</td><td>0.1 — 0.20 ARB</td></tr>
     </table>
     <div style="text-align:center; color:#333; font-size:11px; margin:10px 0;">————————————</div>
     <div class="prize-section-label">🏆 LEVEL CLEAR REWARDS (Manual Claim)</div>
@@ -676,11 +1100,16 @@
     <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
     <button class="cast-btn-small" id="spinCastBtn">📢 SHARE YOUR SPIN WIN!</button>
     <div class="slot-info" id="spinInfo">Loading status...</div>
+
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
 <div class="leaderboard">
-    <div class="lb-title">🌍 GLOBAL TOP 10</div>
+    <div class="lb-title">🌍 GLOBAL TOP 15 (By Attempts)</div>
+    <div class="lb-toggle">
+        <button class="active" id="lbBtnGeo" onclick="switchLeaderboard('geo')">🟦 GeoDash Board</button>
+        <button class="lb-devil-toggle" id="lbBtnDevil" onclick="switchLeaderboard('devil')">👿 Devil Board</button>
+    </div>
     <div id="globalLbContent" style="margin-bottom:20px;">Loading...</div>
     
     <div class="lb-title" style="font-size:14px; color:var(--gold); margin-bottom:12px;">👤 YOUR ON-CHAIN STATS</div>
@@ -691,6 +1120,75 @@
 
 <script>
 let ac = null;
+window.isDevilModeOn = false;
+let lastClearedLevel = 0;
+
+function toggleDevilMode(isDevil) {
+    window.isDevilModeOn = isDevil;
+    const geoBtn = document.getElementById('btnGeoMode');
+    const devBtn = document.getElementById('btnDevilMode');
+    const devilOverlay = document.getElementById('devilOverlay');
+    const gameBox = document.getElementById('gameBox');
+    const practiceBtn = document.getElementById('practiceBtn');
+    const officialBtn = document.getElementById('officialRunBtn');
+    
+    if (isDevil) {
+        geoBtn.classList.remove('active');
+        devBtn.classList.add('active');
+        gameBox.classList.add('devil-active-border');
+        
+        const flash = document.createElement('div');
+        flash.style.position = 'fixed';
+        flash.style.top = '0';
+        flash.style.left = '0';
+        flash.style.width = '100vw';
+        flash.style.height = '100vh';
+        flash.style.backgroundColor = '#ff3060';
+        flash.style.zIndex = '999999';
+        flash.style.pointerEvents = 'none';
+        flash.style.opacity = '0.8';
+        flash.style.transition = 'opacity 0.2s ease-out';
+        document.body.appendChild(flash);
+        setTimeout(() => { flash.style.opacity = '0'; setTimeout(() => flash.remove(), 200); }, 50);
+
+        devilOverlay.style.display = 'flex';
+        practiceBtn.disabled = true;
+        officialBtn.disabled = true;
+        
+        if (typeof ge !== 'undefined') {
+            ge.themeColor = '#ff3060';
+            ge.draw();
+        }
+    } else {
+        devBtn.classList.remove('active');
+        geoBtn.classList.add('active');
+        gameBox.classList.remove('devil-active-border');
+        devilOverlay.style.display = 'none';
+        practiceBtn.disabled = false;
+        officialBtn.disabled = false;
+        
+        if (typeof ge !== 'undefined') {
+            ge.themeColor = ge.official ? '#ffd700' : '#00f0ff';
+            ge.draw();
+            gameBox.style.borderColor = ge.themeColor;
+        }
+    }
+    
+    if(isDevil) {
+        document.getElementById('lbBtnGeo').classList.remove('active');
+        document.getElementById('lbBtnDevil').classList.add('active');
+        window._currentLBMode = 'devil';
+    } else {
+        document.getElementById('lbBtnDevil').classList.remove('active');
+        document.getElementById('lbBtnGeo').classList.add('active');
+        window._currentLBMode = 'geo';
+    }
+    
+    if (typeof isConnected !== 'undefined' && isConnected) {
+        fetchGlobalLeaderboard();
+        fetchPersonalStats();
+    }
+}
 
 function initAudio() {
     if (!ac) {
@@ -1007,7 +1505,7 @@ class GeoDashEngine {
     }
 
     spawnDeathExplosion(isHunter = false) {
-        for(let i=0; i<40; i++) {
+        for(let i=0; i<80; i++) {
             let p = this.particlePool.find(obj => !obj.active);
             if(p) {
                 p.active = true; 
@@ -1078,13 +1576,22 @@ class GeoDashEngine {
         this.official = isOfficial;
         this.themeColor = isOfficial ? '#ffd700' : '#00f0ff';
         
+        if(window.isDevilModeOn) {
+            this.themeColor = '#ff3060';
+        }
+        
         this.reset();
         
         this.state = 'READY'; 
         
         let pBar = document.getElementById('progressBar');
         pBar.style.width = '0%';
-        pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
+        
+        if(window.isDevilModeOn) {
+            pBar.style.background = 'linear-gradient(90deg, #ff3060, #ff6090)';
+        } else {
+            pBar.style.background = isOfficial ? 'linear-gradient(90deg, #ffd700, #ff8c00)' : 'linear-gradient(90deg, #00f0ff, #00ff88)';
+        }
         
         document.getElementById('gameBox').style.borderColor = this.themeColor;
         
@@ -1129,6 +1636,12 @@ class GeoDashEngine {
         this.state = 'DEAD'; 
         this.attempts++;
         this.dieReason = reason;
+
+        const gBox = document.getElementById('gameBox');
+        if(gBox) {
+            gBox.classList.add('shake-active');
+            setTimeout(() => gBox.classList.remove('shake-active'), 300);
+        }
         
         document.getElementById('attemptUI').innerText=`Attempt: ${this.attempts}`;
         
@@ -1404,7 +1917,6 @@ class GeoDashEngine {
                     return; 
                 }
                 
-                // 🔥 JUMP PAD MANUAL + FALLING LOGIC 🔥
                 if(o.t==='jpad'){ 
                     let isFalling = (!this.player.ground && this.player.vy > 0);
                     let manualJump = (this.jumpBuffer > 0);
@@ -1643,7 +2155,8 @@ class GeoDashEngine {
                 
                 let r, g, b;
                 if(t.mode === 'flappy') { r=255; g=215; b=0; }
-                else if(this.official) { r=255; g=215; b=0; }
+                else if(this.official && !window.isDevilModeOn) { r=255; g=215; b=0; }
+                else if(window.isDevilModeOn) { r=255; g=48; b=96; }
                 else { r=0; g=240; b=255; }
                 
                 this.ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${t.life})`; 
@@ -1738,6 +2251,7 @@ let practiceUnlocks = parseInt(localStorage.getItem('geodash_prac_unlocks') || '
 function closeModal() { 
     document.getElementById('welcomeModal').style.display = 'none'; 
 }
+
 function scrollToSpin() { 
     closeModal(); 
     document.getElementById('slotMachineSection').scrollIntoView({ behavior: 'smooth' }); 
@@ -1772,17 +2286,19 @@ function triggerWinUi(tries) {
         
         const shareBtn = document.getElementById('overlayCastBtn');
         shareBtn.onclick = () => {
-            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of the impossible GeoDash by @tokiyo in ${tries+1} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB bounty! 💸\n\nThink you can beat my attempts? 👇\n${GAME_URL}`;
+            let triesNum = tries + 1;
+            let triesText = triesNum === 1 ? "1 attempt" : `${triesNum} attempts`;
+            let userTag = window.fcUsername ? `@${window.fcUsername}` : "I";
+            
+            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\n${userTag} just survived Level ${lastClearedLevel} of GeoDash! Took me ${triesText}... reflexes are god-tier. 🎮🏆\n\n@tokiyo Check my bounty on the on-chain leaderboard! 💸\n\nThink you can beat my score? 👇\n${GAME_URL}`;
             openCast(text);
         };
 
         if(isConnected){
             (async () => {
                 try {
-                    const methodName = "levelComplete";
-                    const args = [ge.currentLevel, addScore];
                     const iface = new ethers.utils.Interface(ABI);
-                    const data = iface.encodeFunctionData(methodName, args);
+                    const data = iface.encodeFunctionData("saveLevelClear", [ge.currentLevel, window.isDevilModeOn]);
                     
                     try { 
                         await Promise.race([
@@ -1841,32 +2357,48 @@ function triggerWinUi(tries) {
 </script>
 
 <script>
-const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
+// ✅ V9 HYBRID SMART CONTRACT INTEGRATION
+const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7";
+
 const ABI = [
     "function startLevel(uint256 level) external",
-    "function levelComplete(uint256 level, uint256 score) external",
+    "function saveLevelClear(uint256 level, bool isDevilGame) external",
     "function spin() external",
-    "function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)",
-    "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)",
-    "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
+    "function claimReward() external",
+    "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
+    "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
+    "function lastSpinTime(address) external view returns (uint256)",
+    "function whitelistRewards(address) external view returns (uint256)",
+    "function getArbBalance() external view returns (uint256)",
+    "function spinMinReward() view returns (uint256)",
+    "function spinMaxReward() view returns (uint256)"
 ];
+
+// ─────────────────────────────────────────────────────────────
+// NOTE: This contract pays prizes in NATIVE ARB on Arbitrum.
+// The 'ARB' label is the game branding.
+// ─────────────────────────────────────────────────────────────
+
+
 
 let userAddress = null; 
 let isConnected = false; 
 let isFarcasterWallet = false; 
 let walletProvider = null; 
 let spinStatus = { hasFree: false, timeLeft: 0 };
-const GAME_URL = "https://farcaster.xyz/miniapps/vDZmdCj1pC8Z/geodash-by-tokiyo";
+const GAME_URL = "https://geodash-amber.vercel.app";
 
 const publicProvider = new ethers.providers.JsonRpcProvider('https://arb1.arbitrum.io/rpc');
 const readContract = new ethers.Contract(CONTRACT_ADDRESS, ABI, publicProvider);
+
+window._currentLBMode = 'geo';
 
 function showToast(msg, color='var(--cyan)'){
     const t=document.getElementById('toast');
     t.innerText=msg; 
     t.style.borderLeftColor=color; 
     t.style.display='block';
-    setTimeout(()=>t.style.display='none',3500);
+    setTimeout(()=>t.style.display='none',4000);
 }
 
 function showWalletStatus(msg, isGood){
@@ -1911,7 +2443,8 @@ async function connectWallet(err=true){
         isConnected = true; 
         showWalletStatus(`✓ Connected: ${userAddress.slice(0,6)}...`, true);
         refreshSpinStatus(); 
-        fetchPersonalStats(); 
+        fetchPersonalStats();
+        fetchGlobalLeaderboard();
         return true;
     } catch(e) { 
         return false; 
@@ -1930,6 +2463,9 @@ function openCast(text){
 window.addEventListener('load', () => {
     document.getElementById('practiceBtn').addEventListener('click', () => { ge.start(false); });
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
+    document.getElementById('rotateBtn').addEventListener('click', () => {
+        showToast("🚀 Coming Soon! Turn on notifications to experience DEVIL MODE with exciting bounty rewards! 🔥👿", "var(--cyan)");
+    });
     document.getElementById('overlayBtn').addEventListener('click', () => { 
         document.getElementById('overlay').style.display='none'; 
         ge.state='IDLE'; 
@@ -1937,7 +2473,6 @@ window.addEventListener('load', () => {
     });
     document.getElementById('spinBtn').addEventListener('click', executeSpin);
     
-    // 🔥 CLICK LOGIC 🔥
     const notifyBtn = document.getElementById('smartNotifyBtn');
     if (notifyBtn) {
         notifyBtn.addEventListener('click', async () => {
@@ -1961,6 +2496,7 @@ window.addEventListener('load', () => {
 
     buildLevelUI(); 
     fetchGlobalLeaderboard();
+
     
     setTimeout(async()=>{
         if(await detectWallet()){
@@ -1975,6 +2511,8 @@ window.addEventListener('load', () => {
 async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     
+    if(!isConnected){ if(!await connectWallet(true)) return; }
+    
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     if(ge.currentLevel > maxOnchain) {
         ge.currentLevel = maxOnchain; 
@@ -1984,44 +2522,57 @@ async function startOfficialRun(){
     }
     
     if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
-    if(!isConnected){ if(!await connectWallet(true)) return; }
-    
-    btn.disabled = true; 
-    btn.innerText = "⏳ CONFIRMING...";
-    
+
+    btn.disabled = true;
+    btn.innerText = "⏳ CONFIRMING TX...";
+    showToast("📝 Confirm startLevel() in your wallet...", "#ffd700");
+
     try {
         const iface = new ethers.utils.Interface(ABI);
-        const data = iface.encodeFunctionData("startLevel", [ge.currentLevel]);
-        
+        const data = iface.encodeFunctionData("startLevel", [Number(ge.currentLevel)]);
+
         try { 
             await Promise.race([
                 walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
                 new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
             ]);
-        } catch(e) { console.log("Proceeding to tx..."); }
+        } catch(e) { }
 
-        const txPromise = walletProvider.request({ 
+        const txHash = await walletProvider.request({ 
             method: 'eth_sendTransaction', 
             params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
         });
-        
-        showToast("Tx Initiated! Tap to start.", "#00ff88"); 
-        btn.innerText = "💎 OFFICIAL RUN ACTIVE"; 
-        ge.attempts = 0; 
-        document.getElementById('attemptUI').innerText=`Attempt: 0`; 
-        ge.start(true); 
-        
-        txPromise.catch(e => {
-            if(ge.official && (ge.state === 'PLAYING' || ge.state === 'READY')) { 
-                ge.die("TX CANCELLED! STOPPING RUN.", false); 
-                showToast("Transaction was cancelled.", "red"); 
-            }
-        });
 
-    } catch(e) { 
-        btn.disabled = false; 
-        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN"; 
-        showToast(e.message || "Tx Cancelled","red"); 
+        ge.attempts = 0;
+        document.getElementById('attemptUI').innerText=`Attempt: 0`;
+        btn.innerText = "💎 OFFICIAL RUN ACTIVE";
+        ge.start(true);
+
+        showToast("⛏️ Tx Mining in background...", "#ffd700");
+
+        let confirmed = false;
+        for(let i=0; i<20; i++){
+            await new Promise(r=>setTimeout(r,1500));
+            try {
+                const receipt = await publicProvider.getTransactionReceipt(txHash);
+                if(receipt && receipt.confirmations > 0){ confirmed=true; break; }
+            } catch(err){}
+        }
+
+        if(confirmed) {
+            showToast("✅ Level registered on-chain!", "#00ff88");
+        } else {
+            showToast("⚠️ Transaction still processing...", "#ffd700");
+        }
+    } catch(e) {
+        console.error("startLevel error:", e);
+        if(e.code === 4001 || (e.message && e.message.includes("rejected"))){
+            showToast("Transaction rejected by user.", "#ff3060");
+        } else {
+            showToast("startLevel failed: " + (e.reason || e.message || "Unknown"), "#ff3060");
+        }
+        btn.disabled = false;
+        btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
     }
 }
 
@@ -2029,7 +2580,8 @@ async function executeSpin(){
     const btn = document.getElementById('spinBtn'); 
     document.getElementById('spinCastBtn').style.display = 'none'; 
     if(!isConnected) { if(!await connectWallet(true)) return; }
-    if (!spinStatus.hasFree && spinStatus.bonus <= 0) { showToast("No spin available! Wait for cooldown.", "red"); return; }
+    
+    if (!spinStatus.hasFree) { showToast("No spin available! Wait for cooldown.", "red"); return; }
     
     try { 
         await Promise.race([
@@ -2045,6 +2597,7 @@ async function executeSpin(){
     document.getElementById('spinResult').innerText = "Spinning... Please confirm TX!"; 
     document.getElementById('spinResult').style.color = "#ffd700";
 
+    // ✅ FIXED: 100ms delay like devellevel01.html (not 1500ms)
     setTimeout(async () => {
         try{
             const iface = new ethers.utils.Interface(ABI); 
@@ -2061,7 +2614,22 @@ async function executeSpin(){
                 await new Promise(r => setTimeout(r, 2000)); 
                 try { 
                     const receipt = await publicProvider.getTransactionReceipt(txHash); 
-                    if(receipt && receipt.confirmations > 0) { isConfirmed = true; break; } 
+                    if(receipt && receipt.confirmations > 0) { 
+                        isConfirmed = true;
+                        // Check if tx reverted on-chain
+                        if(receipt.status === 0) {
+                            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+                            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+                            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+                            showToast("❌ Spin failed on-chain! Contract may be empty or cooldown active.", "#ff3060");
+                            document.getElementById('spinResult').innerText = "❌ TX Reverted — Contract empty or cooldown not passed!";
+                            document.getElementById('spinResult').style.color = "#ff3060";
+                            refreshSpinStatus();
+                            btn.disabled = false;
+                            return;
+                        }
+                        break; 
+                    } 
                 } catch(err){} 
             }
             
@@ -2070,7 +2638,7 @@ async function executeSpin(){
             document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
             
             if(isConfirmed) { 
-                showToast("Spin Successful!", "#00ff88"); 
+                showToast("🎉 Spin Successful! Prize sent to wallet!", "#00ff88"); 
                 document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; 
                 document.getElementById('spinResult').style.color = "#00ff88"; 
                 document.getElementById('spinCastBtn').style.display = 'inline-block'; 
@@ -2082,8 +2650,8 @@ async function executeSpin(){
                 document.getElementById('r1').innerText='❌'; 
                 document.getElementById('r2').innerText='❌'; 
                 document.getElementById('r3').innerText='❌'; 
-                showToast("Transaction Delayed.", "#ff3060"); 
-                document.getElementById('spinResult').innerText="Tx Failed. Out of Gas?"; 
+                showToast("Transaction Delayed. Check Arbiscan.", "#ff3060"); 
+                document.getElementById('spinResult').innerText="Tx not confirmed yet. Check Arbiscan!"; 
                 document.getElementById('spinResult').style.color = "#ff3060"; 
             }
             refreshSpinStatus(); 
@@ -2097,13 +2665,14 @@ async function executeSpin(){
             
             let errStr = "Spin Cancelled"; 
             if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!"; 
-            else if (e.message) errStr = "Tx Cancelled";
+            else if (e.message && (e.message.includes("rejected") || e.code === 4001)) errStr = "Transaction rejected.";
+            else if (e.message) errStr = "Tx Cancelled: " + e.message.slice(0,60);
             
-            showToast(errStr,"red"); 
+            showToast(errStr, "red"); 
             document.getElementById('spinResult').innerText = errStr; 
             document.getElementById('spinResult').style.color = "#ff3060";
         }
-    }, 100); 
+    }, 100);  // ✅ 100ms like devellevel01.html
 }
 
 function buildLevelUI(){
@@ -2153,7 +2722,23 @@ function buildLevelUI(){
     }
 }
 
+function switchLeaderboard(mode) {
+    document.getElementById('lbBtnGeo').classList.remove('active');
+    document.getElementById('lbBtnDevil').classList.remove('active');
+    
+    if(mode === 'devil') {
+        document.getElementById('lbBtnDevil').classList.add('active');
+    } else {
+        document.getElementById('lbBtnGeo').classList.add('active');
+    }
+    
+    window._currentLBMode = mode;
+    fetchGlobalLeaderboard();
+    fetchPersonalStats();
+}
+
 let timerInt = null;
+
 function updateSpinUI() {
     const btn = document.getElementById('spinBtn'); 
     const info = document.getElementById('spinInfo'); 
@@ -2188,18 +2773,137 @@ function updateSpinUI() {
 async function refreshSpinStatus(){
     if(!userAddress) return;
     try{ 
-        const res = await readContract.getSpinStatus(userAddress); 
-        spinStatus.bonus = res[1].toNumber(); 
-        spinStatus.hasFree = res[2]; 
-        spinStatus.timeLeft = res[3].toNumber(); 
+        const lsTime = await readContract.lastSpinTime(userAddress);
+        const lastSpinUnix = lsTime.toNumber();
+        const nowUnix = Math.floor(Date.now() / 1000);
+        const timePassed = nowUnix - lastSpinUnix;
+        
+        if (lastSpinUnix === 0 || timePassed >= 3600) {
+            spinStatus.hasFree = true;
+            spinStatus.timeLeft = 0;
+        } else {
+            spinStatus.hasFree = false;
+            spinStatus.timeLeft = 3600 - timePassed;
+        }
         updateSpinUI(); 
-    }catch(e){}
+    }catch(e){
+        console.error("refreshSpinStatus error:", e);
+    }
 }
 
-const fcUsernameCache={};
+function openRewardModal() {
+    const modal = document.getElementById('rewardModal');
+    const body = document.getElementById('rewardModalBody');
+    const claimBtn = document.getElementById('rewardClaimBtn');
+    
+    body.innerHTML = '⏳ Loading your reward status...';
+    claimBtn.style.display = 'none';
+    claimBtn.disabled = false;
+    claimBtn.innerText = '🎉 CLAIM NOW';
+    
+    modal.style.display = 'flex';
+    
+    (async () => {
+        if (!isConnected) {
+            if (!await connectWallet(true)) {
+                body.innerHTML = '❌ Please connect your wallet first.';
+                return;
+            }
+        }
+        
+        try {
+            const rewardAmount = await readContract.whitelistRewards(userAddress);
+            
+            if (rewardAmount.gt(0)) {
+                const arbAmount = ethers.utils.formatEther(rewardAmount);
+                body.innerHTML = `🎉 <span style="color:#ffd700;font-weight:bold;font-size:18px;">Congratulations!</span><br><br>You are eligible for <span style="color:#00ff88;font-weight:bold;font-size:22px;">${arbAmount} ARB</span><br><br><span style="color:#aaa;font-size:12px;">Click CLAIM NOW to receive your reward!</span>`;
+                claimBtn.style.display = 'block';
+            } else {
+                body.innerHTML = `❌ <span style="color:#ff3060;font-weight:bold;">Not Eligible</span><br><br><span style="color:#aaa;">Keep playing and tag Admin to get whitelisted!</span><br><br><span style="color:#555;font-size:11px;">DM @tokiyo on Farcaster for reward eligibility</span>`;
+                claimBtn.style.display = 'none';
+            }
+        } catch (err) {
+            console.error("Reward check error:", err);
+            body.innerHTML = '❌ Failed to check rewards. Please try again.';
+            claimBtn.style.display = 'none';
+        }
+    })();
+}
+
+function closeRewardModal() {
+    document.getElementById('rewardModal').style.display = 'none';
+}
+
+async function executeClaimReward() {
+    const body = document.getElementById('rewardModalBody');
+    const claimBtn = document.getElementById('rewardClaimBtn');
+    
+    claimBtn.disabled = true;
+    claimBtn.innerText = '⏳ CONFIRMING TX...';
+    
+    try {
+        try { 
+            await Promise.race([
+                walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+            ]);
+        } catch(e) { }
+
+        const iface = new ethers.utils.Interface(ABI);
+        const data = iface.encodeFunctionData("claimReward", []);
+        
+        body.innerHTML = '📝 Confirm the transaction in your wallet...';
+        
+        const txHash = await walletProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }]
+        });
+        
+        body.innerHTML = '⛏️ Mining on Arbitrum (5-10s)...';
+        claimBtn.innerText = '⛏️ MINING...';
+        
+        let isConfirmed = false;
+        for(let i=0; i<15; i++) { 
+            await new Promise(r => setTimeout(r, 2000)); 
+            try { 
+                const receipt = await publicProvider.getTransactionReceipt(txHash); 
+                if(receipt && receipt.confirmations > 0) { isConfirmed = true; break; } 
+            } catch(err){} 
+        }
+        
+        if (isConfirmed) {
+            body.innerHTML = '🎉 <span style="color:#00ff88;font-weight:bold;font-size:18px;">Reward Successfully Claimed!</span><br><br><span style="color:#aaa;">Check your wallet for the ARB.</span>';
+            claimBtn.style.display = 'none';
+            showToast("🎉 Reward Successfully Claimed!", "#00ff88");
+        } else {
+            body.innerHTML = '⚠️ <span style="color:#ffd700;">Transaction sent but not yet confirmed.</span><br><br><span style="color:#aaa;">Check Arbiscan for status.</span>';
+            claimBtn.style.display = 'none';
+        }
+    } catch (err) {
+        console.error("claimReward error:", err);
+        
+        if (err.code === 4001 || (err.message && err.message.includes("rejected"))) {
+            body.innerHTML = '❌ Transaction rejected by user.';
+        } else {
+            body.innerHTML = '❌ Claim Failed: ' + (err.reason || err.message || "Unknown error");
+        }
+        
+        claimBtn.disabled = false;
+        claimBtn.innerText = '🎉 CLAIM NOW';
+    }
+}
+
 async function fetchGlobalLeaderboard(){
     try{
-        const [addrs, scores, lvls] = await readContract.getLeaderboard();
+        let addrs, lvls, attempts;
+        let lbMode = window._currentLBMode || 'geo';
+        
+        if(lbMode === 'devil') {
+            [addrs, lvls, attempts] = await readContract.getDevilLeaderboard();
+        } else {
+            [addrs, lvls, attempts] = await readContract.getGeoLeaderboard();
+        }
+        
         let validAddrs = addrs.filter(a => a !== "0x0000000000000000000000000000000000000000"); 
         let nameMap = {};
         if(validAddrs.length > 0) {
@@ -2219,22 +2923,27 @@ async function fetchGlobalLeaderboard(){
         let html = ''; 
         let hasScores = false;
         
-        for(let i=0; i<10; i++) {
-            if(addrs[i] === "0x0000000000000000000000000000000000000000" || scores[i].toNumber() === 0) continue;
+        for(let i=0; i<15; i++) {
+            if(addrs[i] === "0x0000000000000000000000000000000000000000" || lvls[i].toNumber() === 0) continue;
             hasScores = true; 
             let addrLower = addrs[i].toLowerCase(); 
             let name = nameMap[addrLower] || (addrs[i].slice(0,6) + "..." + addrs[i].slice(-4));
-            let score = scores[i].toNumber(); 
+            let att = attempts[i].toNumber(); 
             let lvl = lvls[i].toNumber(); 
             let medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="display:inline-block;width:20px;text-align:center;color:#888;">${i+1}.</span>`;
             
+            let modeColor = lbMode === 'devil' ? '#ff3060' : 'var(--cyan)';
+            
             html += `<div class="lb-row">
-                <span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
-                <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Lv${lvl}</span></span>
+                <span style="display:flex;align-items:center;gap:8px"><span>${medal}</span><span style="color:${modeColor};font-weight:bold">${name}</span></span>
+                <span><span style="color:white;font-weight:bold">Lv ${lvl}</span><span style="color:#888;font-size:11px"> in ${att} tries</span></span>
             </div>`;
         }
-        document.getElementById('globalLbContent').innerHTML = hasScores ? html : '<div style="text-align:center;color:#888;font-size:12px;">No scores yet. Be the first!</div>';
+        
+        let modeLabel = lbMode === 'devil' ? '👿 Devil Mode' : '🟦 GeoDash';
+        document.getElementById('globalLbContent').innerHTML = hasScores ? html : `<div style="text-align:center;color:#888;font-size:12px;">No ${modeLabel} scores yet. Be the first!</div>`;
     }catch(e){ 
+        console.error("Leaderboard fetch error:", e);
         document.getElementById('globalLbContent').innerHTML = '<div style="text-align:center;color:#ff3060;font-size:12px;">Failed to load leaderboard</div>'; 
     }
 }
@@ -2242,29 +2951,45 @@ async function fetchGlobalLeaderboard(){
 async function fetchPersonalStats(){
     if(!userAddress) return;
     try{
-        const p = await readContract.players(userAddress);
-        const score = p[2].toNumber(); 
-        const lvl = p[3].toNumber();   
+        let addrs, lvls, attempts;
+        let lbMode = window._currentLBMode || 'geo';
         
-        if(score > 0 || lvl > 0) {
+        if(lbMode === 'devil') {
+            [addrs, lvls, attempts] = await readContract.getDevilLeaderboard();
+        } else {
+            [addrs, lvls, attempts] = await readContract.getGeoLeaderboard();
+        }
+        
+        let bestLvl = 0;
+        let bestAtt = 0;
+        for(let i=0; i<15; i++) {
+            if(addrs[i].toLowerCase() === userAddress.toLowerCase()) {
+                let thisLvl = lvls[i].toNumber();
+                let thisAtt = attempts[i].toNumber();
+                if(thisLvl > bestLvl || (thisLvl === bestLvl && (bestAtt === 0 || thisAtt < bestAtt))) {
+                    bestLvl = thisLvl;
+                    bestAtt = thisAtt;
+                }
+            }
+        }
+        
+        if(lbMode !== 'devil' && bestLvl > 0) {
             window.completedLevels = new Set(); 
             window.unlockedLevels = new Set([1]);
             
-            for(let i=1; i<=lvl; i++) { 
+            for(let i=1; i<=bestLvl; i++) { 
                 window.completedLevels.add(i); 
                 if(i < 10) window.unlockedLevels.add(i + 1); 
             }
             
             ge.currentLevel = Math.max(...Array.from(window.unlockedLevels)); 
-            window.baseScore = score; 
-            document.getElementById('scoreUI').innerText=`Score: ${score}`;
-            
             buildLevelUI(); 
             document.getElementById('progressText').innerText=`Level ${ge.currentLevel}/10`;
         }
         
-        if(score === 0){ 
-            document.getElementById('lbContent').innerHTML='<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in Official Run to save your stats!</div>'; 
+        if(bestLvl === 0){ 
+            let modeLabel = lbMode === 'devil' ? 'Devil Mode' : 'Official';
+            document.getElementById('lbContent').innerHTML=`<div style="text-align:center;color:#888;padding:20px;font-size:12px">Clear Level 1 in ${modeLabel} Run to save your stats!</div>`; 
             return; 
         }
         
@@ -2280,11 +3005,17 @@ async function fetchPersonalStats(){
             } 
         }catch(e){}
         
-        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.3);">
-            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:var(--cyan);font-weight:bold">${name}</span></span>
-            <span><span style="color:white;font-weight:bold">${score.toLocaleString()}</span><span style="color:#888;font-size:11px"> pts · Max Lv${lvl}</span></span>
+        let statColor = lbMode === 'devil' ? '#ff3060' : 'var(--cyan)';
+        let statBorder = lbMode === 'devil' ? 'rgba(255,48,96,0.3)' : 'rgba(0,240,255,0.3)';
+        let statBg = lbMode === 'devil' ? 'rgba(255,48,96,0.05)' : 'rgba(0,240,255,0.05)';
+        
+        document.getElementById('lbContent').innerHTML=`<div class="lb-row" style="background:${statBg}; border: 1px solid ${statBorder};">
+            <span style="display:flex;align-items:center;gap:8px"><span>🏆</span><span style="color:${statColor};font-weight:bold">${name}</span></span>
+            <span><span style="color:white;font-weight:bold">Lv ${bestLvl}</span><span style="color:#888;font-size:11px"> in ${bestAtt} tries</span></span>
         </div>`;
-    }catch(e){}
+    }catch(e){
+        console.error("fetchPersonalStats error:", e);
+    }
 }
 </script>
 </body>
