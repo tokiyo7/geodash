@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoDash — ADMIN PANEL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #05080f;
+            --cyan: #00f0ff;
+            --red: #ff3060;
+            --gold: #ffd700;
+            --emerald: #00ff88;
+            --panel-bg: #0a0f18;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Courier New', monospace; }
+        body {
+            background-color: var(--bg-dark);
+            color: #fff;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 { color: var(--gold); text-shadow: 0 0 10px rgba(255,215,0,0.5); margin-bottom: 20px; text-align: center; }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+        }
+        
+        .card h2 { color: var(--cyan); font-size: 18px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+
+        .balance-display { font-size: 24px; font-weight: bold; color: var(--emerald); margin-bottom: 15px; }
+
+        input, textarea {
+            width: 100%;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input:focus, textarea:focus { border-color: var(--cyan); outline: none; }
+
+        .btn {
+            background: linear-gradient(90deg, #00f0ff, #0088ff);
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+        .btn-red { background: linear-gradient(90deg, #ff3060, #aa0022); color: #fff; }
+        .btn-gold { background: linear-gradient(90deg, #ffd700, #ff8800); color: #000; }
+        .btn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        #statusMsg {
+            position: fixed; top: 20px; right: 20px; background: #111; border-left: 4px solid var(--cyan);
+            padding: 15px; border-radius: 4px; display: none; z-index: 1000; max-width: 300px;
+        }
+
+        .help-text { font-size: 11px; color: #888; margin-bottom: 10px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <h1>⚙️ GEODASH ADMIN PANEL</h1>
+    
+    <div class="container">
+        <div class="card" style="text-align: center;">
+            <p id="walletInfo" style="margin-bottom: 15px; color: #aaa;">Not Connected</p>
+            <button class="btn btn-gold" id="connectBtn" onclick="connectWallet()">🦊 Connect MetaMask</button>
+        </div>
+
+        <div id="adminControls" style="display: none; flex-direction: column; gap: 20px;">
+            
+            <div class="card">
+                <h2>💰 Prize Vault Status</h2>
+                <div class="balance-display" id="contractBalance">Loading...</div>
+                
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="fundAmount" placeholder="Amount in ETH (e.g. 0.1)" step="0.01">
+                    <button class="btn" onclick="fundContract()" style="width: 150px;">Fund Vault</button>
+                </div>
+                <div class="help-text">Add ETH to the contract so the Spin Machine can pay out prizes automatically.</div>
+            </div>
+
+            <div class="card">
+                <h2>🎁 Add Winners to Reward Hub</h2>
+                <div class="help-text">
+                    Format: <code>WalletAddress, AmountInETH</code> (One player per line).<br>
+                    Example:<br>
+                    0x1234...abcd, 0.05<br>
+                    0x5678...efgh, 0.1
+                </div>
+                <textarea id="whitelistInput" placeholder="0x..., 0.05&#n;0x..., 0.1"></textarea>
+                <button class="btn btn-gold" onclick="submitWhitelist()">✅ Submit Whitelist</button>
+            </div>
+
+            <div class="card" style="border-color: rgba(255, 48, 96, 0.3);">
+                <h2 style="color: var(--red);">🚨 Emergency Withdraw</h2>
+                <div class="help-text">Withdraw ETH back to your admin wallet if needed.</div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="withdrawAmount" placeholder="Amount in ETH" step="0.01">
+                    <button class="btn btn-red" onclick="withdrawFunds()" style="width: 150px;">Withdraw</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="statusMsg"></div>
+
+<script>
+// --- CONFIGURATION ---
+const CONTRACT_ADDRESS = "0x9488b2e99BB3470078EEB0812799c76ea4e64C65";
+const ABI = [
+    "function admin1() view returns (address)",
+    "function admin2() view returns (address)",
+    "function getContractBalance() view returns (uint256)",
+    "function fundContract() payable",
+    "function adminWithdraw(uint256 amount)",
+    "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts)"
+];
+
+let provider, signer, contract, userAddress;
+
+function showToast(msg, color="var(--cyan)") {
+    const el = document.getElementById('statusMsg');
+    el.innerText = msg;
+    el.style.borderLeftColor = color;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 4000);
+}
+
+async function connectWallet() {
+    if (!window.ethereum) {
+        showToast("Please install MetaMask!", "var(--red)");
+        return;
+    }
+    try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        
+        // Ensure Arbitrum Network
+        const network = await provider.getNetwork();
+        if (network.chainId !== 42161) { // 42161 is Arbitrum One Mainnet
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xa4b1' }], // 0xa4b1 is hex for 42161
+                });
+            } catch (e) {
+                showToast("Please switch to Arbitrum Mainnet!", "var(--red)");
+                return;
+            }
+        }
+
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+
+        document.getElementById('walletInfo').innerText = `✅ Connected: ${userAddress}`;
+        document.getElementById('walletInfo').style.color = "var(--emerald)";
+        document.getElementById('connectBtn').style.display = "none";
+
+        // Verify if user is admin
+        const ad1 = await contract.admin1();
+        const ad2 = await contract.admin2();
+        
+        if (userAddress.toLowerCase() === ad1.toLowerCase() || userAddress.toLowerCase() === ad2.toLowerCase()) {
+            document.getElementById('adminControls').style.display = "flex";
+            refreshBalance();
+            showToast("Welcome Admin!", "var(--emerald)");
+        } else {
+            showToast("ACCESS DENIED: You are not an admin.", "var(--red)");
+        }
+    } catch (err) {
+        showToast("Connection failed.", "var(--red)");
+    }
+}
+
+async function refreshBalance() {
+    try {
+        const bal = await contract.getContractBalance();
+        const ethBal = ethers.utils.formatEther(bal);
+        document.getElementById('contractBalance').innerText = `${parseFloat(ethBal).toFixed(4)} ETH`;
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+async function fundContract() {
+    const amt = document.getElementById('fundAmount').value;
+    if (!amt || amt <= 0) return showToast("Enter a valid amount", "var(--red)");
+    try {
+        const tx = await contract.fundContract({ value: ethers.utils.parseEther(amt.toString()) });
+        showToast("Funding... please wait.", "var(--gold)");
+        await tx.wait();
+        showToast("Vault Funded Successfully!", "var(--emerald)");
+        document.getElementById('fundAmount').value = '';
+        refreshBalance();
+    } catch (e) {
+        showToast("Funding failed: " + (e.reason || e.message), "var(--red)");
+    }
+}
+
+async function withdrawFunds() {
+    const amt = document.getElementById('withdrawAmount').value;
+    if (!amt || amt <= 0) return showToast("Enter a valid amount", "var(--red)");
+    try {
+        const tx = await contract.adminWithdraw(ethers.utils.parseEther(amt.toString()));
+        showToast("Withdrawing... please wait.", "var(--gold)");
+        await tx.wait();
+        showToast("Withdraw Successful!", "var(--emerald)");
+        document.getElementById('withdrawAmount').value = '';
+        refreshBalance();
+    } catch (e) {
+        showToast("Withdraw failed: " + (e.reason || e.message), "var(--red)");
+    }
+}
+
+async function submitWhitelist() {
+    const input = document.getElementById('whitelistInput').value.trim();
+    if (!input) return showToast("Input cannot be empty", "var(--red)");
+
+    const lines = input.split('\n');
+    let addresses = [];
+    let amounts = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        let parts = lines[i].split(',');
+        if (parts.length !== 2) {
+            return showToast(`Line ${i+1} format error. Use: Address, Amount`, "var(--red)");
+        }
+        let addr = parts[0].trim();
+        let amt = parts[1].trim();
+
+        if (!ethers.utils.isAddress(addr)) {
+            return showToast(`Invalid address on line ${i+1}`, "var(--red)");
+        }
+
+        addresses.push(addr);
+        try {
+            amounts.push(ethers.utils.parseEther(amt));
+        } catch(e) {
+            return showToast(`Invalid amount on line ${i+1}`, "var(--red)");
+        }
+    }
+
+    try {
+        const tx = await contract.addToWhitelist(addresses, amounts);
+        showToast("Whitelisting users... please wait.", "var(--gold)");
+        await tx.wait();
+        showToast("Users Successfully Whitelisted! They can now claim.", "var(--emerald)");
+        document.getElementById('whitelistInput').value = '';
+    } catch (e) {
+        showToast("Whitelist failed: " + (e.reason || e.message), "var(--red)");
+    }
+}
+</script>
+</body>
+</html>
