@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // 🔴 FIXED ABI: Added 'bool isDevil' to LevelCleared event so it parses correctly
+    // FULL V9 HYBRID ABI - DO NOT CHANGE
     const ABI = [
         "function admin1() view returns (address)",
         "function admin2() view returns (address)",
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         "function resetLeaderboard(bool _isDevil) external",
         "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
         "function adminWithdrawArb(uint256 amount) external",
-        "event LevelCleared(address indexed player, uint256 level, uint256 attempts, bool isDevil)" 
+        "event LevelCleared(address indexed player, uint256 level, uint256 attempts, bool isDevil)"
     ];
 
     if (req.method === 'GET') {
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>GeoDash Super Admin 3.1 — PRO EDITION</title>
+                <title>GeoDash Super Admin 3.1 — ULTIMATE</title>
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
                 <style>
                     :root { --bg: #05080f; --cyan: #00f0ff; --gold: #ffd700; --red: #ff3060; --green: #00ff88; --card: #0a111a; }
@@ -44,32 +44,37 @@ export default async function handler(req, res) {
                     button { background: linear-gradient(90deg, var(--gold), #ff8c00); color: #000; padding: 15px; border: none; font-weight: 900; cursor: pointer; border-radius: 8px; width: 100%; text-transform: uppercase; transition: 0.3s; margin-top: 10px; }
                     button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
                     
-                    #dashboard { display: none; max-width: 1200px; margin: 0 auto; animation: fadeIn 0.5s ease; }
+                    #dashboard { display: none; max-width: 1300px; margin: 0 auto; animation: fadeIn 0.5s ease; }
                     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-                    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+                    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
                     .stat-card { background: var(--card); padding: 20px; border-radius: 15px; border: 1px solid #222; text-align: center; position: relative; overflow: hidden; }
                     .stat-card::after { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--cyan); }
-                    .stat-val { font-size: 24px; font-weight: bold; margin-top: 10px; }
+                    .stat-val { font-size: 22px; font-weight: bold; margin-top: 10px; }
                     
-                    .tabs { display: flex; gap: 12px; margin-bottom: 25px; }
-                    .tab { flex: 1; padding: 18px; text-align: center; background: #111; border: 1px solid #333; cursor: pointer; border-radius: 10px; color: #666; font-weight: bold; transition: 0.2s; }
+                    .tabs { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; }
+                    .tab { flex: 1; padding: 18px; text-align: center; background: #111; border: 1px solid #333; cursor: pointer; border-radius: 10px; color: #666; font-weight: bold; transition: 0.2s; min-width: 150px; }
                     .tab.active { background: rgba(0,240,255,0.1); border-color: var(--cyan); color: var(--cyan); }
                     
-                    .card { background: var(--card); border: 1px solid #222; border-radius: 15px; padding: 30px; margin-bottom: 25px; }
+                    .card { background: var(--card); border: 1px solid #222; border-radius: 15px; padding: 30px; margin-bottom: 25px; overflow-x: auto; }
                     .card h3 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; color: var(--gold); }
                     
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; min-width: 800px; }
                     th { text-align: left; color: #888; font-size: 12px; padding: 12px; border-bottom: 2px solid #222; }
                     td { padding: 15px 12px; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
                     tr:hover { background: rgba(255,255,255,0.02); }
                     
-                    .status-pending { color: var(--gold); font-weight: bold; background: rgba(255,215,0,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--gold); }
-                    .status-claimed { color: var(--green); opacity: 0.8; }
+                    .status-pending { color: var(--gold); font-weight: bold; background: rgba(255,215,0,0.1); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--gold); display: inline-block;}
+                    .status-claimed { color: #555; background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 6px; display: inline-block;}
+                    .status-added { color: var(--green); font-weight: bold; background: rgba(0,255,136,0.1); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--green); display: inline-block;}
                     
                     .action-btns { display: flex; gap: 8px; }
-                    .btn-small { width: auto; padding: 6px 12px; font-size: 11px; text-transform: none; }
+                    .btn-small { width: auto; padding: 8px 15px; font-size: 12px; text-transform: none; background: #222; color: #fff; }
+                    .btn-small:hover { background: var(--cyan); color: #000; }
                     .btn-danger { background: var(--red); color: #fff; }
+                    
+                    .username-tag { color: var(--cyan); font-weight: bold; font-size: 16px; margin-bottom: 4px; display: inline-block; }
+                    .wallet-tag { color: #666; font-size: 11px; font-family: monospace; }
                 </style>
             </head>
             <body>
@@ -83,7 +88,7 @@ export default async function handler(req, res) {
 
                 <div id="dashboard">
                     <div class="header">
-                        <h1>🚀 GEODASH 3.0 PRO ADMIN</h1>
+                        <h1>🚀 GEODASH 3.1 ULTIMATE ADMIN</h1>
                         <p style="color:#555">NETWORK: ARBITRUM ONE | CONTRACT: <span style="color:#888">${CONTRACT_ADDRESS}</span></p>
                     </div>
 
@@ -93,12 +98,16 @@ export default async function handler(req, res) {
                             <div class="stat-val" id="vBal" style="color:var(--green)">0.00 ARB</div>
                         </div>
                         <div class="stat-card" style="border-left: 4px solid var(--gold);">
-                            <div style="color:#888">Unclaimed Rewards</div>
+                            <div style="color:#888">Total Pending Bounty</div>
                             <div class="stat-val" id="totalPending" style="color:var(--gold)">0.00 ARB</div>
+                        </div>
+                        <div class="stat-card" style="border-left: 4px solid #ff8c00;">
+                            <div style="color:#888">Players Waiting</div>
+                            <div class="stat-val" id="pendingCount" style="color:#ff8c00">0 Players</div>
                         </div>
                         <div class="stat-card" style="border-left: 4px solid var(--cyan);">
                             <div style="color:#888">Live Spin Range</div>
-                            <div class="stat-val" id="rangeTxt" style="color:var(--cyan); font-size:18px;">---</div>
+                            <div class="stat-val" id="rangeTxt" style="color:var(--cyan);">---</div>
                         </div>
                     </div>
 
@@ -111,21 +120,21 @@ export default async function handler(req, res) {
                     <div id="playerTab" class="tab-content">
                         <div class="card">
                             <h3>
-                                <span>Recent On-Chain Activity</span>
-                                <button class="btn-small" onclick="refreshData()" style="width:auto">🔄 Sync Now</button>
+                                <span>📡 Live On-Chain Activity Tracker</span>
+                                <button class="btn-small" onclick="refreshData()" style="width:auto; background:var(--gold); color:#000;">🔄 Sync Now</button>
                             </h3>
                             <table id="activityTable">
                                 <thead>
                                     <tr>
-                                        <th>Player Wallet</th>
-                                        <th>Level</th>
+                                        <th>Player Identity</th>
+                                        <th>Game Mode & Level</th>
                                         <th>Attempts</th>
                                         <th>Reward Status</th>
                                         <th>Quick Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="activityBody">
-                                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#555;">Initializing system...</td></tr>
+                                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#555;">Initializing system & fetching Usernames...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -151,24 +160,24 @@ export default async function handler(req, res) {
                             <h3 style="color:var(--red)">🚨 Danger Zone</h3>
                             <p style="color:#888; font-size:12px; margin-bottom:15px;">Wiping the leaderboard is irreversible.</p>
                             <div class="action-btns">
-                                <button class="btn-danger" onclick="resetLB(false)">RESET CLASSIC BOARD</button>
-                                <button class="btn-danger" onclick="resetLB(true)">RESET DEVIL BOARD</button>
+                                <button class="btn-danger" onclick="resetLB(false)" style="flex:1; padding:15px;">RESET CLASSIC BOARD</button>
+                                <button class="btn-danger" onclick="resetLB(true)" style="flex:1; padding:15px;">RESET DEVIL BOARD</button>
                             </div>
                         </div>
                     </div>
 
                     <div id="rewardTab" class="tab-content" style="display:none">
                         <div class="card">
-                            <h3>🎁 Manual Whitelist / Payout</h3>
-                            <p style="color:#888; font-size:12px; margin-bottom:20px;">Use this to reward players manually if they tag you with a clear.</p>
+                            <h3>🎁 Manual Whitelist / Bounty Payout</h3>
+                            <p style="color:#888; font-size:12px; margin-bottom:20px;">Use this to reward players manually. Add their address and they can claim instantly.</p>
                             <input type="text" id="wlAddr" placeholder="Paste Wallet Address (0x...)">
                             <input type="number" id="wlAmt" step="0.01" placeholder="Amount to give (e.g. 1.0)">
-                            <button onclick="addWhitelist()" style="background:var(--green); color:#000;">GRANT REWARD</button>
+                            <button onclick="addWhitelist()" style="background:var(--green); color:#000;">GRANT BOUNTY REWARD</button>
                         </div>
                     </div>
                 </div>
 
-                <div id="toast" style="position:fixed; bottom:20px; right:20px; background:#111; border-left:4px solid var(--cyan); padding:15px; display:none; z-index:1000;"></div>
+                <div id="toast" style="position:fixed; bottom:20px; right:20px; background:#111; border-left:4px solid var(--cyan); padding:15px; display:none; z-index:1000; font-weight:bold; box-shadow: 0 0 20px rgba(0,0,0,0.8);"></div>
 
                 <script>
                     let provider, contract;
@@ -177,7 +186,7 @@ export default async function handler(req, res) {
                     function showMsg(m, c=true) {
                         const t = document.getElementById('toast');
                         t.innerText = m; t.style.display = 'block'; t.style.borderLeftColor = c ? 'var(--green)' : 'var(--red)';
-                        setTimeout(() => t.style.display = 'none', 3000);
+                        setTimeout(() => t.style.display = 'none', 4000);
                     }
 
                     async function login() {
@@ -196,8 +205,31 @@ export default async function handler(req, res) {
                         refreshData();
                     }
 
+                    // Farcaster Username Fetcher API
+                    async function fetchUsernames(addresses) {
+                        if(addresses.length === 0) return {};
+                        try {
+                            const res = await fetch('https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=' + addresses.join(','), {
+                                headers: { 'accept': 'application/json', 'api_key': 'NEYNAR_API_DOCS' }
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                let nameMap = {};
+                                for (let addr of addresses) {
+                                    let lowerAddr = addr.toLowerCase();
+                                    if (data[lowerAddr] && data[lowerAddr].length > 0) {
+                                        nameMap[lowerAddr] = '@' + data[lowerAddr][0].username;
+                                    }
+                                }
+                                return nameMap;
+                            }
+                        } catch(e) { console.error("Username fetch failed", e); }
+                        return {};
+                    }
+
                     async function refreshData() {
                         try {
+                            // Update Top Stats
                             const bal = await contract.getArbBalance();
                             const min = await contract.spinMinReward();
                             const max = await contract.spinMaxReward();
@@ -206,34 +238,61 @@ export default async function handler(req, res) {
                             document.getElementById('minR').value = ethers.formatEther(min);
                             document.getElementById('maxR').value = ethers.formatEther(max);
 
-                            // 🔴 FIXED: Looking back ~100,000 blocks (roughly 7 hours on Arbitrum) to ensure we don't miss any recent players
+                            // Analytics Scan (100k blocks = ~7 hours)
                             const currentBlock = await provider.getBlockNumber();
                             const startBlock = currentBlock > 100000 ? currentBlock - 100000 : 0; 
                             
                             const filter = contract.filters.LevelCleared();
                             const events = await contract.queryFilter(filter, startBlock, currentBlock);
-                            let unclaimed = 0n;
+                            
+                            let unclaimedAmt = 0n;
+                            let pendingPlayers = new Set();
                             let html = "";
+
+                            // Extract Unique Addresses to Fetch Usernames
+                            let uniqueAddrs = [...new Set(events.map(e => e.args[0]))];
+                            let nameMap = await fetchUsernames(uniqueAddrs);
 
                             for (let event of events.reverse()) {
                                 const pAddr = event.args[0];
                                 const lvl = event.args[1];
                                 const att = event.args[2];
-                                const isDevil = event.args[3]; // We can now see if it's devil mode!
+                                const isDevil = event.args[3]; 
                                 
                                 const reward = await contract.whitelistRewards(pAddr);
-                                if(reward > 0n) unclaimed += reward;
+                                let statusHtml = "";
+                                
+                                if(reward > 0n) {
+                                    unclaimedAmt += reward;
+                                    pendingPlayers.add(pAddr);
+                                    statusHtml = '<span class="status-added">✅ ADDED & PENDING (' + ethers.formatEther(reward) + ' ARB)</span>';
+                                } else {
+                                    statusHtml = '<span class="status-claimed">❌ NO REWARD / CLAIMED</span>';
+                                }
+
+                                let username = nameMap[pAddr.toLowerCase()] || "Unknown Player";
 
                                 html += \`<tr>
-                                    <td style="color:var(--cyan); font-weight:bold;">\${pAddr.slice(0,12)}...</td>
-                                    <td>Level \${lvl} \${isDevil ? '👿' : '🟦'}</td>
-                                    <td>\${att}</td>
-                                    <td><span class="\${reward > 0n ? 'status-pending' : 'status-claimed'}">\${reward > 0n ? '⏳ PENDING ('+ethers.formatEther(reward)+')' : '✅ CLAIMED'}</span></td>
-                                    <td><button class="btn-small" onclick="copyAddr('\${pAddr}')">Copy</button></td>
+                                    <td>
+                                        <span class="username-tag">\${username}</span><br>
+                                        <span class="wallet-tag">\${pAddr}</span>
+                                    </td>
+                                    <td><span style="font-weight:bold; color:\${isDevil ? 'var(--red)' : 'var(--cyan)'}">\${isDevil ? '👿 Devil' : '🟦 Classic'} Lv \${lvl}</span></td>
+                                    <td>\${att} Tries</td>
+                                    <td>\${statusHtml}</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-small" onclick="copyAddr('\${pAddr}')">📋 Copy</button>
+                                            <button class="btn-small" style="background:var(--gold);color:#000;" onclick="quickReward('\${pAddr}')">🎁 Reward</button>
+                                        </div>
+                                    </td>
                                 </tr>\`;
                             }
-                            document.getElementById('activityBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No recent clears detected.</td></tr>';
-                            document.getElementById('totalPending').innerText = ethers.formatEther(unclaimed) + " ARB";
+                            
+                            document.getElementById('activityBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding:30px;">No recent clears detected.</td></tr>';
+                            document.getElementById('totalPending').innerText = ethers.formatEther(unclaimedAmt) + " ARB";
+                            document.getElementById('pendingCount').innerText = pendingPlayers.size + " Players";
+
                         } catch(e) { 
                             console.error("Error loading analytics:", e); 
                             showMsg("Error loading analytics. Check console.", false);
@@ -241,6 +300,12 @@ export default async function handler(req, res) {
                     }
 
                     window.copyAddr = (a) => { navigator.clipboard.writeText(a); showMsg("Address Copied!"); }
+                    
+                    window.quickReward = (a) => { 
+                        document.getElementById('wlAddr').value = a; 
+                        showTab('rewardTab', document.querySelectorAll('.tab')[2]); 
+                        showMsg("Address pasted in Reward Hub. Enter Amount!", true); 
+                    }
 
                     async function updateSpinRange() {
                         const s = await provider.getSigner();
@@ -253,7 +318,7 @@ export default async function handler(req, res) {
                         const s = await provider.getSigner();
                         const c = new ethers.Contract(ADDR, ${JSON.stringify(ABI)}, s);
                         const tx = await c.addToWhitelist([document.getElementById('wlAddr').value], [ethers.parseEther(document.getElementById('wlAmt').value)]);
-                        showMsg("Whitelisting player..."); await tx.wait(); showMsg("Player Added!"); refreshData();
+                        showMsg("Whitelisting player..."); await tx.wait(); showMsg("Player Added to Hub!"); refreshData();
                     }
 
                     async function resetLB(isDev) {
@@ -261,7 +326,7 @@ export default async function handler(req, res) {
                         const s = await provider.getSigner();
                         const c = new ethers.Contract(ADDR, ${JSON.stringify(ABI)}, s);
                         const tx = await c.resetLeaderboard(isDev);
-                        await tx.wait(); showMsg("Board Cleared!"); refreshData();
+                        showMsg("Wiping Leaderboard..."); await tx.wait(); showMsg("Board Cleared!"); refreshData();
                     }
 
                     function showTab(id, el) {
