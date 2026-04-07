@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // FULL V9 HYBRID ABI - ALL FEATURES INCLUDED
+    // 🔴 FIXED ABI: Added 'bool isDevil' to LevelCleared event so it parses correctly
     const ABI = [
         "function admin1() view returns (address)",
         "function admin2() view returns (address)",
@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         "function resetLeaderboard(bool _isDevil) external",
         "function addToWhitelist(address[] calldata _players, uint256[] calldata _amounts) external",
         "function adminWithdrawArb(uint256 amount) external",
-        "event LevelCleared(address indexed player, uint256 level, uint256 attempts)"
+        "event LevelCleared(address indexed player, uint256 level, uint256 attempts, bool isDevil)" 
     ];
 
     if (req.method === 'GET') {
@@ -206,28 +206,38 @@ export default async function handler(req, res) {
                             document.getElementById('minR').value = ethers.formatEther(min);
                             document.getElementById('maxR').value = ethers.formatEther(max);
 
-                            // Analytics Scan
+                            // 🔴 FIXED: Looking back ~100,000 blocks (roughly 7 hours on Arbitrum) to ensure we don't miss any recent players
+                            const currentBlock = await provider.getBlockNumber();
+                            const startBlock = currentBlock > 100000 ? currentBlock - 100000 : 0; 
+                            
                             const filter = contract.filters.LevelCleared();
-                            const events = await contract.queryFilter(filter, -10000);
+                            const events = await contract.queryFilter(filter, startBlock, currentBlock);
                             let unclaimed = 0n;
                             let html = "";
 
                             for (let event of events.reverse()) {
                                 const pAddr = event.args[0];
+                                const lvl = event.args[1];
+                                const att = event.args[2];
+                                const isDevil = event.args[3]; // We can now see if it's devil mode!
+                                
                                 const reward = await contract.whitelistRewards(pAddr);
                                 if(reward > 0n) unclaimed += reward;
 
                                 html += \`<tr>
                                     <td style="color:var(--cyan); font-weight:bold;">\${pAddr.slice(0,12)}...</td>
-                                    <td>Level \${event.args[1]}</td>
-                                    <td>\${event.args[2]}</td>
+                                    <td>Level \${lvl} \${isDevil ? '👿' : '🟦'}</td>
+                                    <td>\${att}</td>
                                     <td><span class="\${reward > 0n ? 'status-pending' : 'status-claimed'}">\${reward > 0n ? '⏳ PENDING ('+ethers.formatEther(reward)+')' : '✅ CLAIMED'}</span></td>
                                     <td><button class="btn-small" onclick="copyAddr('\${pAddr}')">Copy</button></td>
                                 </tr>\`;
                             }
                             document.getElementById('activityBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center;">No recent clears detected.</td></tr>';
                             document.getElementById('totalPending').innerText = ethers.formatEther(unclaimed) + " ARB";
-                        } catch(e) { console.error(e); }
+                        } catch(e) { 
+                            console.error("Error loading analytics:", e); 
+                            showMsg("Error loading analytics. Check console.", false);
+                        }
                     }
 
                     window.copyAddr = (a) => { navigator.clipboard.writeText(a); showMsg("Address Copied!"); }
