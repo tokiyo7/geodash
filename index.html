@@ -1376,6 +1376,7 @@ class GeoDashEngine {
                 [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
                 [
                     {t:'portal_flappy', x:0},
+                    {t:'fake_plat', x:-20, y:120, w:180}, // THE TROLL TRAP ABOVE THE PORTAL
                     {t:'saw', x: 500, y: 250}, 
                     {t:'saw', x: 1000, y: 80},  
                     {t:'saw', x: 1500, y: 250}, 
@@ -1877,6 +1878,9 @@ class GeoDashEngine {
             else if(o.t==='platform'){
                 oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;
             }
+            else if(o.t==='fake_plat'){
+                oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;
+            }
             else if(o.t==='saw'){ 
                 oHX=ox-15; oHY=o.y-15; oHW=30; oHH=30; 
             }
@@ -1940,6 +1944,18 @@ class GeoDashEngine {
                         this.player.rot=Math.round(this.player.rot/90)*90;
                     }else{ 
                         this.die(); 
+                        return; 
+                    }
+                }
+                if(o.t==='fake_plat'){
+                    if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
+                        // TROLL TRIGGERED: Shatter and disappear!
+                        this.spawnGlassShatter(ox, o.y, 16);
+                        o.active = false;
+                        // Do NOT set ground=true, let them fall
+                        continue;
+                    } else { 
+                        this.die("PRANKED BY THE DEV! 😈", false); 
                         return; 
                     }
                 }
@@ -2069,6 +2085,12 @@ class GeoDashEngine {
                 this.ctx.fill();
             }
             else if(o.t==='platform'){
+                this.ctx.fillStyle='#00ff88'; 
+                this.ctx.fillRect(ox,o.y,o.w,16); 
+                this.ctx.fillStyle='#0d1e2e'; 
+                this.ctx.fillRect(ox+2,o.y+2,o.w-4,12);
+            }
+            else if(o.t==='fake_plat'){
                 this.ctx.fillStyle='#00ff88'; 
                 this.ctx.fillRect(ox,o.y,o.w,16); 
                 this.ctx.fillStyle='#0d1e2e'; 
