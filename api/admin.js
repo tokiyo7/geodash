@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7"; 
     const ARB_RPC = "https://arb1.arbitrum.io/rpc";
 
-    // FULL V9 HYBRID ABI - DO NOT CHANGE
+    // FULL V9 HYBRID ABI
     const ABI = [
         "function admin1() view returns (address)",
         "function admin2() view returns (address)",
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>GeoDash Super Admin 3.1 — ULTIMATE</title>
+                <title>GeoDash Super Admin 3.2 — MASTER</title>
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.11.1/ethers.umd.min.js"></script>
                 <style>
                     :root { --bg: #05080f; --cyan: #00f0ff; --gold: #ffd700; --red: #ff3060; --green: #00ff88; --card: #0a111a; }
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
             <body>
                 <div id="loginBox">
                     <h1 style="color:var(--gold); margin-bottom:5px;">TOKIYO BOSS</h1>
-                    <p style="color:#666; margin-bottom:25px;">GEODASH 3.1 COMMAND CENTER</p>
+                    <p style="color:#666; margin-bottom:25px;">GEODASH 3.2 COMMAND CENTER</p>
                     <input type="password" id="pass" placeholder="Enter Secret Password">
                     <button onclick="login()">SYNC BLOCKCHAIN</button>
                     <p id="loginError" style="color:var(--red); margin-top:15px; font-size:12px;"></p>
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
 
                 <div id="dashboard">
                     <div class="header">
-                        <h1>🚀 GEODASH 3.1 ULTIMATE ADMIN</h1>
+                        <h1>🚀 GEODASH 3.2 MASTER ADMIN</h1>
                         <p style="color:#555">NETWORK: ARBITRUM ONE | CONTRACT: <span style="color:#888">${CONTRACT_ADDRESS}</span></p>
                     </div>
 
@@ -118,23 +118,42 @@ export default async function handler(req, res) {
                     </div>
 
                     <div id="playerTab" class="tab-content">
-                        <div class="card">
+                        
+                        <div class="card" style="border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.1);">
                             <h3>
-                                <span>📡 Live On-Chain Activity Tracker</span>
+                                <span>🏆 All-Time Top 15 (Classic Mode)</span>
                                 <button class="btn-small" onclick="refreshData()" style="width:auto; background:var(--gold); color:#000;">🔄 Sync Now</button>
                             </h3>
+                            <table id="lbTable">
+                                <thead>
+                                    <tr>
+                                        <th>Player Identity</th>
+                                        <th>Max Level</th>
+                                        <th>Best Attempts</th>
+                                        <th>Bounty Status</th>
+                                        <th>Quick Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lbBody">
+                                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#555;">Loading Permanent Leaderboard...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="card">
+                            <h3><span>📡 Recent Activity Log (Last 1.5 Days)</span></h3>
                             <table id="activityTable">
                                 <thead>
                                     <tr>
                                         <th>Player Identity</th>
                                         <th>Game Mode & Level</th>
                                         <th>Attempts</th>
-                                        <th>Reward Status</th>
+                                        <th>Bounty Status</th>
                                         <th>Quick Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="activityBody">
-                                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#555;">Initializing system & fetching Usernames...</td></tr>
+                                    <tr><td colspan="5" style="text-align:center; padding:40px; color:#555;">Initializing system...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -205,12 +224,9 @@ export default async function handler(req, res) {
                         refreshData();
                     }
 
-                    // 🛠️ UPGRADED Farcaster Username Fetcher (Batching to prevent API blocks)
                     async function fetchUsernames(addresses) {
                         if(addresses.length === 0) return {};
                         let nameMap = {};
-                        
-                        // We slice addresses into batches of 10 so Neynar doesn't block us
                         for (let i = 0; i < addresses.length; i += 10) {
                             const batch = addresses.slice(i, i + 10);
                             try {
@@ -222,21 +238,19 @@ export default async function handler(req, res) {
                                     for (let addr of batch) {
                                         let lowerAddr = addr.toLowerCase();
                                         if (data[lowerAddr] && data[lowerAddr].length > 0) {
-                                            // Handle Neynar API object structure safely
                                             let userObj = data[lowerAddr][0];
                                             let uname = userObj.username || (userObj.user && userObj.user.username);
                                             if(uname) nameMap[lowerAddr] = '@' + uname;
                                         }
                                     }
                                 }
-                            } catch(e) { console.error("Username fetch batch failed", e); }
+                            } catch(e) {}
                         }
                         return nameMap;
                     }
 
                     async function refreshData() {
                         try {
-                            // Update Top Stats
                             const bal = await contract.getArbBalance();
                             const min = await contract.spinMinReward();
                             const max = await contract.spinMaxReward();
@@ -245,21 +259,62 @@ export default async function handler(req, res) {
                             document.getElementById('minR').value = ethers.formatEther(min);
                             document.getElementById('maxR').value = ethers.formatEther(max);
 
-                            // Analytics Scan (100k blocks = ~7 hours)
+                            // 1. FETCH ALL-TIME LEADERBOARD
+                            const [geoAddrs, geoLvls, geoAtts] = await contract.getGeoLeaderboard();
+                            
+                            // 2. FETCH RECENT EVENTS (Expanded to 500,000 blocks ~ 1.5 Days)
                             const currentBlock = await provider.getBlockNumber();
-                            const startBlock = currentBlock > 100000 ? currentBlock - 100000 : 0; 
+                            const startBlock = currentBlock > 500000 ? currentBlock - 500000 : 0; 
                             
-                            const filter = contract.filters.LevelCleared();
-                            const events = await contract.queryFilter(filter, startBlock, currentBlock);
+                            let events = [];
+                            try {
+                                const filter = contract.filters.LevelCleared();
+                                events = await contract.queryFilter(filter, startBlock, currentBlock);
+                            } catch(e) { console.warn("RPC limit hit for recent events"); }
+
+                            // 3. COMBINE ALL ADDRESSES FOR NEYNAR API
+                            let allAddrs = [...geoAddrs, ...events.map(e => e.args[0])];
+                            allAddrs = [...new Set(allAddrs)].filter(a => a !== "0x0000000000000000000000000000000000000000");
                             
+                            const nameMap = await fetchUsernames(allAddrs);
+
                             let unclaimedAmt = 0n;
                             let pendingPlayers = new Set();
-                            let html = "";
 
-                            // Extract Unique Addresses to Fetch Usernames
-                            let uniqueAddrs = [...new Set(events.map(e => e.args[0]))];
-                            let nameMap = await fetchUsernames(uniqueAddrs);
+                            // 4. RENDER ALL-TIME LEADERBOARD TABLE
+                            let lbHtml = "";
+                            for(let i=0; i<15; i++) {
+                                if(geoAddrs[i] === "0x0000000000000000000000000000000000000000" || geoLvls[i] == 0) continue;
+                                let pAddr = geoAddrs[i];
+                                let uname = nameMap[pAddr.toLowerCase()] || "👤 Player_" + pAddr.slice(-4).toUpperCase();
+                                
+                                const reward = await contract.whitelistRewards(pAddr);
+                                let statusHtml = "";
+                                if(reward > 0n) {
+                                    unclaimedAmt += reward;
+                                    pendingPlayers.add(pAddr);
+                                    statusHtml = '<span class="status-added">✅ PENDING (' + ethers.formatEther(reward) + ')</span>';
+                                } else {
+                                    statusHtml = '<span class="status-claimed">❌ NO REWARD</span>';
+                                }
 
+                                lbHtml += \`<tr>
+                                    <td><span class="username-tag">\${uname}</span><br><span class="wallet-tag">\${pAddr}</span></td>
+                                    <td><span style="color:var(--cyan);font-weight:bold;font-size:16px;">Lv \${geoLvls[i]}</span></td>
+                                    <td>\${geoAtts[i]} Tries</td>
+                                    <td>\${statusHtml}</td>
+                                    <td>
+                                        <div class="action-btns">
+                                            <button class="btn-small" onclick="copyAddr('\${pAddr}')">📋</button>
+                                            <button class="btn-small" style="background:var(--gold);color:#000;" onclick="quickReward('\${pAddr}')">🎁 Reward</button>
+                                        </div>
+                                    </td>
+                                </tr>\`;
+                            }
+                            document.getElementById('lbBody').innerHTML = lbHtml || '<tr><td colspan="5" style="text-align:center; padding:30px;">Leaderboard is empty. Be the first!</td></tr>';
+
+                            // 5. RENDER RECENT EVENTS TABLE
+                            let actHtml = "";
                             for (let event of events.reverse()) {
                                 const pAddr = event.args[0];
                                 const lvl = event.args[1];
@@ -267,40 +322,20 @@ export default async function handler(req, res) {
                                 const isDevil = event.args[3]; 
                                 
                                 const reward = await contract.whitelistRewards(pAddr);
-                                let statusHtml = "";
-                                
-                                if(reward > 0n) {
-                                    unclaimedAmt += reward;
-                                    pendingPlayers.add(pAddr);
-                                    statusHtml = '<span class="status-added">✅ ADDED & PENDING (' + ethers.formatEther(reward) + ' ARB)</span>';
-                                } else {
-                                    statusHtml = '<span class="status-claimed">❌ NO REWARD / CLAIMED</span>';
-                                }
+                                let statusHtml = reward > 0n ? '<span class="status-added">✅ PENDING</span>' : '<span class="status-claimed">❌ CLAIMED/NONE</span>';
+                                let uname = nameMap[pAddr.toLowerCase()] || "👤 Player_" + pAddr.slice(-4).toUpperCase();
 
-                                // 🛠️ UPGRADED FALLBACK: If no username found, show Anon + Last 4 digits
-                                let username = nameMap[pAddr.toLowerCase()];
-                                if (!username) {
-                                    username = "👤 Player_" + pAddr.slice(-4).toUpperCase();
-                                }
-
-                                html += \`<tr>
-                                    <td>
-                                        <span class="username-tag">\${username}</span><br>
-                                        <span class="wallet-tag">\${pAddr}</span>
-                                    </td>
-                                    <td><span style="font-weight:bold; color:\${isDevil ? 'var(--red)' : 'var(--cyan)'}">\${isDevil ? '👿 Devil' : '🟦 Classic'} Lv \${lvl}</span></td>
-                                    <td>\${att} Tries</td>
+                                actHtml += \`<tr>
+                                    <td><span class="username-tag" style="font-size:13px;">\${uname}</span><br><span class="wallet-tag">\${pAddr}</span></td>
+                                    <td><span style="color:\${isDevil ? 'var(--red)' : 'var(--cyan)'}">\${isDevil ? '👿' : '🟦'} Lv \${lvl}</span></td>
+                                    <td>\${att}</td>
                                     <td>\${statusHtml}</td>
-                                    <td>
-                                        <div class="action-btns">
-                                            <button class="btn-small" onclick="copyAddr('\${pAddr}')">📋 Copy</button>
-                                            <button class="btn-small" style="background:var(--gold);color:#000;" onclick="quickReward('\${pAddr}')">🎁 Reward</button>
-                                        </div>
-                                    </td>
+                                    <td><button class="btn-small" onclick="quickReward('\${pAddr}')">🎁</button></td>
                                 </tr>\`;
                             }
+                            document.getElementById('activityBody').innerHTML = actHtml || '<tr><td colspan="5" style="text-align:center; padding:30px;">No recent clears in last 36 hours. Check Top 15 Leaderboard above.</td></tr>';
                             
-                            document.getElementById('activityBody').innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding:30px;">No recent clears detected.</td></tr>';
+                            // Stats updates
                             document.getElementById('totalPending').innerText = ethers.formatEther(unclaimedAmt) + " ARB";
                             document.getElementById('pendingCount').innerText = pendingPlayers.size + " Players";
 
