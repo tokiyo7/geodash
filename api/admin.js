@@ -205,26 +205,33 @@ export default async function handler(req, res) {
                         refreshData();
                     }
 
-                    // Farcaster Username Fetcher API
+                    // 🛠️ UPGRADED Farcaster Username Fetcher (Batching to prevent API blocks)
                     async function fetchUsernames(addresses) {
                         if(addresses.length === 0) return {};
-                        try {
-                            const res = await fetch('https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=' + addresses.join(','), {
-                                headers: { 'accept': 'application/json', 'api_key': 'NEYNAR_API_DOCS' }
-                            });
-                            if (res.ok) {
-                                const data = await res.json();
-                                let nameMap = {};
-                                for (let addr of addresses) {
-                                    let lowerAddr = addr.toLowerCase();
-                                    if (data[lowerAddr] && data[lowerAddr].length > 0) {
-                                        nameMap[lowerAddr] = '@' + data[lowerAddr][0].username;
+                        let nameMap = {};
+                        
+                        // We slice addresses into batches of 10 so Neynar doesn't block us
+                        for (let i = 0; i < addresses.length; i += 10) {
+                            const batch = addresses.slice(i, i + 10);
+                            try {
+                                const res = await fetch('https://api.neynar.com/v2/farcaster/user/bulk-by-address?addresses=' + batch.join(','), {
+                                    headers: { 'accept': 'application/json', 'api_key': 'NEYNAR_API_DOCS' }
+                                });
+                                if (res.ok) {
+                                    const data = await res.json();
+                                    for (let addr of batch) {
+                                        let lowerAddr = addr.toLowerCase();
+                                        if (data[lowerAddr] && data[lowerAddr].length > 0) {
+                                            // Handle Neynar API object structure safely
+                                            let userObj = data[lowerAddr][0];
+                                            let uname = userObj.username || (userObj.user && userObj.user.username);
+                                            if(uname) nameMap[lowerAddr] = '@' + uname;
+                                        }
                                     }
                                 }
-                                return nameMap;
-                            }
-                        } catch(e) { console.error("Username fetch failed", e); }
-                        return {};
+                            } catch(e) { console.error("Username fetch batch failed", e); }
+                        }
+                        return nameMap;
                     }
 
                     async function refreshData() {
@@ -270,7 +277,11 @@ export default async function handler(req, res) {
                                     statusHtml = '<span class="status-claimed">❌ NO REWARD / CLAIMED</span>';
                                 }
 
-                                let username = nameMap[pAddr.toLowerCase()] || "Unknown Player";
+                                // 🛠️ UPGRADED FALLBACK: If no username found, show Anon + Last 4 digits
+                                let username = nameMap[pAddr.toLowerCase()];
+                                if (!username) {
+                                    username = "👤 Player_" + pAddr.slice(-4).toUpperCase();
+                                }
 
                                 html += \`<tr>
                                     <td>
