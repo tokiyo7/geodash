@@ -2403,6 +2403,7 @@ const ABI = [
 
 
 
+window.isTxActive = false; // GLOBAL LOCK TO PREVENT UI FREEZES
 let userAddress = null; 
 let isConnected = false; 
 let isFarcasterWallet = false; 
@@ -2534,6 +2535,7 @@ async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     
     if(!isConnected){ if(!await connectWallet(true)) return; }
+    if(window.isTxActive) { showToast("⏳ Please wait for current transaction to finish...", "#ffd700"); return; }
     
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     if(ge.currentLevel > maxOnchain) {
@@ -2545,20 +2547,16 @@ async function startOfficialRun(){
     
     if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
 
+    window.isTxActive = true;
     btn.disabled = true;
-    btn.innerText = "⏳ CONFIRMING TX...";
-    showToast("📝 Confirm startLevel() in your wallet...", "#ffd700");
+    btn.innerText = "⏳ CONFIRMING...";
 
     try {
         const iface = new ethers.utils.Interface(ABI);
         const data = iface.encodeFunctionData("startLevel", [Number(ge.currentLevel)]);
 
-        try { 
-            await Promise.race([
-                walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
-            ]);
-        } catch(e) { }
+        // Fast network switch attempt without artificial 2.5s delay
+        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
 
         const txHash = await walletProvider.request({ 
             method: 'eth_sendTransaction', 
@@ -2569,132 +2567,115 @@ async function startOfficialRun(){
         document.getElementById('attemptUI').innerText=`Attempt: 0`;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         ge.start(true);
+        showToast("⛏️ Mining on-chain...", "#ffd700");
 
-        showToast("⛏️ Tx Mining in background...", "#ffd700");
-
+        // Faster background polling
         let confirmed = false;
-        for(let i=0; i<20; i++){
-            await new Promise(r=>setTimeout(r,1500));
+        for(let i=0; i<15; i++){
+            await new Promise(r=>setTimeout(r,1000));
             try {
                 const receipt = await publicProvider.getTransactionReceipt(txHash);
                 if(receipt && receipt.confirmations > 0){ confirmed=true; break; }
             } catch(err){}
         }
 
-        if(confirmed) {
-            showToast("✅ Level registered on-chain!", "#00ff88");
-        } else {
-            showToast("⚠️ Transaction still processing...", "#ffd700");
-        }
+        if(confirmed) showToast("✅ Level registered on-chain!", "#00ff88");
+        window.isTxActive = false;
+
     } catch(e) {
-        console.error("startLevel error:", e);
-        if(e.code === 4001 || (e.message && e.message.includes("rejected"))){
-            showToast("Transaction rejected by user.", "#ff3060");
-        } else {
-            showToast("startLevel failed: " + (e.reason || e.message || "Unknown"), "#ff3060");
-        }
+        window.isTxActive = false;
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
+        if(e.code === 4001 || (e.message && e.message.includes("rejected"))){
+            showToast("❌ Transaction rejected.", "#ff3060");
+        } else {
+            showToast("❌ Start failed. Try again.", "#ff3060");
+        }
     }
 }
 
 async function executeSpin(){
     const btn = document.getElementById('spinBtn'); 
     document.getElementById('spinCastBtn').style.display = 'none'; 
+    
     if(!isConnected) { if(!await connectWallet(true)) return; }
+    if(window.isTxActive) { showToast("⏳ Please wait for current transaction...", "red"); return; }
+    if (!spinStatus.hasFree) { showToast("❌ No spin available! Wait for cooldown.", "red"); return; }
     
-    if (!spinStatus.hasFree) { showToast("No spin available! Wait for cooldown.", "red"); return; }
-    
-    try { 
-        await Promise.race([
-            walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
-        ]);
-    } catch(e) { console.log("Proceeding to tx..."); }
-    
+    window.isTxActive = true;
     btn.disabled=true;
+    
     document.getElementById('r1').className='reel-inner spinning'; 
     document.getElementById('r2').className='reel-inner spinning'; 
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Spinning... Please confirm TX!"; 
+    document.getElementById('spinResult').innerText = "Confirming in wallet..."; 
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    // ✅ FIXED: 100ms delay like devellevel01.html (not 1500ms)
-    setTimeout(async () => {
-        try{
-            const iface = new ethers.utils.Interface(ABI); 
-            const data = iface.encodeFunctionData("spin", []);
-            const txHash = await walletProvider.request({ 
-                method: 'eth_sendTransaction', 
-                params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
-            });
-            
-            document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
-            
-            let isConfirmed = false;
-            for(let i=0; i<15; i++) { 
-                await new Promise(r => setTimeout(r, 2000)); 
-                try { 
-                    const receipt = await publicProvider.getTransactionReceipt(txHash); 
-                    if(receipt && receipt.confirmations > 0) { 
-                        isConfirmed = true;
-                        // Check if tx reverted on-chain
-                        if(receipt.status === 0) {
-                            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
-                            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
-                            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-                            showToast("❌ Spin failed on-chain! Contract may be empty or cooldown active.", "#ff3060");
-                            document.getElementById('spinResult').innerText = "❌ TX Reverted — Contract empty or cooldown not passed!";
-                            document.getElementById('spinResult').style.color = "#ff3060";
-                            refreshSpinStatus();
-                            btn.disabled = false;
-                            return;
-                        }
-                        break; 
-                    } 
-                } catch(err){} 
-            }
-            
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
-            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
-            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
-            
-            if(isConfirmed) { 
-                showToast("🎉 Spin Successful! Prize sent to wallet!", "#00ff88"); 
-                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; 
-                document.getElementById('spinResult').style.color = "#00ff88"; 
-                document.getElementById('spinCastBtn').style.display = 'inline-block'; 
-                
-                localSpins++; 
-                localStorage.setItem('geodash_spins', localSpins); 
-                buildLevelUI(); 
-            } else { 
-                document.getElementById('r1').innerText='❌'; 
-                document.getElementById('r2').innerText='❌'; 
-                document.getElementById('r3').innerText='❌'; 
-                showToast("Transaction Delayed. Check Arbiscan.", "#ff3060"); 
-                document.getElementById('spinResult').innerText="Tx not confirmed yet. Check Arbiscan!"; 
-                document.getElementById('spinResult').style.color = "#ff3060"; 
-            }
-            refreshSpinStatus(); 
-            fetchPersonalStats(); 
-            fetchGlobalLeaderboard();
-        }catch(e){
-            btn.disabled = false; 
-            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
-            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
-            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-            
-            let errStr = "Spin Cancelled"; 
-            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!"; 
-            else if (e.message && (e.message.includes("rejected") || e.code === 4001)) errStr = "Transaction rejected.";
-            else if (e.message) errStr = "Tx Cancelled: " + e.message.slice(0,60);
-            
-            showToast(errStr, "red"); 
-            document.getElementById('spinResult').innerText = errStr; 
-            document.getElementById('spinResult').style.color = "#ff3060";
+    try{
+        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+        
+        const iface = new ethers.utils.Interface(ABI); 
+        const data = iface.encodeFunctionData("spin", []);
+        const txHash = await walletProvider.request({ 
+            method: 'eth_sendTransaction', 
+            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
+        });
+        
+        document.getElementById('spinResult').innerText = "Mining on Arbitrum...";
+        
+        let isConfirmed = false;
+        for(let i=0; i<15; i++) { 
+            await new Promise(r => setTimeout(r, 1000)); 
+            try { 
+                const receipt = await publicProvider.getTransactionReceipt(txHash); 
+                if(receipt && receipt.confirmations > 0) { 
+                    isConfirmed = true;
+                    if(receipt.status === 0) {
+                        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+                        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+                        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+                        showToast("❌ Spin failed on-chain!", "#ff3060");
+                        document.getElementById('spinResult').innerText = "❌ TX Reverted — Contract empty or cooldown active!";
+                        document.getElementById('spinResult').style.color = "#ff3060";
+                        refreshSpinStatus(); 
+                        btn.disabled = false; 
+                        window.isTxActive = false;
+                        return;
+                    }
+                    break; 
+                } 
+            } catch(err){} 
         }
-    }, 100);  // ✅ 100ms like devellevel01.html
+        
+        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
+        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
+        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
+        
+        if(isConfirmed) { 
+            document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! 🎉"; 
+            document.getElementById('spinResult').style.color = "#00ff88"; 
+            document.getElementById('spinCastBtn').style.display = 'inline-block'; 
+            localSpins++; localStorage.setItem('geodash_spins', localSpins); buildLevelUI(); 
+        } else { 
+            document.getElementById('r1').innerText='❌'; document.getElementById('r2').innerText='❌'; document.getElementById('r3').innerText='❌'; 
+            document.getElementById('spinResult').innerText="Tx delayed. Check Arbiscan!"; 
+            document.getElementById('spinResult').style.color = "#ff3060"; 
+        }
+        
+        // Save local time to fix UI load delay next time
+        localStorage.setItem('last_spin_time', Math.floor(Date.now() / 1000));
+        refreshSpinStatus(); fetchPersonalStats(); fetchGlobalLeaderboard();
+        window.isTxActive = false;
+
+    }catch(e){
+        window.isTxActive = false;
+        btn.disabled = false; 
+        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+        document.getElementById('spinResult').innerText = "❌ Tx Cancelled"; 
+        document.getElementById('spinResult').style.color = "#ff3060";
+    }
 }
 
 function buildLevelUI(){
@@ -2794,10 +2775,20 @@ function updateSpinUI() {
 
 async function refreshSpinStatus(){
     if(!userAddress) return;
+    
+    // OPTIMISTIC UI: Instantly check local storage to remove the 4-second block delay
+    const lastLocalSpin = parseInt(localStorage.getItem('last_spin_time') || '0');
+    const nowUnix = Math.floor(Date.now() / 1000);
+    if (nowUnix - lastLocalSpin >= 3600) {
+        spinStatus.hasFree = true;
+        spinStatus.timeLeft = 0;
+        updateSpinUI();
+    }
+
     try{ 
+        // Verify with blockchain in background
         const lsTime = await readContract.lastSpinTime(userAddress);
         const lastSpinUnix = lsTime.toNumber();
-        const nowUnix = Math.floor(Date.now() / 1000);
         const timePassed = nowUnix - lastSpinUnix;
         
         if (lastSpinUnix === 0 || timePassed >= 3600) {
@@ -2806,6 +2797,7 @@ async function refreshSpinStatus(){
         } else {
             spinStatus.hasFree = false;
             spinStatus.timeLeft = 3600 - timePassed;
+            localStorage.setItem('last_spin_time', lastSpinUnix); // Keep local storage in sync
         }
         updateSpinUI(); 
     }catch(e){
