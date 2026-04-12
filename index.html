@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>GeoDash — Play & Earn ARB</title>
-    <meta property="og:title" content="GeoDash — The Boss Fight Update">
+    <title>GeoDash 3.0 — Play & Earn ARB</title>
+    <meta property="og:title" content="GeoDash 3.0 — The Boss Fight Update">
     <meta property="og:description" content="Geometry Dash on Arbitrum! Survive the 3-Phase Robo-Hunter Boss Fight! Season 1 live now!">
     <meta property="og:image" content="https://geodash-amber.vercel.app/preview.png">
     <meta property="og:url" content="https://geodash-amber.vercel.app">
-    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 2.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
+    <meta name="fc:frame" content='{"version":"next","imageUrl":"https://geodash-amber.vercel.app/preview.png","button":{"title":"🎮 Play GeoDash 3.0","action":{"type":"launch_frame","name":"GeoDash","url":"https://geodash-amber.vercel.app","splashImageUrl":"https://geodash-amber.vercel.app/icon.png","splashBackgroundColor":"#05080f"}}}' />
     <meta name="theme-color" content="#05080f">
     <link rel="icon" href="https://geodash-amber.vercel.app/icon.png">
 
@@ -67,7 +67,7 @@
             padding: 14px 14px;
             margin-bottom: 12px;
             backdrop-filter: blur(8px);
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 10px;
             position: relative;
             z-index: 100;
@@ -75,8 +75,9 @@
         
         .nav-modes {
             display: flex;
+            flex-direction: row;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
         }
 
@@ -171,9 +172,10 @@
         }
 
         @media(max-width:600px) {
-            .btn-geo-classic, .btn-devil-mode { font-size: 0.82rem; padding: 10px 10px; }
-            .btn-reward-hub { font-size: 0.82rem; padding: 10px 12px; margin-left: auto; }
-            .top-nav { padding: 10px 8px; gap: 8px; }
+            .btn-geo-classic, .btn-devil-mode { font-size: 0.65rem; padding: 10px 4px; white-space: nowrap; flex: 1; text-align: center; }
+            .btn-reward-hub { font-size: 0.65rem; padding: 10px 4px; white-space: nowrap; margin-left: 0; flex: 1; text-align: center; }
+            .top-nav { padding: 8px 4px; gap: 4px; flex-wrap: nowrap; }
+            .nav-modes { gap: 4px; flex-wrap: nowrap; flex: 2; display: flex; }
         }
 
         .header { 
@@ -750,14 +752,7 @@
             margin-top: 8px; 
         }
 
-        .spin-info-note {
-            font-size: 11px;
-            color: #666;
-            text-align: center;
-            margin-top: 10px;
-            font-style: italic;
-            line-height: 1.5;
-        }
+
         
         .cast-btn-small { 
             background: linear-gradient(90deg, #8a2be2, #4a00e0); 
@@ -956,18 +951,25 @@
         import sdk from 'https://esm.sh/@farcaster/frame-sdk';
         window.fcSdk = sdk; 
         
-        try {
-            sdk.actions.ready();
-            sdk.context.then(async context => {
-                if (context && context.user) {
-                    window.fcUsername = context.user.username || null;
-                    const titleEl = document.getElementById('mainTitle');
-                    if(titleEl && window.fcUsername) {
-                        titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+        window.addEventListener('DOMContentLoaded', () => {
+            // Wait 300ms for Frame environment sync
+            setTimeout(() => {
+                try {
+                    if (window.fcSdk && window.fcSdk.actions) {
+                        window.fcSdk.actions.ready();
+                        window.fcSdk.context.then(async context => {
+                            if (context && context.user) {
+                                window.fcUsername = context.user.username || null;
+                                const titleEl = document.getElementById('mainTitle');
+                                if(titleEl && window.fcUsername) {
+                                    titleEl.innerHTML = `GEODASH <span style="font-size:12px;color:#888;letter-spacing:0;">@${window.fcUsername}</span>`;
+                                }
+                            }
+                        }).catch(()=>{});
                     }
-                }
-            }).catch(()=>{});
-        } catch(e) {}
+                } catch (e) { console.error("SDK Ready Error:", e); }
+            }, 300);
+        });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 </head>
@@ -983,10 +985,10 @@
 
 <div id="welcomeModal">
     <div class="modal-content">
-        <div class="modal-title">Welcome to GeoDash! ⚡</div>
-        <div class="modal-text">🚀 **THE BOSS FIGHT UPDATE:** Think you can just fly over everything? Survive 50 shots from the Robo-Hunter in Flappy Mode! 🎯</div>
-        <div class="modal-text">🎁 **PRACTICE UNLOCKED:** Level 1 is free to Practice. Pass a practice level OR spin the slot machine to unlock higher levels!</div>
-        <div class="modal-text">💻 **PRO TIP:** Playing on a **Laptop or PC** will unlock the absolute best buttery-smooth experience.</div>
+        <div class="modal-title">GeoDash 3.0: THE BOSS UPDATE ⚡</div>
+        <div class="modal-text">🚀 **VERSION 3.0 IS LIVE:** Experience the ultimate test of reflexes! Survive the 3-Phase Robo-Hunter Boss Fight and claim your place on the global leaderboard. 🎯</div>
+        <div class="modal-text">💎 **ON-CHAIN REWARDS:** Play Official Runs to earn $ARB rewards directly to your wallet. Every clear matters in the new Season!</div>
+        <div class="modal-text">💻 **OPTIMIZED EXPERIENCE:** Best played on Laptop/PC for maximum FPS and precision. Check the Rotate button for full-screen mode!</div>
         <button class="modal-btn-spin" onclick="scrollToSpin()">🎰 TAKE ME TO FREE SPIN!</button>
     </div>
 </div>
@@ -1045,6 +1047,10 @@
     </div>
 </div>
 
+<div style="width:100%; max-width:800px; margin: 10px 0; display: flex; justify-content: center;">
+    <button id="rotateBtn" style="width:100%; padding: 16px; background: rgba(10,15,24,0.9); border: 2px solid var(--cyan); border-radius: 12px; color: var(--cyan); font-weight: 900; cursor: pointer; box-shadow: 0 0 20px rgba(0,240,255,0.25); letter-spacing: 1.5px; font-family: 'Courier New', monospace; transition: all 0.3s; font-size: 14px; text-transform: uppercase;">🔄 FULL SCREEN / ROTATE</button>
+</div>
+
 <div class="progress-bar-wrap">
     <div class="progress-bar" id="progressBar"></div>
     <div class="progress-text" id="progressText">Level 1/10</div>
@@ -1094,10 +1100,7 @@
     <button class="spin-btn" id="spinBtn">🎰 SPIN NOW!</button>
     <button class="cast-btn-small" id="spinCastBtn">📢 SHARE YOUR SPIN WIN!</button>
     <div class="slot-info" id="spinInfo">Loading status...</div>
-    <div class="spin-info-note" style="color:#ffd700; font-size:12px; margin-top:10px; padding:8px; background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.2); border-radius:8px; line-height:1.6;">
-        ⚠️ <strong>"No state changes" popup?</strong> — Yeh Farcaster wallet ka warning hai jab contract mein ARB kam ho. Phir bhi <strong>CONFIRM</strong> karo — transaction process hogi!
-    </div>
-    <div style="font-size:11px; color:#555; text-align:center; margin-top:8px;" id="contractBalanceDisplay">Checking contract balance...</div>
+
     <div class="slot-info" style="color:#00ff88; font-weight:bold; margin-top:8px;" id="spinResult"></div>
 </div>
 
@@ -1373,6 +1376,7 @@ class GeoDashEngine {
                 [{t:'jpad', x:0}, {t:'platform', x:200, y:180, w:120}], 
                 [
                     {t:'portal_flappy', x:0},
+                    {t:'fake_plat', x:-20, y:120, w:180}, // THE TROLL TRAP ABOVE THE PORTAL
                     {t:'saw', x: 500, y: 250}, 
                     {t:'saw', x: 1000, y: 80},  
                     {t:'saw', x: 1500, y: 250}, 
@@ -1874,6 +1878,9 @@ class GeoDashEngine {
             else if(o.t==='platform'){
                 oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;
             }
+            else if(o.t==='fake_plat'){
+                oHX=ox; oHY=o.y-8; oHW=o.w; oHH=32;
+            }
             else if(o.t==='saw'){ 
                 oHX=ox-15; oHY=o.y-15; oHW=30; oHH=30; 
             }
@@ -1937,6 +1944,18 @@ class GeoDashEngine {
                         this.player.rot=Math.round(this.player.rot/90)*90;
                     }else{ 
                         this.die(); 
+                        return; 
+                    }
+                }
+                if(o.t==='fake_plat'){
+                    if(this.playerMode === 'cube' && this.player.prevY+this.player.h <= o.y+landTolerance && this.player.vy>=0){
+                        // TROLL TRIGGERED: Shatter and disappear!
+                        this.spawnGlassShatter(ox, o.y, 16);
+                        o.active = false;
+                        // Do NOT set ground=true, let them fall
+                        continue;
+                    } else { 
+                        this.die("PRANKED BY THE DEV! 😈", false); 
                         return; 
                     }
                 }
@@ -2066,6 +2085,12 @@ class GeoDashEngine {
                 this.ctx.fill();
             }
             else if(o.t==='platform'){
+                this.ctx.fillStyle='#00ff88'; 
+                this.ctx.fillRect(ox,o.y,o.w,16); 
+                this.ctx.fillStyle='#0d1e2e'; 
+                this.ctx.fillRect(ox+2,o.y+2,o.w-4,12);
+            }
+            else if(o.t==='fake_plat'){
                 this.ctx.fillStyle='#00ff88'; 
                 this.ctx.fillRect(ox,o.y,o.w,16); 
                 this.ctx.fillStyle='#0d1e2e'; 
@@ -2283,7 +2308,11 @@ function triggerWinUi(tries) {
         
         const shareBtn = document.getElementById('overlayCastBtn');
         shareBtn.onclick = () => {
-            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\nI just survived Level ${lastClearedLevel} of GeoDash in ${tries+1} attempts! My reflexes are god-tier. 🎮🏆\n\n@tokiyo Check the on-chain leaderboard and send my $ARB bounty! 💸\n\nThink you can beat my attempts? 👇\n${GAME_URL}`;
+            let triesNum = tries + 1;
+            let triesText = triesNum === 1 ? "1 attempt" : `${triesNum} attempts`;
+            let userTag = window.fcUsername ? `@${window.fcUsername}` : "I";
+            
+            const text = `🔥 THE "99% WILL FAIL" CHALLENGE 🔥\n\n${userTag} just survived Level ${lastClearedLevel} of GeoDash! Took me ${triesText}... reflexes are god-tier. 🎮🏆\n\n@tokiyo Check my bounty on the on-chain leaderboard! 💸\n\nThink you can beat my score? 👇\n${GAME_URL}`;
             openCast(text);
         };
 
@@ -2350,50 +2379,30 @@ function triggerWinUi(tries) {
 </script>
 
 <script>
-// ✅ SAME CONTRACT AS THE WORKING LIVE GAME (devellevel01.html)
-const CONTRACT_ADDRESS = "0x6b9a723c1632B6394bBf2997E9667C9E87235412";
+// ✅ V9 HYBRID SMART CONTRACT INTEGRATION
+const CONTRACT_ADDRESS = "0x0C2c9dd1001a8ee6e329d972D0Ba6546db92d6d7";
 
 const ABI = [
     "function startLevel(uint256 level) external",
-    "function levelComplete(uint256 level, uint256 score) external",
     "function saveLevelClear(uint256 level, bool isDevilGame) external",
     "function spin() external",
     "function claimReward() external",
-    "function getLeaderboard() external view returns (address[10] memory, uint256[10] memory, uint256[10] memory)",
     "function getGeoLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
     "function getDevilLeaderboard() external view returns (address[15] memory, uint256[15] memory, uint256[15] memory)",
-    "function getSpinStatus(address player) external view returns (uint256, uint256, bool, uint256)",
     "function lastSpinTime(address) external view returns (uint256)",
     "function whitelistRewards(address) external view returns (uint256)",
-    "function players(address) external view returns (uint256, uint256, uint256, uint256, uint256)"
+    "function getArbBalance() external view returns (uint256)",
+    "function spinMinReward() view returns (uint256)",
+    "function spinMaxReward() view returns (uint256)"
 ];
 
 // ─────────────────────────────────────────────────────────────
-// NOTE: This contract pays prizes in NATIVE ETH on Arbitrum.
-// The 'ARB' label is the game branding. Prizes sent as ETH.
+// NOTE: This contract pays prizes in NATIVE ARB on Arbitrum.
+// The 'ARB' label is the game branding.
 // ─────────────────────────────────────────────────────────────
 
-async function checkContractArbBalance() {
-    try {
-        const balance = await publicProvider.getBalance(CONTRACT_ADDRESS);
-        const ethAmt = parseFloat(ethers.utils.formatEther(balance));
-        const el = document.getElementById('contractBalanceDisplay');
-        if (el) {
-            if (ethAmt < 0.005) {
-                el.innerHTML = `⚠️ Prize Pool: <span style="color:#ff3060;font-weight:bold">${ethAmt.toFixed(4)} ETH</span> — Low! Admin needs to add funds.`;
-            } else {
-                el.innerHTML = `✅ Prize Pool: <span style="color:#00ff88;font-weight:bold">${ethAmt.toFixed(4)} ETH</span> — Prizes Ready!`;
-            }
-        }
-        return ethAmt;
-    } catch(e) {
-        const el = document.getElementById('contractBalanceDisplay');
-        if (el) el.innerHTML = `⚠️ Could not load prize pool balance.`;
-        return -1;
-    }
-}
 
-window.isTxActive = false; // GLOBAL LOCK TO PREVENT UI FREEZES
+
 let userAddress = null; 
 let isConnected = false; 
 let isFarcasterWallet = false; 
@@ -2476,6 +2485,9 @@ function openCast(text){
 window.addEventListener('load', () => {
     document.getElementById('practiceBtn').addEventListener('click', () => { ge.start(false); });
     document.getElementById('officialRunBtn').addEventListener('click', startOfficialRun);
+    document.getElementById('rotateBtn').addEventListener('click', () => {
+        showToast("🚀 Coming Soon! Turn on notifications to experience DEVIL MODE with exciting bounty rewards! 🔥👿", "var(--cyan)");
+    });
     document.getElementById('overlayBtn').addEventListener('click', () => { 
         document.getElementById('overlay').style.display='none'; 
         ge.state='IDLE'; 
@@ -2506,9 +2518,7 @@ window.addEventListener('load', () => {
 
     buildLevelUI(); 
     fetchGlobalLeaderboard();
-    
-    // Check contract ARB balance on load
-    checkContractArbBalance();
+
     
     setTimeout(async()=>{
         if(await detectWallet()){
@@ -2524,7 +2534,6 @@ async function startOfficialRun(){
     const btn = document.getElementById('officialRunBtn');
     
     if(!isConnected){ if(!await connectWallet(true)) return; }
-    if(window.isTxActive) { showToast("⏳ Please wait for current transaction to finish...", "#ffd700"); return; }
     
     let maxOnchain = window.unlockedLevels ? Math.max(...Array.from(window.unlockedLevels)) : 1;
     if(ge.currentLevel > maxOnchain) {
@@ -2536,16 +2545,20 @@ async function startOfficialRun(){
     
     if(ge.official && ge.state === 'PLAYING'){ showToast("Run active!", "#ffd700"); return; }
 
-    window.isTxActive = true;
     btn.disabled = true;
-    btn.innerText = "⏳ CONFIRMING...";
+    btn.innerText = "⏳ CONFIRMING TX...";
+    showToast("📝 Confirm startLevel() in your wallet...", "#ffd700");
 
     try {
         const iface = new ethers.utils.Interface(ABI);
         const data = iface.encodeFunctionData("startLevel", [Number(ge.currentLevel)]);
 
-        // Fast network switch attempt without artificial 2.5s delay
-        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
+        try { 
+            await Promise.race([
+                walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+            ]);
+        } catch(e) { }
 
         const txHash = await walletProvider.request({ 
             method: 'eth_sendTransaction', 
@@ -2556,115 +2569,132 @@ async function startOfficialRun(){
         document.getElementById('attemptUI').innerText=`Attempt: 0`;
         btn.innerText = "💎 OFFICIAL RUN ACTIVE";
         ge.start(true);
-        showToast("⛏️ Mining on-chain...", "#ffd700");
 
-        // Faster background polling
+        showToast("⛏️ Tx Mining in background...", "#ffd700");
+
         let confirmed = false;
-        for(let i=0; i<15; i++){
-            await new Promise(r=>setTimeout(r,1000));
+        for(let i=0; i<20; i++){
+            await new Promise(r=>setTimeout(r,1500));
             try {
                 const receipt = await publicProvider.getTransactionReceipt(txHash);
                 if(receipt && receipt.confirmations > 0){ confirmed=true; break; }
             } catch(err){}
         }
 
-        if(confirmed) showToast("✅ Level registered on-chain!", "#00ff88");
-        window.isTxActive = false;
-
+        if(confirmed) {
+            showToast("✅ Level registered on-chain!", "#00ff88");
+        } else {
+            showToast("⚠️ Transaction still processing...", "#ffd700");
+        }
     } catch(e) {
-        window.isTxActive = false;
+        console.error("startLevel error:", e);
+        if(e.code === 4001 || (e.message && e.message.includes("rejected"))){
+            showToast("Transaction rejected by user.", "#ff3060");
+        } else {
+            showToast("startLevel failed: " + (e.reason || e.message || "Unknown"), "#ff3060");
+        }
         btn.disabled = false;
         btn.innerText = "💎 OFFICIAL ON-CHAIN RUN";
-        if(e.code === 4001 || (e.message && e.message.includes("rejected"))){
-            showToast("❌ Transaction rejected.", "#ff3060");
-        } else {
-            showToast("❌ Start failed. Try again.", "#ff3060");
-        }
     }
 }
 
 async function executeSpin(){
     const btn = document.getElementById('spinBtn'); 
     document.getElementById('spinCastBtn').style.display = 'none'; 
-    
     if(!isConnected) { if(!await connectWallet(true)) return; }
-    if(window.isTxActive) { showToast("⏳ Please wait for current transaction...", "red"); return; }
-    if (!spinStatus.hasFree) { showToast("❌ No spin available! Wait for cooldown.", "red"); return; }
     
-    window.isTxActive = true;
+    if (!spinStatus.hasFree) { showToast("No spin available! Wait for cooldown.", "red"); return; }
+    
+    try { 
+        await Promise.race([
+            walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2500))
+        ]);
+    } catch(e) { console.log("Proceeding to tx..."); }
+    
     btn.disabled=true;
-    
     document.getElementById('r1').className='reel-inner spinning'; 
     document.getElementById('r2').className='reel-inner spinning'; 
     document.getElementById('r3').className='reel-inner spinning';
-    document.getElementById('spinResult').innerText = "Confirming in wallet..."; 
+    document.getElementById('spinResult').innerText = "Spinning... Please confirm TX!"; 
     document.getElementById('spinResult').style.color = "#ffd700";
 
-    try{
-        try { await walletProvider.request({method: 'wallet_switchEthereumChain', params: [{chainId: '0xa4b1'}]}); } catch(e) {}
-        
-        const iface = new ethers.utils.Interface(ABI); 
-        const data = iface.encodeFunctionData("spin", []);
-        const txHash = await walletProvider.request({ 
-            method: 'eth_sendTransaction', 
-            params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
-        });
-        
-        document.getElementById('spinResult').innerText = "Mining on Arbitrum...";
-        
-        let isConfirmed = false;
-        for(let i=0; i<15; i++) { 
-            await new Promise(r => setTimeout(r, 1000)); 
-            try { 
-                const receipt = await publicProvider.getTransactionReceipt(txHash); 
-                if(receipt && receipt.confirmations > 0) { 
-                    isConfirmed = true;
-                    if(receipt.status === 0) {
-                        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
-                        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
-                        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-                        showToast("❌ Spin failed on-chain!", "#ff3060");
-                        document.getElementById('spinResult').innerText = "❌ TX Reverted — Contract empty or cooldown active!";
-                        document.getElementById('spinResult').style.color = "#ff3060";
-                        refreshSpinStatus(); 
-                        btn.disabled = false; 
-                        window.isTxActive = false;
-                        return;
-                    }
-                    break; 
-                } 
-            } catch(err){} 
+    // ✅ FIXED: 100ms delay like devellevel01.html (not 1500ms)
+    setTimeout(async () => {
+        try{
+            const iface = new ethers.utils.Interface(ABI); 
+            const data = iface.encodeFunctionData("spin", []);
+            const txHash = await walletProvider.request({ 
+                method: 'eth_sendTransaction', 
+                params: [{ to: CONTRACT_ADDRESS, from: userAddress, data: data, chainId: '0xa4b1' }] 
+            });
+            
+            document.getElementById('spinResult').innerText = "Mining on Arbitrum (Takes 5-10s)...";
+            
+            let isConfirmed = false;
+            for(let i=0; i<15; i++) { 
+                await new Promise(r => setTimeout(r, 2000)); 
+                try { 
+                    const receipt = await publicProvider.getTransactionReceipt(txHash); 
+                    if(receipt && receipt.confirmations > 0) { 
+                        isConfirmed = true;
+                        // Check if tx reverted on-chain
+                        if(receipt.status === 0) {
+                            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+                            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+                            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+                            showToast("❌ Spin failed on-chain! Contract may be empty or cooldown active.", "#ff3060");
+                            document.getElementById('spinResult').innerText = "❌ TX Reverted — Contract empty or cooldown not passed!";
+                            document.getElementById('spinResult').style.color = "#ff3060";
+                            refreshSpinStatus();
+                            btn.disabled = false;
+                            return;
+                        }
+                        break; 
+                    } 
+                } catch(err){} 
+            }
+            
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
+            
+            if(isConfirmed) { 
+                showToast("🎉 Spin Successful! Prize sent to wallet!", "#00ff88"); 
+                document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! Check Wallet! 🎉"; 
+                document.getElementById('spinResult').style.color = "#00ff88"; 
+                document.getElementById('spinCastBtn').style.display = 'inline-block'; 
+                
+                localSpins++; 
+                localStorage.setItem('geodash_spins', localSpins); 
+                buildLevelUI(); 
+            } else { 
+                document.getElementById('r1').innerText='❌'; 
+                document.getElementById('r2').innerText='❌'; 
+                document.getElementById('r3').innerText='❌'; 
+                showToast("Transaction Delayed. Check Arbiscan.", "#ff3060"); 
+                document.getElementById('spinResult').innerText="Tx not confirmed yet. Check Arbiscan!"; 
+                document.getElementById('spinResult').style.color = "#ff3060"; 
+            }
+            refreshSpinStatus(); 
+            fetchPersonalStats(); 
+            fetchGlobalLeaderboard();
+        }catch(e){
+            btn.disabled = false; 
+            document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
+            document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
+            document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
+            
+            let errStr = "Spin Cancelled"; 
+            if (e.message && e.message.includes("No state changes")) errStr = "Contract Empty or Spin Not Ready!"; 
+            else if (e.message && (e.message.includes("rejected") || e.code === 4001)) errStr = "Transaction rejected.";
+            else if (e.message) errStr = "Tx Cancelled: " + e.message.slice(0,60);
+            
+            showToast(errStr, "red"); 
+            document.getElementById('spinResult').innerText = errStr; 
+            document.getElementById('spinResult').style.color = "#ff3060";
         }
-        
-        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='💎'; 
-        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='💎'; 
-        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='💎';
-        
-        if(isConfirmed) { 
-            document.getElementById('spinResult').innerText="🎉 PRIZE CLAIMED! 🎉"; 
-            document.getElementById('spinResult').style.color = "#00ff88"; 
-            document.getElementById('spinCastBtn').style.display = 'inline-block'; 
-            localSpins++; localStorage.setItem('geodash_spins', localSpins); buildLevelUI(); 
-        } else { 
-            document.getElementById('r1').innerText='❌'; document.getElementById('r2').innerText='❌'; document.getElementById('r3').innerText='❌'; 
-            document.getElementById('spinResult').innerText="Tx delayed. Check Arbiscan!"; 
-            document.getElementById('spinResult').style.color = "#ff3060"; 
-        }
-        
-        // Save local time to fix UI load delay next time
-        localStorage.setItem('last_spin_time', Math.floor(Date.now() / 1000));
-        refreshSpinStatus(); fetchPersonalStats(); fetchGlobalLeaderboard();
-        window.isTxActive = false;
-
-    }catch(e){
-        window.isTxActive = false;
-        btn.disabled = false; 
-        document.getElementById('r1').className='reel-inner'; document.getElementById('r1').innerText='❌'; 
-        document.getElementById('r2').className='reel-inner'; document.getElementById('r2').innerText='❌'; 
-        document.getElementById('r3').className='reel-inner'; document.getElementById('r3').innerText='❌';
-        document.getElementById('spinResult').innerText = "❌ Tx Cancelled"; 
-        document.getElementById('spinResult').style.color = "#ff3060";
-    }
+    }, 100);  // ✅ 100ms like devellevel01.html
 }
 
 function buildLevelUI(){
@@ -2764,20 +2794,10 @@ function updateSpinUI() {
 
 async function refreshSpinStatus(){
     if(!userAddress) return;
-    
-    // OPTIMISTIC UI: Instantly check local storage to remove the 4-second block delay
-    const lastLocalSpin = parseInt(localStorage.getItem('last_spin_time') || '0');
-    const nowUnix = Math.floor(Date.now() / 1000);
-    if (nowUnix - lastLocalSpin >= 3600) {
-        spinStatus.hasFree = true;
-        spinStatus.timeLeft = 0;
-        updateSpinUI();
-    }
-
     try{ 
-        // Verify with blockchain in background
         const lsTime = await readContract.lastSpinTime(userAddress);
         const lastSpinUnix = lsTime.toNumber();
+        const nowUnix = Math.floor(Date.now() / 1000);
         const timePassed = nowUnix - lastSpinUnix;
         
         if (lastSpinUnix === 0 || timePassed >= 3600) {
@@ -2786,7 +2806,6 @@ async function refreshSpinStatus(){
         } else {
             spinStatus.hasFree = false;
             spinStatus.timeLeft = 3600 - timePassed;
-            localStorage.setItem('last_spin_time', lastSpinUnix); // Keep local storage in sync
         }
         updateSpinUI(); 
     }catch(e){
